@@ -200,6 +200,36 @@ body {
 .audio-toggle svg { width: 16px; height: 16px; fill: var(--osso); }
 .audio-toggle.playing { background: var(--pimenta); border-color: var(--pimenta); }
 .audio-toggle.playing svg { fill: var(--osso); }
+.audio-toggle.hint {
+  border-color: var(--pimenta);
+  box-shadow: 0 0 0 0 rgba(198, 59, 46, 0.6);
+  animation: hintPulse 1.8s ease-out infinite;
+}
+.audio-toggle.hint::after {
+  content: 'CLIQUE PRA OUVIR';
+  position: absolute;
+  right: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.25em;
+  color: var(--osso);
+  background: var(--pimenta);
+  padding: 6px 10px;
+  border-radius: 3px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0.92;
+}
+@keyframes hintPulse {
+  0% { box-shadow: 0 0 0 0 rgba(198, 59, 46, 0.55); }
+  70% { box-shadow: 0 0 0 14px rgba(198, 59, 46, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(198, 59, 46, 0); }
+}
+@media (max-width: 640px) {
+  .audio-toggle.hint::after { display: none; }
+}
 .audio-bars {
   display: none;
   gap: 2px;
@@ -1277,6 +1307,128 @@ p.body { color: var(--areia); font-size: 16px; }
   font-style: normal;
 }
 
+/* CAFÉ ESSENCE — mockup da embalagem + manifesto */
+.cafe-essence {
+  margin-top: 80px;
+  padding: 64px 56px;
+  background: var(--musgo-soft);
+  border: 1px solid rgba(168,164,154,0.18);
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+  z-index: 2;
+}
+.cafe-essence::before {
+  content: '';
+  position: absolute;
+  width: 480px; height: 480px;
+  background: radial-gradient(circle, var(--pimenta-glow) 0%, transparent 70%);
+  top: -240px; left: -120px;
+  filter: blur(80px);
+  pointer-events: none;
+}
+.cafe-essence-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.45em;
+  text-transform: uppercase;
+  color: var(--pimenta);
+  margin-bottom: 32px;
+  position: relative;
+  z-index: 2;
+}
+.cafe-essence-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: 56px;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+.cafe-essence-image {
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 30px 70px rgba(0,0,0,0.45);
+  position: relative;
+  background: #1f211a;
+}
+.cafe-essence-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 1.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.cafe-essence-image:hover img { transform: scale(1.02); }
+.cafe-essence-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(28px, 3.4vw, 42px);
+  font-weight: 400;
+  line-height: 1.08;
+  color: var(--osso);
+  margin-bottom: 22px;
+  letter-spacing: -0.01em;
+}
+.cafe-essence-title .it { font-style: italic; color: var(--pimenta); }
+.cafe-essence-manifesto {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(18px, 1.5vw, 22px);
+  line-height: 1.55;
+  color: var(--areia);
+  margin-bottom: 22px;
+  font-style: italic;
+}
+.cafe-essence-manifesto strong { color: var(--osso); font-weight: 500; font-style: normal; }
+.cafe-essence-highlight {
+  display: inline-block;
+  margin-top: 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.35em;
+  color: var(--pimenta);
+  font-style: normal;
+  text-transform: uppercase;
+}
+.cafe-essence-prose {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--cimento);
+  margin-bottom: 28px;
+}
+.cafe-essence-prose strong { color: var(--osso); font-weight: 500; }
+.cafe-specs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 28px;
+  border-top: 1px solid rgba(168,164,154,0.18);
+  padding-top: 24px;
+}
+.cafe-spec {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cafe-spec-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(168,164,154,0.7);
+}
+.cafe-spec-value {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: var(--osso);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+@media (max-width: 900px) {
+  .cafe-essence { padding: 44px 28px; }
+  .cafe-essence-grid { grid-template-columns: 1fr; gap: 36px; }
+}
+@media (max-width: 600px) {
+  .cafe-specs { grid-template-columns: 1fr; gap: 12px; }
+}
+
 /* TAGLINE: De Mel a Ouro */
 .mel-ouro-tagline {
   margin: 80px 0 48px;
@@ -1330,6 +1482,221 @@ p.body { color: var(--areia); font-size: 16px; }
 @media (max-width: 700px) {
   .mel-ouro-tagline { flex-direction: column; gap: 16px; margin: 60px 0 40px; }
   .mel-ouro-line { width: 60px; flex: none; }
+}
+
+/* ============================================================
+   18. SECTION SCALE — venda online + escala nacional
+============================================================ */
+.section-scale {
+  background: var(--osso);
+  color: var(--musgo);
+  position: relative;
+  overflow: hidden;
+}
+.section-scale::before {
+  content: '';
+  position: absolute;
+  width: 720px; height: 720px;
+  background: radial-gradient(circle, rgba(198, 59, 46, 0.08) 0%, transparent 70%);
+  top: -240px; right: -200px;
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+}
+.section-scale .eyebrow { color: var(--pimenta); position: relative; z-index: 2; }
+.scale-headline {
+  position: relative;
+  z-index: 2;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(40px, 6.5vw, 92px);
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  color: var(--musgo);
+  margin: 12px 0 36px;
+  max-width: 1200px;
+}
+.scale-headline .it { font-style: italic; color: var(--pimenta); }
+.scale-headline .light { color: var(--cimento); }
+.scale-lead {
+  position: relative;
+  z-index: 2;
+  max-width: 880px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(20px, 2vw, 28px);
+  line-height: 1.5;
+  color: var(--musgo-soft);
+  margin-bottom: 80px;
+  font-style: italic;
+}
+.scale-lead strong { color: var(--musgo); font-weight: 500; font-style: normal; }
+.scale-prose {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 48px 64px;
+  margin-bottom: 80px;
+  max-width: 1320px;
+}
+.scale-prose-block {
+  position: relative;
+}
+.scale-prose-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--pimenta);
+  margin-bottom: 16px;
+}
+.scale-prose-block h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(24px, 2.4vw, 32px);
+  font-weight: 400;
+  line-height: 1.15;
+  color: var(--musgo);
+  margin-bottom: 16px;
+  letter-spacing: -0.01em;
+}
+.scale-prose-block h3 .it { font-style: italic; color: var(--pimenta); }
+.scale-prose-block p {
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--musgo-soft);
+  margin-bottom: 14px;
+}
+.scale-prose-block p strong { color: var(--musgo); font-weight: 500; }
+@media (max-width: 900px) {
+  .scale-prose { grid-template-columns: 1fr; gap: 36px; margin-bottom: 60px; }
+}
+.scale-grid {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 80px;
+}
+.scale-card {
+  background: var(--osso-warm, #f3eee2);
+  border: 1px solid rgba(45, 48, 39, 0.08);
+  padding: 36px 28px 32px;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.5s;
+}
+.scale-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 50px rgba(45, 48, 39, 0.12);
+}
+.scale-card-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--pimenta);
+  margin-bottom: 12px;
+}
+.scale-card-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(36px, 4vw, 52px);
+  font-weight: 400;
+  line-height: 1;
+  color: var(--musgo);
+  margin-bottom: 16px;
+  letter-spacing: -0.02em;
+}
+.scale-card-num .it { font-style: italic; color: var(--pimenta); }
+.scale-card-num .small { font-size: 0.5em; color: var(--cimento); letter-spacing: 0; vertical-align: middle; }
+.scale-card h4 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--musgo);
+  margin-bottom: 8px;
+  line-height: 1.2;
+}
+.scale-card p {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--musgo-soft);
+}
+@media (max-width: 1000px) {
+  .scale-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .scale-grid { grid-template-columns: 1fr; }
+}
+.scale-products {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 80px;
+  max-width: 1100px;
+}
+.scale-product {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--musgo);
+  padding: 10px 18px;
+  border: 1px solid rgba(45, 48, 39, 0.18);
+  border-radius: 100px;
+  background: rgba(255,255,255,0.4);
+  transition: all 0.3s;
+}
+.scale-product:hover {
+  background: var(--pimenta);
+  color: var(--osso);
+  border-color: var(--pimenta);
+}
+.scale-finale {
+  position: relative;
+  z-index: 2;
+  margin-top: 48px;
+  padding: 64px 56px;
+  background: var(--musgo);
+  color: var(--osso);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.scale-finale::before {
+  content: '';
+  position: absolute;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, var(--pimenta-glow) 0%, transparent 70%);
+  bottom: -250px; right: -150px;
+  filter: blur(60px);
+  pointer-events: none;
+}
+.scale-finale-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.45em;
+  text-transform: uppercase;
+  color: var(--pimenta);
+  margin-bottom: 18px;
+  position: relative;
+  z-index: 2;
+}
+.scale-finale-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(28px, 4vw, 56px);
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  position: relative;
+  z-index: 2;
+}
+.scale-finale-text .it { font-style: italic; color: var(--pimenta); }
+.scale-finale-text .light { color: var(--cimento); }
+@media (max-width: 700px) {
+  .scale-finale { padding: 44px 28px; }
 }
 
 /* ============================================================
@@ -3065,9 +3432,9 @@ p.body { color: var(--areia); font-size: 16px; }
       <p class="case-text">Vendemos <strong>R$ 7 milhões em 9 meses</strong> em uma loja online de relógios. A gente sabe escalar venda — e sabe quando segurar pra não estourar a operação.</p>
     </div>
     <div class="case tilt">
-      <div class="case-num" data-target="12" data-suffix=" meses" data-prefix="+">+0 meses</div>
+      <div class="case-num" data-target="24" data-suffix=" meses" data-prefix="+">+0 meses</div>
       <div class="case-label">SURFLAND · GAROPABA</div>
-      <p class="case-text">Mais de um ano trabalhando dentro da Surfland. <strong>Conhecemos Garopaba por dentro</strong> — quem manda, quem compra, onde o turista anda. Isso não se ensina, se vive.</p>
+      <p class="case-text">Dois anos trabalhando dentro da Surfland. <strong>Conhecemos Garopaba por dentro</strong> — quem manda, quem compra, onde o turista anda. Isso não se ensina, se vive.</p>
     </div>
   </div>
 </section>
@@ -3192,6 +3559,34 @@ p.body { color: var(--areia); font-size: 16px; }
     <div class="mel-ouro-line"></div>
   </div>
 
+  <!-- CAFÉ ESSENCE — mockup da embalagem + identidade -->
+  <div class="cafe-essence reveal">
+    <div class="cafe-essence-tag">A IDENTIDADE COMEÇA NO CAFÉ</div>
+    <div class="cafe-essence-grid">
+      <div class="cafe-essence-image">
+        <img src="cafe-mockup.png" alt="Embalagem HERA · Café de Garopaba — mockup da identidade visual" loading="lazy">
+      </div>
+      <div class="cafe-essence-text">
+        <h3 class="cafe-essence-title">O <span class="it">café</span> que abre cada manhã.</h3>
+        <p class="cafe-essence-manifesto">
+          Do <strong>mar à montanha</strong>.
+          Da <strong>natureza ao encontro</strong>.
+          Café que carrega a essência <em>do que é simples e verdadeiro</em>.
+          <span class="cafe-essence-highlight">Feito aqui · Para aqui</span>
+        </p>
+        <p class="cafe-essence-prose">Não é só o café que toma na praia depois do mergulho — é o café que volta pra comprar em grão pra levar pra casa. <strong>Embalagem que parece presente</strong>, ilustração feita à mão, identidade que começa no detalhe e termina no copo. A embalagem já conta a história antes do primeiro gole: o mar, as montanhas, o vilarejo. Isso é assinatura, não commodity — e é o que a gente leva pra prateleira de cada cliente.</p>
+        <div class="cafe-specs">
+          <div class="cafe-spec"><span class="cafe-spec-label">Origem</span><span class="cafe-spec-value">Sul de Minas</span></div>
+          <div class="cafe-spec"><span class="cafe-spec-label">Variedade</span><span class="cafe-spec-value">Catuaí Vermelho</span></div>
+          <div class="cafe-spec"><span class="cafe-spec-label">Processo</span><span class="cafe-spec-value">Natural</span></div>
+          <div class="cafe-spec"><span class="cafe-spec-label">Altitude</span><span class="cafe-spec-value">800 — 1.100m</span></div>
+          <div class="cafe-spec"><span class="cafe-spec-label">Torra</span><span class="cafe-spec-value">Média · 100% Arábica</span></div>
+          <div class="cafe-spec"><span class="cafe-spec-label">Notas</span><span class="cafe-spec-value">Chocolate amargo · Nozes · Caramelo</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- KITS MENSAIS — adição -->
   <div class="kits-banner reveal">
     <div class="kits-tag">UMA IDEIA EXTRA · ASSINATURA DA HERA</div>
@@ -3216,6 +3611,107 @@ p.body { color: var(--areia); font-size: 16px; }
     <div class="hypothesis-text">
       <span class="nb">3 de cada 4 reais vão vir da prateleira.</span> Só 1 do café e da focaccia.<br>
       Esse é o pulo do gato — vende mais, contrata menos, escala melhor.
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+   02 · B — SECTION SCALE (venda online + escala nacional)
+============================================================ -->
+<section class="section-scale" data-section="scale">
+  <div class="section-index tl">02 · B</div>
+  <div class="eyebrow reveal">02 · B · O SEGUNDO MOTOR DO NEGÓCIO</div>
+
+  <h1 class="scale-headline reveal">
+    A HERA cabe numa <span class="it">caixa</span>.<br>
+    E essa caixa pode chegar em <span class="it">qualquer canto</span> do Brasil.
+  </h1>
+
+  <p class="scale-lead reveal">
+    A loja física é onde a marca <strong>acontece</strong> — onde o cliente sente o cheiro do café, encosta a mão na geleia, conversa com quem fez. O site é onde ela <strong>continua acontecendo</strong> — depois que ele já voltou pra casa, depois que o verão acabou, depois que a viagem virou saudade.
+  </p>
+
+  <div class="scale-prose">
+    <div class="scale-prose-block reveal">
+      <div class="scale-prose-tag">A LÓGICA DO PRODUTO</div>
+      <h3>O que sai daqui <span class="it">viaja bem</span>.</h3>
+      <p>Tem uma coisa simples e poderosa nessa história: <strong>tudo que a HERA produz aguenta o caminhão pegando estrada</strong>. Café em grão dura meses. Geleia, conserva, molho fermentado, granola, tempero — tudo isso é prateleira longa, embalagem firme, ticket bom. O cliente prova num fim de semana em Garopaba, leva um pote pra casa, esvazia em duas semanas, e abre o celular pra comprar de novo.</p>
+      <p>Não é loja online <em>de roupa</em> — onde o cliente compra uma vez por temporada. É loja online <em>de despensa</em>: o cliente compra uma vez por mês, todo mês, pelo resto da vida.</p>
+    </div>
+
+    <div class="scale-prose-block reveal">
+      <div class="scale-prose-tag">A LÓGICA DA OPERAÇÃO</div>
+      <h3>Uma cozinha. Um <span class="it">site</span>. O Brasil inteiro.</h3>
+      <p>Esse é o segundo motor do negócio — o que a gente chama internamente de <strong>"a marca depois da loja"</strong>. Enquanto o ponto físico paga aluguel, gera vivência e constrói reputação, o e-commerce fatura sem fila, sem horário, sem turista. É margem alta, recorrência fácil, e cresce sem inaugurar metro quadrado.</p>
+      <p>A mesma cozinha central que abastece <strong>6 lojas em Santa Catarina</strong> abastece <strong>6 mil pedidos online por mês</strong>. O custo fixo não muda. O que muda é o tamanho da audiência que prova o produto.</p>
+    </div>
+  </div>
+
+  <div class="scale-grid reveal-stagger">
+    <div class="scale-card tilt">
+      <div class="scale-card-tag">CAPILARIDADE</div>
+      <div class="scale-card-num"><span class="it">1</span> <span class="small">cozinha</span><br>+<br><span class="it">1</span> <span class="small">site</span></div>
+      <h4>Brasil inteiro sem abrir loja</h4>
+      <p>A operação central já existe. O site só amplia o alcance — sem CAPEX adicional, sem ponto novo, sem equipe extra na ponta.</p>
+    </div>
+    <div class="scale-card tilt">
+      <div class="scale-card-tag">PRATELEIRA LONGA</div>
+      <div class="scale-card-num">até <span class="it">8</span><span class="small"> meses</span></div>
+      <h4>Validade que viaja</h4>
+      <p>Café, geleia, molho, conserva, granola, tempero. Produto que aguenta caminhão, estoque e fila de pedido sem perder qualidade.</p>
+    </div>
+    <div class="scale-card tilt">
+      <div class="scale-card-tag">RECORRÊNCIA</div>
+      <div class="scale-card-num">R$ <span class="it">79</span> <span class="small">/mês</span></div>
+      <h4>Assinatura mensal previsível</h4>
+      <p>Caixa curada que chega todo mês na casa do cliente. Receita recorrente, fideliza fora da loja, vira até presente corporativo.</p>
+    </div>
+    <div class="scale-card tilt">
+      <div class="scale-card-tag">TICKET ONLINE</div>
+      <div class="scale-card-num"><span class="it">+40%</span></div>
+      <h4>Maior que o da loja</h4>
+      <p>Kit-presente, edição sazonal, frete amortizado em compra maior. Online, ninguém compra um item — compra o ritual inteiro.</p>
+    </div>
+    <div class="scale-card tilt">
+      <div class="scale-card-tag">CAC</div>
+      <div class="scale-card-num">cai com <span class="it">tempo</span></div>
+      <h4>O turista que provou volta de graça</h4>
+      <p>Quem comeu na loja em Garopaba é o cliente mais barato de reativar. Cada verão alimenta os outros 11 meses.</p>
+    </div>
+    <div class="scale-card tilt">
+      <div class="scale-card-tag">MARGEM</div>
+      <div class="scale-card-num"><span class="it">2x</span> <span class="small">a da loja</span></div>
+      <h4>Sem aluguel, sem garçom</h4>
+      <p>Online não tem casa, não tem mesa, não tem hora de almoço cheia. Tudo que entra de venda passa direto pro lucro operacional.</p>
+    </div>
+  </div>
+
+  <div class="reveal" style="position: relative; z-index: 2; max-width: 1100px; margin-bottom: 28px;">
+    <div class="scale-prose-tag" style="margin-bottom: 18px;">O QUE A HERA VENDE PRO BRASIL TODO</div>
+    <div class="scale-products">
+      <div class="scale-product">Café em grão</div>
+      <div class="scale-product">Café em cápsula</div>
+      <div class="scale-product">Geleia artesanal</div>
+      <div class="scale-product">Molho autoral</div>
+      <div class="scale-product">Conserva</div>
+      <div class="scale-product">Granola</div>
+      <div class="scale-product">Mel da estação</div>
+      <div class="scale-product">Tempero seco</div>
+      <div class="scale-product">Pão congelado</div>
+      <div class="scale-product">Massa fresca</div>
+      <div class="scale-product">Doce de pote</div>
+      <div class="scale-product">Kit assinatura</div>
+      <div class="scale-product">Edição limitada</div>
+      <div class="scale-product">Caixa corporativa</div>
+    </div>
+  </div>
+
+  <div class="scale-finale reveal">
+    <div class="scale-finale-tag">A FRASE QUE GUIA TUDO</div>
+    <div class="scale-finale-text">
+      A loja é onde a HERA <span class="it">encanta</span>.<br>
+      O site é onde ela <span class="it">escala</span>.<br>
+      <span class="light">— e uma coisa não vive sem a outra.</span>
     </div>
   </div>
 </section>
@@ -4112,10 +4608,11 @@ p.body { color: var(--areia); font-size: 16px; }
   <button class="cta-button reveal" id="ctaButton">VAMOS MARCAR A REUNIÃO</button>
 
   <div class="closing-meta reveal">CONFIDENCIAL · MAIO 2026</div>
+  <div class="closing-meta reveal" style="margin-top:8px; opacity:0.55; font-size:9px;">trilha · "Jazzy Frenchy" by Bensound · uso licenciado</div>
 </section>
 
 <!-- AUDIO -->
-<audio id="ambientAudio" src="cafe-ambient.mp3" preload="auto" loop crossorigin="anonymous"></audio>
+<audio id="ambientAudio" src="cafe-music.mp3" preload="auto" loop playsinline></audio>
 
 <script>
 // === Imagens embarcadas em base64 ===
@@ -4194,6 +4691,7 @@ const sectionLabels = {
   reading: '· LEMOS SEU MATERIAL',
   phrase1: '·',
   concept: '02 · O QUE É',
+  scale: '02·B · ESCALA NACIONAL',
   pin: '· COMO CRESCE',
   phrase2: '·',
   reality: '03 · ANTES DE ABRIR',
@@ -4376,17 +4874,20 @@ window.addEventListener('scroll', () => {
 });
 
 /* =====================================================
-   11. AUDIO TOGGLE (player de ambiente real - cafe)
+   11. AUDIO PLAYER — trilha "Jazzy Frenchy" (Bensound)
+   Tenta autoplay com som; se navegador bloquear,
+   começa mudo e dá fade-in na primeira interação.
 ===================================================== */
 const audioToggle = document.getElementById('audioToggle');
 const ambientAudio = document.getElementById('ambientAudio');
-const TARGET_VOLUME = 0.45;
-const FADE_MS = 800;
+const TARGET_VOLUME = 0.32;
+const FADE_MS = 1400;
 let ambientPlaying = false;
 let fadeRAF = null;
+let userKickStarted = false;
 
-ambientAudio.volume = 0;
 ambientAudio.loop = true;
+ambientAudio.volume = 0;
 
 function fadeAudio(toVolume, duration, onDone) {
   if (fadeRAF) cancelAnimationFrame(fadeRAF);
@@ -4407,35 +4908,64 @@ function fadeAudio(toVolume, duration, onDone) {
 
 async function startAmbient() {
   try {
+    ambientAudio.muted = false;
     ambientAudio.volume = 0;
     await ambientAudio.play();
     fadeAudio(TARGET_VOLUME, FADE_MS);
     ambientPlaying = true;
+    audioToggle.classList.add('playing');
+    audioToggle.classList.remove('hint');
     return true;
   } catch (err) {
-    console.warn('Falha ao iniciar áudio ambiente:', err);
-    alert('Não foi possível reproduzir o áudio. Verifique se o seu navegador permite reprodução automática.');
+    console.warn('Falha ao iniciar áudio:', err);
     return false;
   }
 }
 
 function stopAmbient() {
-  fadeAudio(0, FADE_MS, () => {
+  fadeAudio(0, FADE_MS / 2, () => {
     ambientAudio.pause();
   });
   ambientPlaying = false;
+  audioToggle.classList.remove('playing');
 }
 
 audioToggle.addEventListener('click', () => {
   if (!ambientPlaying) {
-    startAmbient().then(ok => {
-      if (ok) audioToggle.classList.add('playing');
-    });
+    startAmbient();
   } else {
     stopAmbient();
-    audioToggle.classList.remove('playing');
   }
 });
+
+// Autoplay agressivo: tenta tocar com som assim que possível.
+// Se o navegador bloquear (política de autoplay), espera a 1ª interação.
+async function attemptAutoplay() {
+  const ok = await startAmbient();
+  if (ok) return;
+
+  audioToggle.classList.add('hint');
+
+  const kickStart = async () => {
+    if (userKickStarted) return;
+    userKickStarted = true;
+    await startAmbient();
+    window.removeEventListener('pointerdown', kickStart, true);
+    window.removeEventListener('keydown', kickStart, true);
+    window.removeEventListener('touchstart', kickStart, true);
+    window.removeEventListener('scroll', kickStart, true);
+  };
+  window.addEventListener('pointerdown', kickStart, true);
+  window.addEventListener('keydown', kickStart, true);
+  window.addEventListener('touchstart', kickStart, true);
+  window.addEventListener('scroll', kickStart, true);
+}
+
+if (document.readyState === 'complete') {
+  attemptAutoplay();
+} else {
+  window.addEventListener('load', attemptAutoplay, { once: true });
+}
 
 /* =====================================================
    12. (modo leitura removido)
