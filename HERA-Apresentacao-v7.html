@@ -709,6 +709,71 @@ p.body { color: var(--areia); font-size: 16px; }
   font-family: 'JetBrains Mono', monospace;
 }
 
+/* Sumário do documento (organização das partes) */
+.doc-outline {
+  background: var(--musgo-deep);
+  color: var(--osso);
+  padding: 48px 8vw 56px;
+  border-top: 1px solid rgba(168,164,154,0.12);
+  position: relative;
+  z-index: 3;
+}
+.doc-outline-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.45em;
+  text-transform: uppercase;
+  color: var(--pimenta);
+  margin-bottom: 12px;
+}
+.doc-outline-intro {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: clamp(17px, 1.8vw, 22px);
+  color: var(--areia);
+  margin: 0 0 28px;
+  max-width: 720px;
+  line-height: 1.45;
+}
+.doc-outline-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  max-width: 1120px;
+}
+.doc-outline-grid a {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--osso);
+  text-decoration: none;
+  padding: 11px 16px;
+  border: 1px solid rgba(168,164,154,0.28);
+  border-radius: 4px;
+  transition: border-color 0.25s, background 0.25s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-sizing: border-box;
+}
+.doc-outline-grid a:hover {
+  border-color: var(--pimenta);
+  background: rgba(198, 59, 46, 0.14);
+}
+@media (max-width: 640px) {
+  .doc-outline { padding: 36px 6vw 44px; }
+  .doc-outline-grid a {
+    flex: 1 1 calc(50% - 8px);
+    text-align: center;
+    justify-content: center;
+  }
+}
+
+/* Âncoras: compensar botão de áudio fixo */
+section[id] { scroll-margin-top: 72px; }
+
 /* ============================================================
    12. EASTER EGG MESSAGE
 ============================================================ */
@@ -3450,7 +3515,7 @@ p.body { color: var(--areia); font-size: 16px; }
     <span>H</span><span>E</span><span>R</span><span>A</span><span>.</span>
   </div>
   <div class="loader-counter">CARREGANDO · <span class="loader-counter-num" id="loaderNum">000</span></div>
-  <div class="loader-meta">PLANO DE PARCERIA · v1.0</div>
+  <div class="loader-meta">PLANO DE PARCERIA · v1.1</div>
 </div>
 
 <!-- CURSOR -->
@@ -3494,7 +3559,7 @@ p.body { color: var(--areia); font-size: 16px; }
 <!-- ============================================================
    HERO
 ============================================================ -->
-<section class="hero" data-section="hero">
+<section class="hero" id="hero" data-section="hero">
   <div class="particles" id="particles"></div>
   <div class="steam" id="steam"></div>
   <div class="hero-glow"></div>
@@ -3506,10 +3571,33 @@ p.body { color: var(--areia); font-size: 16px; }
   <div class="hero-sub">PLANO DE PARCERIA · MAIO · 2026</div>
 </section>
 
+<!-- SUMÁRIO — partes do documento -->
+<section class="doc-outline" id="sumario" aria-label="Sumário do plano HERA">
+  <div class="doc-outline-tag">SUMÁRIO DO DOCUMENTO</div>
+  <p class="doc-outline-intro">Todas as partes deste plano, em ordem: contexto, modelo, escala, expansão, prazos pré-abertura, operação (cozinha, lojas, mapa), números, sociedade, marketing, perguntas, próximos passos e fechamento. Use os atalhos abaixo ou as bolhas na lateral.</p>
+  <nav class="doc-outline-grid">
+    <a href="#position">01 · Quem somos</a>
+    <a href="#reading">Material que você enviou</a>
+    <a href="#phrase1">Frase 1</a>
+    <a href="#concept">02 · O que é a HERA</a>
+    <a href="#scale">02-B · Escala nacional</a>
+    <a href="#pin">Plano de expansão</a>
+    <a href="#phrase2">Frase 2</a>
+    <a href="#reality">03 · Antes de abrir</a>
+    <a href="#structure">04 · Cozinha, lojas e mapa</a>
+    <a href="#numbers">05 · Os números</a>
+    <a href="#partnership">06 · Sociedade</a>
+    <a href="#marketing">07 · Marketing</a>
+    <a href="#dd">08 · O que precisamos saber</a>
+    <a href="#next">09 · Próximos passos</a>
+    <a href="#closing">Encerramento</a>
+  </nav>
+</section>
+
 <!-- ============================================================
    01 · POSITION
 ============================================================ -->
-<section class="section-position alt-bg" data-section="position">
+<section class="section-position alt-bg" id="position" data-section="position">
   <div class="section-index tl">01</div>
   <div class="eyebrow reveal">01 · QUEM TÁ NESSA MESA COM VOCÊ</div>
   <h1 class="display display-xl reveal">
@@ -3542,7 +3630,7 @@ p.body { color: var(--areia); font-size: 16px; }
 <!-- ============================================================
    SOBRE O MATERIAL QUE VOCÊ COMPARTILHOU
 ============================================================ -->
-<section class="section-reading" data-section="reading">
+<section class="section-reading" id="reading" data-section="reading">
   <div class="reading-glow"></div>
   <div class="section-index tr" style="color: rgba(198, 59, 46, 0.06);">·</div>
 
@@ -3607,7 +3695,7 @@ p.body { color: var(--areia); font-size: 16px; }
 </section>
 
 <!-- ZOOM PHRASE 1 -->
-<section class="zoom-phrase" style="background: var(--musgo-deep); color: var(--osso);" data-section="phrase1">
+<section class="zoom-phrase" id="phrase1" style="background: var(--musgo-deep); color: var(--osso);" data-section="phrase1">
   <div class="zoom-phrase-content">
     <span class="scroll-word">Empório</span><span class="scroll-word">bom</span><span class="scroll-word">não</span><span class="scroll-word">sobrevive</span><span class="scroll-word">só</span><span class="scroll-word">com</span><span class="scroll-word">comida</span><span class="scroll-word">gostosa.</span><span class="scroll-word it">Precisa</span><span class="scroll-word it">de</span><span class="scroll-word it">marca,</span><span class="scroll-word it">de</span><span class="scroll-word it">público,</span><span class="scroll-word it">e</span><span class="scroll-word it">de</span><span class="scroll-word it">gente</span><span class="scroll-word it">que</span><span class="scroll-word it">saiba</span><span class="scroll-word it">vender.</span>
   </div>
@@ -3616,7 +3704,7 @@ p.body { color: var(--areia); font-size: 16px; }
 <!-- ============================================================
    02 · CONCEPT
 ============================================================ -->
-<section class="section-concept" data-section="concept">
+<section class="section-concept" id="concept" data-section="concept">
   <div class="section-index tr">02</div>
   <div class="eyebrow reveal">02 · O QUE A HERA É, NA PRÁTICA</div>
   <h1 class="display display-lg reveal">
@@ -3718,7 +3806,7 @@ p.body { color: var(--areia); font-size: 16px; }
 <!-- ============================================================
    02 · B — SECTION SCALE (venda online + escala nacional)
 ============================================================ -->
-<section class="section-scale" data-section="scale">
+<section class="section-scale" id="scale" data-section="scale">
   <div class="section-index tl">02 · B</div>
   <div class="eyebrow reveal">02 · B · O SEGUNDO MOTOR DO NEGÓCIO</div>
 
@@ -3819,7 +3907,7 @@ p.body { color: var(--areia); font-size: 16px; }
 <!-- ============================================================
    PIN-LAYERS — Como crescer
 ============================================================ -->
-<section class="pin-section" data-section="pin">
+<section class="pin-section" id="pin" data-section="pin">
   <div class="pin-sticky">
     <div class="pin-content">
       <div class="pin-eyebrow">PLANO DE EXPANSÃO · DA 1ª À 6ª LOJA</div>
@@ -3850,7 +3938,7 @@ p.body { color: var(--areia); font-size: 16px; }
 </section>
 
 <!-- ZOOM PHRASE 2 -->
-<section class="zoom-phrase" style="background: var(--osso); color: var(--musgo);" data-section="phrase2">
+<section class="zoom-phrase" id="phrase2" style="background: var(--osso); color: var(--musgo);" data-section="phrase2">
   <div class="zoom-phrase-content">
     <span class="scroll-word">Quem</span><span class="scroll-word">abre</span><span class="scroll-word it">seis</span><span class="scroll-word">ao</span><span class="scroll-word">mesmo</span><span class="scroll-word">tempo,</span><span class="scroll-word">quebra</span><span class="scroll-word it">seis</span><span class="scroll-word">ao</span><span class="scroll-word">mesmo</span><span class="scroll-word">tempo.</span>
   </div>
@@ -3859,7 +3947,7 @@ p.body { color: var(--areia); font-size: 16px; }
 <!-- ============================================================
    03 · REALITY
 ============================================================ -->
-<section class="section-reality" data-section="reality">
+<section class="section-reality" id="reality" data-section="reality">
   <div class="section-index bl">03</div>
   <div class="eyebrow reveal">03 · O QUE PRECISA ACONTECER ANTES</div>
   <h1 class="display display-md reveal">Tem coisa que <span class="it">não dá</span><br>pra pular.</h1>
@@ -3980,7 +4068,7 @@ p.body { color: var(--areia); font-size: 16px; }
 <!-- ============================================================
    04 · STRUCTURE
 ============================================================ -->
-<section class="section-structure" data-section="structure">
+<section class="section-structure" id="structure" data-section="structure">
   <div class="section-index tr">04</div>
   <div class="eyebrow reveal">04 · COMO A OPERAÇÃO É MONTADA</div>
   <h1 class="display display-lg reveal">
@@ -4097,7 +4185,7 @@ p.body { color: var(--areia); font-size: 16px; }
 <!-- ============================================================
    05 · NUMBERS
 ============================================================ -->
-<section class="section-numbers" data-section="numbers">
+<section class="section-numbers" id="numbers" data-section="numbers">
   <div class="section-index bl">05</div>
   <div class="eyebrow reveal">05 · OS NÚMEROS</div>
   <h1 class="display display-lg reveal">
@@ -4393,7 +4481,7 @@ p.body { color: var(--areia); font-size: 16px; }
 <!-- ============================================================
    06 · PARTNERSHIP
 ============================================================ -->
-<section class="section-partnership" data-section="partnership">
+<section class="section-partnership" id="partnership" data-section="partnership">
   <div class="section-index tl">06</div>
   <div class="eyebrow reveal">06 · COMO A SOCIEDADE FUNCIONARIA</div>
   <h1 class="display display-lg reveal">
@@ -4466,7 +4554,7 @@ p.body { color: var(--areia); font-size: 16px; }
 <!-- ============================================================
    07 · MARKETING
 ============================================================ -->
-<section class="section-marketing" data-section="marketing">
+<section class="section-marketing" id="marketing" data-section="marketing">
   <div class="section-index tr">07</div>
   <div class="eyebrow reveal">07 · O MARKETING</div>
   <h1 class="display display-lg reveal">
@@ -4506,7 +4594,7 @@ p.body { color: var(--areia); font-size: 16px; }
 <!-- ============================================================
    08 · DUE DILIGENCE
 ============================================================ -->
-<section class="section-dd" data-section="dd">
+<section class="section-dd" id="dd" data-section="dd">
   <div class="section-index bl">08</div>
   <div class="eyebrow reveal">08 · O QUE A GENTE PRECISA SABER</div>
   <h1 class="display display-lg reveal">
@@ -4557,7 +4645,7 @@ p.body { color: var(--areia); font-size: 16px; }
 <!-- ============================================================
    09 · NEXT STEPS
 ============================================================ -->
-<section class="section-next" data-section="next">
+<section class="section-next" id="next" data-section="next">
   <div class="section-index br">09</div>
   <div class="eyebrow reveal">09 · O QUE VEM AGORA</div>
   <h1 class="display display-lg reveal">
@@ -4613,7 +4701,7 @@ p.body { color: var(--areia); font-size: 16px; }
 <!-- ============================================================
    CLOSING
 ============================================================ -->
-<section class="closing" data-section="closing">
+<section class="closing" id="closing" data-section="closing">
   <div class="closing-glow"></div>
   <div class="closing-quote reveal">
     Esse documento é <span class="nb">o começo da conversa</span>, não o fim.<br>
