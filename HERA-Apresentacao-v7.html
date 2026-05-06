@@ -4051,9 +4051,7 @@ p.body { color: var(--areia); font-size: 16px; }
 </section>
 
 <!-- AUDIO -->
-<audio id="ambientAudio" loop>
-  <source src="data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=" type="audio/wav">
-</audio>
+<audio id="ambientAudio" src="cafe-ambient.mp3" preload="auto" loop crossorigin="anonymous"></audio>
 
 <script>
 // === Imagens embarcadas em base64 ===
@@ -4314,120 +4312,61 @@ window.addEventListener('scroll', () => {
 });
 
 /* =====================================================
-   11. AUDIO TOGGLE (gera tom ambiente sintético)
+   11. AUDIO TOGGLE (player de ambiente real - cafe)
 ===================================================== */
 const audioToggle = document.getElementById('audioToggle');
-let audioContext = null;
-let ambientNodes = [];
+const ambientAudio = document.getElementById('ambientAudio');
+const TARGET_VOLUME = 0.45;
+const FADE_MS = 800;
 let ambientPlaying = false;
-let masterGainNode = null;
+let fadeRAF = null;
 
-// Inicializa AudioContext sob demanda — iOS exige que seja em resposta direta a gesto
-function ensureAudioContext() {
-  if (!audioContext) {
-    const Ctx = window.AudioContext || window.webkitAudioContext;
-    if (!Ctx) return false;
-    audioContext = new Ctx();
-  }
-  return true;
+ambientAudio.volume = 0;
+ambientAudio.loop = true;
+
+function fadeAudio(toVolume, duration, onDone) {
+  if (fadeRAF) cancelAnimationFrame(fadeRAF);
+  const startVol = ambientAudio.volume;
+  const startTime = performance.now();
+  const step = (now) => {
+    const t = Math.min(1, (now - startTime) / duration);
+    ambientAudio.volume = startVol + (toVolume - startVol) * t;
+    if (t < 1) {
+      fadeRAF = requestAnimationFrame(step);
+    } else {
+      fadeRAF = null;
+      if (onDone) onDone();
+    }
+  };
+  fadeRAF = requestAnimationFrame(step);
 }
 
-function startAmbient() {
-  if (!ensureAudioContext()) {
-    alert('Seu navegador não suporta áudio. Tente outro navegador.');
+async function startAmbient() {
+  try {
+    ambientAudio.volume = 0;
+    await ambientAudio.play();
+    fadeAudio(TARGET_VOLUME, FADE_MS);
+    ambientPlaying = true;
+    return true;
+  } catch (err) {
+    console.warn('Falha ao iniciar áudio ambiente:', err);
+    alert('Não foi possível reproduzir o áudio. Verifique se o seu navegador permite reprodução automática.');
     return false;
   }
-  // Resume é OBRIGATÓRIO em iOS Safari
-  if (audioContext.state === 'suspended') {
-    audioContext.resume();
-  }
-
-  masterGainNode = audioContext.createGain();
-  masterGainNode.gain.value = 0;
-  // Fade in suave
-  masterGainNode.gain.setValueAtTime(0, audioContext.currentTime);
-  masterGainNode.gain.linearRampToValueAtTime(0.06, audioContext.currentTime + 2);
-  masterGainNode.connect(audioContext.destination);
-
-  // Drones: 4 osciladores em harmônicos que dão sensação de café/ambiente
-  const freqs = [110, 165, 220, 277];
-  freqs.forEach((f, i) => {
-    const osc = audioContext.createOscillator();
-    osc.type = i === 0 ? 'sine' : 'triangle';
-    osc.frequency.value = f;
-
-    const gain = audioContext.createGain();
-    gain.gain.value = 0.4 - i * 0.08;
-
-    // LFO suave pra dar movimento orgânico
-    const lfo = audioContext.createOscillator();
-    lfo.type = 'sine';
-    lfo.frequency.value = 0.08 + i * 0.04;
-    const lfoGain = audioContext.createGain();
-    lfoGain.gain.value = 0.05;
-    lfo.connect(lfoGain).connect(gain.gain);
-
-    osc.connect(gain).connect(masterGainNode);
-    osc.start();
-    lfo.start();
-    ambientNodes.push(osc, lfo, gain);
-  });
-
-  // Ruído rosa filtrado (sensação de ambiente)
-  const bufferSize = 2 * audioContext.sampleRate;
-  const noiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
-  const output = noiseBuffer.getChannelData(0);
-  let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
-  for (let i = 0; i < bufferSize; i++) {
-    const white = Math.random() * 2 - 1;
-    b0 = 0.99886 * b0 + white * 0.0555179;
-    b1 = 0.99332 * b1 + white * 0.0750759;
-    b2 = 0.96900 * b2 + white * 0.1538520;
-    b3 = 0.86650 * b3 + white * 0.3104856;
-    b4 = 0.55000 * b4 + white * 0.5329522;
-    b5 = -0.7616 * b5 - white * 0.0168980;
-    output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11;
-    b6 = white * 0.115926;
-  }
-  const noise = audioContext.createBufferSource();
-  noise.buffer = noiseBuffer;
-  noise.loop = true;
-  const filter = audioContext.createBiquadFilter();
-  filter.type = 'lowpass';
-  filter.frequency.value = 380;
-  filter.Q.value = 0.7;
-  const noiseGain = audioContext.createGain();
-  noiseGain.gain.value = 0.5;
-  noise.connect(filter).connect(noiseGain).connect(masterGainNode);
-  noise.start();
-  ambientNodes.push(noise, filter, noiseGain);
-
-  ambientPlaying = true;
-  return true;
 }
 
 function stopAmbient() {
-  if (masterGainNode && audioContext) {
-    // Fade out
-    masterGainNode.gain.cancelScheduledValues(audioContext.currentTime);
-    masterGainNode.gain.setValueAtTime(masterGainNode.gain.value, audioContext.currentTime);
-    masterGainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.5);
-  }
-  setTimeout(() => {
-    ambientNodes.forEach(n => {
-      try { if (n.stop) n.stop(); } catch(e){}
-      try { n.disconnect(); } catch(e){}
-    });
-    ambientNodes = [];
-  }, 600);
+  fadeAudio(0, FADE_MS, () => {
+    ambientAudio.pause();
+  });
   ambientPlaying = false;
 }
 
 audioToggle.addEventListener('click', () => {
   if (!ambientPlaying) {
-    if (startAmbient()) {
-      audioToggle.classList.add('playing');
-    }
+    startAmbient().then(ok => {
+      if (ok) audioToggle.classList.add('playing');
+    });
   } else {
     stopAmbient();
     audioToggle.classList.remove('playing');
