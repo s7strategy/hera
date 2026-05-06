@@ -1504,13 +1504,12 @@ p.body { color: var(--areia); font-size: 16px; }
 }
 .ruler-track {
   position: relative;
-  height: 280px;
-  margin: 32px 0 16px 0;
+  margin: 40px 0 16px 0;
 }
 .ruler-row {
   position: relative;
-  height: 38px;
-  margin-bottom: 12px;
+  height: 46px;
+  margin-bottom: 18px;
 }
 .ruler-row-label {
   position: absolute;
@@ -1518,27 +1517,27 @@ p.body { color: var(--areia); font-size: 16px; }
   top: 50%;
   transform: translateY(-50%);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.25em;
   text-transform: uppercase;
   color: var(--cimento);
-  width: 90px;
+  width: 100px;
 }
 .ruler-row-track {
   position: absolute;
-  left: 100px;
+  left: 110px;
   right: 0;
   top: 0;
   height: 100%;
 }
 .ruler-axis-row {
   position: relative;
-  height: 40px;
-  margin-top: 12px;
+  height: 44px;
+  margin-top: 18px;
 }
 .ruler-axis-line {
   position: absolute;
-  left: 100px;
+  left: 110px;
   right: 0;
   top: 0;
   height: 1px;
@@ -1546,7 +1545,7 @@ p.body { color: var(--areia); font-size: 16px; }
 }
 .ruler-month {
   position: absolute;
-  top: 8px;
+  top: 10px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
   letter-spacing: 0.2em;
@@ -1557,7 +1556,7 @@ p.body { color: var(--areia); font-size: 16px; }
 .ruler-month::before {
   content: '';
   position: absolute;
-  top: -8px; left: 50%;
+  top: -10px; left: 50%;
   width: 1px; height: 6px;
   background: var(--cimento);
 }
@@ -1571,13 +1570,18 @@ p.body { color: var(--areia); font-size: 16px; }
   transition: all 0.3s;
   display: flex;
   align-items: center;
-  padding: 0 14px;
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
+  justify-content: center;
+  padding: 0 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: var(--osso);
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
   z-index: 2;
 }
 .ruler-block:hover {
@@ -1599,7 +1603,7 @@ p.body { color: var(--areia); font-size: 16px; }
   border-radius: 4px;
   font-size: 11px;
   white-space: nowrap;
-  bottom: calc(100% + 8px);
+  bottom: calc(100% + 10px);
   left: 50%;
   transform: translateX(-50%);
   opacity: 0;
@@ -1607,14 +1611,48 @@ p.body { color: var(--areia); font-size: 16px; }
   transition: opacity 0.2s;
   font-family: 'Inter', sans-serif;
   font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
   z-index: 10;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.4);
 }
 .ruler-block:hover .ruler-tooltip { opacity: 1; }
-@media (max-width: 700px) {
-  .ruler-block { font-size: 10px; padding: 0 8px; }
-  .ruler-row-label { font-size: 8px; width: 70px; }
-  .ruler-row-track { left: 80px; }
-  .ruler-axis-line { left: 80px; }
+.ruler-legend {
+  margin-top: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 28px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  color: var(--osso-warm);
+}
+.ruler-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.ruler-legend i {
+  width: 14px; height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+@media (max-width: 900px) {
+  .cronogram-ruler { padding: 40px 24px; }
+  .ruler-block { font-size: 9px; padding: 0 6px; letter-spacing: 0.04em; }
+  .ruler-row-label { font-size: 9px; width: 80px; letter-spacing: 0.15em; }
+  .ruler-row-track { left: 90px; }
+  .ruler-axis-line { left: 90px; }
+  .ruler-month { font-size: 9px; }
+}
+@media (max-width: 640px) {
+  .cronogram-ruler { padding: 32px 18px; }
+  .ruler-row { height: 40px; margin-bottom: 14px; }
+  .ruler-row-label { font-size: 8px; width: 60px; letter-spacing: 0.12em; }
+  .ruler-row-track { left: 68px; }
+  .ruler-axis-line { left: 68px; }
+  .ruler-block { font-size: 8px; padding: 0 4px; letter-spacing: 0; }
+  .ruler-month { font-size: 8px; letter-spacing: 0.05em; }
+  .ruler-month.skip-mobile { display: none; }
 }
 
 /* ============================================================
@@ -1738,7 +1776,9 @@ p.body { color: var(--areia); font-size: 16px; }
 }
 .map-canvas {
   width: 100%;
-  aspect-ratio: 3 / 2;
+  max-width: 640px;
+  margin: 0 auto;
+  aspect-ratio: 3 / 4;
   position: relative;
   background: var(--musgo-deep);
   border-radius: 4px;
@@ -3269,8 +3309,8 @@ p.body { color: var(--areia); font-size: 16px; }
         <div class="ruler-row-label">Cozinha</div>
         <div class="ruler-row-track">
           <div class="ruler-block prep" style="left: 0%; width: 22.2%;">
-            Preparação · receitas + cozinha central
-            <div class="ruler-tooltip">Jun–Jul · 2 meses · receitas testadas, cozinha pronta</div>
+            RECEITAS + COZINHA
+            <div class="ruler-tooltip">Jun–Jul · 2 meses · receitas testadas e cozinha central pronta</div>
           </div>
         </div>
       </div>
@@ -3280,8 +3320,8 @@ p.body { color: var(--areia); font-size: 16px; }
         <div class="ruler-row-label">Obra</div>
         <div class="ruler-row-track">
           <div class="ruler-block obra" style="left: 11.1%; width: 22.2%;">
-            Obra da 1ª loja
-            <div class="ruler-tooltip">Jul–Ago · 2 meses · em paralelo</div>
+            OBRA · 1ª LOJA
+            <div class="ruler-tooltip">Jul–Ago · 2 meses · roda em paralelo à cozinha</div>
           </div>
         </div>
       </div>
@@ -3291,20 +3331,20 @@ p.body { color: var(--areia); font-size: 16px; }
         <div class="ruler-row-label">Lojas</div>
         <div class="ruler-row-track">
           <div class="ruler-block abre" style="left: 33.3%; width: 11.1%;">
-            ABRE 1ª
-            <div class="ruler-tooltip">Setembro · uma só, pra testar tudo</div>
+            1ª
+            <div class="ruler-tooltip">Setembro · primeira loja abre, pra validar a operação</div>
           </div>
           <div class="ruler-block cluster" style="left: 44.4%; width: 22.2%;">
-            2ª e 3ª loja
-            <div class="ruler-tooltip">Out–Nov · com erros corrigidos</div>
+            2ª · 3ª
+            <div class="ruler-tooltip">Out–Nov · com os primeiros erros já corrigidos</div>
           </div>
           <div class="ruler-block cluster" style="left: 66.6%; width: 22.2%;">
-            4ª e 5ª loja
-            <div class="ruler-tooltip">Dez–Jan · operação no automático</div>
+            4ª · 5ª
+            <div class="ruler-tooltip">Dez–Jan · operação rodando no automático</div>
           </div>
           <div class="ruler-block completa" style="left: 88.8%; width: 11.1%;">
-            6ª · COMPLETO
-            <div class="ruler-tooltip">Fev · cluster fechado</div>
+            6ª
+            <div class="ruler-tooltip">Fev · cluster completo, 6 lojas operando</div>
           </div>
         </div>
       </div>
@@ -3314,16 +3354,24 @@ p.body { color: var(--areia); font-size: 16px; }
         <div class="ruler-axis-line"></div>
         <div class="ruler-row-track">
           <div class="ruler-month" style="left: 5.55%;">JUN</div>
-          <div class="ruler-month" style="left: 16.66%;">JUL</div>
+          <div class="ruler-month skip-mobile" style="left: 16.66%;">JUL</div>
           <div class="ruler-month" style="left: 27.77%;">AGO</div>
-          <div class="ruler-month" style="left: 38.88%;">SET</div>
+          <div class="ruler-month skip-mobile" style="left: 38.88%;">SET</div>
           <div class="ruler-month" style="left: 50%;">OUT</div>
-          <div class="ruler-month" style="left: 61.11%;">NOV</div>
+          <div class="ruler-month skip-mobile" style="left: 61.11%;">NOV</div>
           <div class="ruler-month" style="left: 72.22%;">DEZ</div>
-          <div class="ruler-month" style="left: 83.33%;">JAN</div>
+          <div class="ruler-month skip-mobile" style="left: 83.33%;">JAN</div>
           <div class="ruler-month" style="left: 94.44%;">FEV</div>
         </div>
       </div>
+    </div>
+
+    <!-- Legenda -->
+    <div class="ruler-legend">
+      <span><i style="background: var(--cimento);"></i>Preparação · cozinha central</span>
+      <span><i style="background: var(--areia);"></i>Obra da loja</span>
+      <span><i style="background: var(--pimenta);"></i>Lojas abrindo</span>
+      <span style="opacity: 0.7;">Passe o mouse em cada bloco pro detalhe</span>
     </div>
   </div>
 </section>
@@ -3372,9 +3420,9 @@ p.body { color: var(--areia); font-size: 16px; }
   <div class="map-wrap reveal">
     <div class="map-tag">UM PASSEIO PELA REGIÃO</div>
     <div class="map-title">Onde cada <span class="it">loja</span> ficaria</div>
-    <div class="map-sub">Cinco pontos estratégicos entre Florianópolis e Imbituba — passe o mouse pra ver cada um.</div>
+    <div class="map-sub">Da Lagoa da Conceição (Florianópolis) até Praia do Rosa (Imbituba), passando por Garopaba — ~95 km de litoral. Passe o mouse pra ver cada ponto.</div>
     <div class="map-canvas" id="mapCanvas">
-      <svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid meet">
+      <svg viewBox="0 0 600 800" preserveAspectRatio="xMidYMid meet">
         <defs>
           <linearGradient id="seaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stop-color="#1c1e18"/>
@@ -3385,78 +3433,94 @@ p.body { color: var(--areia); font-size: 16px; }
             <stop offset="100%" stop-color="#2D3027"/>
           </linearGradient>
         </defs>
+
         <!-- Mar (fundo) -->
-        <rect width="800" height="600" fill="url(#seaGrad)"/>
+        <rect width="600" height="800" fill="url(#seaGrad)"/>
 
-        <!-- Linhas batimétricas suaves (efeito de profundidade) -->
-        <path d="M 600 50 Q 700 150 760 280 Q 780 420 720 560" fill="none" stroke="#2a2d24" stroke-width="0.6" opacity="0.4"/>
-        <path d="M 580 30 Q 700 130 770 260 Q 790 400 740 580" fill="none" stroke="#2a2d24" stroke-width="0.6" opacity="0.3"/>
+        <!-- Linhas batimétricas suaves -->
+        <path d="M 540 60 Q 580 220 555 420 Q 530 600 575 780" fill="none" stroke="#2a2d24" stroke-width="0.6" opacity="0.35"/>
+        <path d="M 565 30 Q 595 220 575 440 Q 545 640 590 790" fill="none" stroke="#2a2d24" stroke-width="0.6" opacity="0.25"/>
 
-        <!-- Continente (lado oeste) -->
+        <!-- Continente (lado oeste, do norte ao sul) -->
         <path d="M 0 0
-                 L 0 600
-                 L 280 600
-                 L 290 580 L 285 560 L 295 540 L 300 520 L 290 500 L 305 480
-                 L 310 460 L 300 440 L 315 420 L 320 400
-                 L 310 380 L 325 360 L 335 340 L 325 320 L 340 300
-                 L 345 280 L 335 260 L 350 240 L 360 220 L 350 200
-                 L 365 180 L 380 160 L 370 140 L 385 120 L 400 100
-                 L 390 80 L 410 60 L 420 40 L 415 20 L 430 0 Z"
+                 L 0 800
+                 L 230 800
+                 L 240 770 L 232 740 L 245 710 L 238 680 L 250 650
+                 L 245 620 L 258 590 L 252 560 L 260 530 L 255 500
+                 L 268 470 L 260 440 L 272 410 L 265 380 L 278 350
+                 L 270 320 L 282 290 L 275 260 L 285 230 L 278 200
+                 L 290 170 L 285 140 L 295 110 L 300 80 L 305 50
+                 L 312 25 L 320 0 Z"
               fill="url(#landGrad)"/>
 
         <!-- Ilha de Florianópolis (norte) -->
-        <path d="M 480 30
-                 Q 540 20 580 50
-                 Q 620 70 615 110
-                 Q 625 140 605 165
-                 Q 595 200 570 215
-                 Q 555 240 560 270
-                 Q 545 290 525 295
-                 Q 510 280 505 255
-                 Q 490 240 495 215
-                 Q 475 195 480 170
-                 Q 460 145 470 115
-                 Q 455 85 480 60 Z"
+        <path d="M 380 35
+                 Q 440 28 472 65
+                 Q 495 100 488 140
+                 Q 482 180 462 215
+                 Q 448 250 442 285
+                 Q 428 312 408 318
+                 Q 388 308 384 280
+                 Q 380 248 388 218
+                 Q 368 188 374 158
+                 Q 360 125 380 95
+                 Q 365 70 380 35 Z"
               fill="url(#landGrad)"/>
 
-        <!-- Lagoa da Conceição (na ilha) -->
-        <ellipse cx="555" cy="160" rx="14" ry="22" fill="#1c1e18" opacity="0.9"/>
+        <!-- Lagoa da Conceição (na ilha, mais ao leste) -->
+        <ellipse cx="442" cy="160" rx="12" ry="34" fill="#1c1e18" opacity="0.9"/>
 
-        <!-- Continente sul (Garopaba/Imbituba) - destaque -->
-        <path d="M 380 360
-                 Q 410 355 440 365
-                 Q 470 372 490 380
-                 Q 510 388 525 400
-                 Q 535 420 530 440
-                 Q 540 460 530 480
-                 Q 525 500 510 510
-                 Q 490 515 470 510
-                 Q 450 520 430 515
-                 Q 410 510 395 500
-                 Q 380 490 375 470
-                 Q 365 450 370 430
-                 Q 360 410 365 390 Z"
-              fill="url(#landGrad)" opacity="0.95"/>
+        <!-- Estreito entre ilha e continente -->
+        <path d="M 295 90 Q 340 80 370 95 Q 360 120 320 130 Q 300 110 295 90 Z"
+              fill="url(#landGrad)" opacity="0.4"/>
 
-        <!-- Ilha do Campeche (pequena) -->
-        <ellipse cx="600" cy="280" rx="8" ry="14" fill="url(#landGrad)" opacity="0.7"/>
+        <!-- Ilha do Campeche -->
+        <ellipse cx="455" cy="320" rx="6" ry="14" fill="url(#landGrad)" opacity="0.65"/>
+
+        <!-- Cabo de Garopaba / Praia da Silveira-Ferrugem-Barrinha-Encantada -->
+        <path d="M 252 540
+                 Q 285 530 320 540
+                 Q 348 552 355 580
+                 Q 360 608 348 632
+                 Q 332 648 308 650
+                 Q 285 658 268 648
+                 Q 252 632 248 610
+                 Q 245 580 252 540 Z"
+              fill="url(#landGrad)"/>
+
+        <!-- Pequena saliência: Praia do Rosa / Imbituba -->
+        <path d="M 245 720
+                 Q 282 712 305 728
+                 Q 320 750 308 770
+                 Q 285 782 262 776
+                 Q 245 766 240 748
+                 Q 235 732 245 720 Z"
+              fill="url(#landGrad)"/>
 
         <!-- Labels regionais -->
-        <text x="40" y="50" font-family="JetBrains Mono, monospace" font-size="10" fill="#A8A49A" letter-spacing="2">SANTA CATARINA</text>
-        <text x="640" y="100" font-family="Cormorant Garamond, serif" font-style="italic" font-size="14" fill="#C6B8A6">Florianópolis</text>
-        <text x="555" y="540" font-family="Cormorant Garamond, serif" font-style="italic" font-size="14" fill="#C6B8A6" text-anchor="middle">Garopaba · Imbituba</text>
-        <text x="720" y="580" font-family="JetBrains Mono, monospace" font-size="9" fill="#A8A49A" letter-spacing="2" text-anchor="end">OCEANO ATLÂNTICO</text>
+        <text x="24" y="40" font-family="JetBrains Mono, monospace" font-size="10" fill="#A8A49A" letter-spacing="2">SANTA CATARINA</text>
+        <text x="400" y="70" font-family="Cormorant Garamond, serif" font-style="italic" font-size="14" fill="#C6B8A6">Florianópolis</text>
+        <text x="100" y="600" font-family="Cormorant Garamond, serif" font-style="italic" font-size="14" fill="#C6B8A6">Garopaba</text>
+        <text x="100" y="760" font-family="Cormorant Garamond, serif" font-style="italic" font-size="13" fill="#C6B8A6">Imbituba</text>
+        <text x="570" y="780" font-family="JetBrains Mono, monospace" font-size="9" fill="#A8A49A" letter-spacing="2" text-anchor="end">OCEANO ATLÂNTICO</text>
 
-        <!-- Linhas conectando pinos a labels (sutis) -->
-        <line x1="570" y1="160" x2="595" y2="155" stroke="#A8A49A" stroke-width="0.5" opacity="0.3" stroke-dasharray="2,3"/>
+        <!-- Indicador de norte -->
+        <g transform="translate(48, 740)">
+          <circle r="14" fill="none" stroke="#A8A49A" stroke-width="0.6" opacity="0.5"/>
+          <path d="M 0 -10 L 4 4 L 0 1 L -4 4 Z" fill="#C63B2E"/>
+          <text x="0" y="-18" font-family="JetBrains Mono, monospace" font-size="8" fill="#A8A49A" text-anchor="middle" letter-spacing="2">N</text>
+        </g>
+
+        <!-- Linha conectando Floripa-ilha à Lagoa (referência sutil) -->
+        <line x1="442" y1="195" x2="500" y2="225" stroke="#A8A49A" stroke-width="0.4" opacity="0.25" stroke-dasharray="2,3"/>
       </svg>
 
-      <!-- Pins -->
-      <div class="map-pin" style="left: 71%; top: 27%;"><div class="map-pin-label">Lagoa da Conceição · Floripa</div></div>
-      <div class="map-pin" style="left: 60%; top: 67%;"><div class="map-pin-label">Barrinha · Garopaba</div></div>
-      <div class="map-pin" style="left: 64%; top: 72%;"><div class="map-pin-label">Praia da Ferrugem · piloto</div></div>
-      <div class="map-pin" style="left: 65%; top: 78%;"><div class="map-pin-label">Praia da Encantada</div></div>
-      <div class="map-pin map-pin-open" style="left: 75%; top: 88%;"><div class="map-pin-label">5º e 6º pontos · a definir</div></div>
+      <!-- Pins (% relativo ao container) -->
+      <div class="map-pin" style="left: 73.7%; top: 20%;"><div class="map-pin-label">Lagoa da Conceição · Floripa</div></div>
+      <div class="map-pin" style="left: 51.3%; top: 71%;"><div class="map-pin-label">Praia da Ferrugem · piloto</div></div>
+      <div class="map-pin" style="left: 56%; top: 73.5%;"><div class="map-pin-label">Praia da Barrinha · Garopaba</div></div>
+      <div class="map-pin" style="left: 52.5%; top: 78%;"><div class="map-pin-label">Praia da Encantada</div></div>
+      <div class="map-pin map-pin-open" style="left: 47.5%; top: 92%;"><div class="map-pin-label">5º e 6º pontos · a definir</div></div>
     </div>
   </div>
 
@@ -3603,13 +3667,13 @@ p.body { color: var(--areia); font-size: 16px; }
       <div class="breakdown-title">Obra <span class="it">e adequação</span></div>
       <div class="breakdown-subtitle">A reforma do espaço físico</div>
       <ul class="breakdown-list">
-        <li><span class="item-name">Adequação elétrica e hidráulica</span><span class="item-value">R$ 3–6k</span></li>
-        <li><span class="item-name">Pintura e acabamentos</span><span class="item-value">R$ 2–4k</span></li>
-        <li><span class="item-name">Vidraçaria (cozinha vidraçada)</span><span class="item-value">R$ 3–6k</span></li>
-        <li><span class="item-name">Piso, se precisar trocar</span><span class="item-value">R$ 2–5k</span></li>
-        <li><span class="item-name">Fachada e comunicação visual</span><span class="item-value">R$ 2–4k</span></li>
+        <li><span class="item-name">Adequação elétrica e hidráulica</span><span class="item-value">R$ 2–3k</span></li>
+        <li><span class="item-name">Pintura e acabamentos</span><span class="item-value">R$ 1,5–2k</span></li>
+        <li><span class="item-name">Vidraçaria (cozinha vidraçada)</span><span class="item-value">R$ 2–3k</span></li>
+        <li><span class="item-name">Piso, se precisar trocar</span><span class="item-value">R$ 1k</span></li>
+        <li><span class="item-name">Fachada e comunicação visual</span><span class="item-value">R$ 1,5–2k</span></li>
       </ul>
-      <div class="breakdown-total"><span>Estimativa</span><span class="item-value">R$ 12–25k</span></div>
+      <div class="breakdown-total"><span>Estimativa</span><span class="item-value">R$ 8–11k</span></div>
     </div>
 
     <div class="breakdown-card">
@@ -3617,16 +3681,16 @@ p.body { color: var(--areia); font-size: 16px; }
       <div class="breakdown-title">Equipamentos <span class="it">da loja</span></div>
       <div class="breakdown-subtitle">O que falta comprar pra cada ponto</div>
       <ul class="breakdown-list">
-        <li><span class="item-name">Máquina de café espresso 2 grupos</span><span class="item-value">R$ 8–15k</span></li>
-        <li><span class="item-name">Moinho de café profissional</span><span class="item-value">R$ 2–4k</span></li>
-        <li><span class="item-name">Visacooler de vinhos</span><span class="item-value">R$ 4–7k</span></li>
-        <li><span class="item-name">Freezer expositor de congelados</span><span class="item-value">R$ 4–6k</span></li>
-        <li><span class="item-name">Vitrine refrigerada (doces, brunch)</span><span class="item-value">R$ 3–5k</span></li>
-        <li><span class="item-name">Bancada inox da loja</span><span class="item-value">R$ 1,5–3k</span></li>
-        <li><span class="item-name">Liquidificador, espremedor, mixer</span><span class="item-value">R$ 1,5–2,5k</span></li>
-        <li><span class="item-name">Louças, copos, xícaras, talheres</span><span class="item-value">R$ 3–5k</span></li>
+        <li><span class="item-name">Máquina de café espresso 2 grupos</span><span class="item-value">R$ 8–10k</span></li>
+        <li><span class="item-name">Moinho de café profissional</span><span class="item-value">R$ 2–3k</span></li>
+        <li><span class="item-name">Visacooler de vinhos</span><span class="item-value">R$ 3–4k</span></li>
+        <li><span class="item-name">Freezer expositor de congelados</span><span class="item-value">R$ 3–4k</span></li>
+        <li><span class="item-name">Vitrine refrigerada (doces, brunch)</span><span class="item-value">R$ 3–3,5k</span></li>
+        <li><span class="item-name">Bancada inox da loja</span><span class="item-value">R$ 1,5–2k</span></li>
+        <li><span class="item-name">Liquidificador, espremedor, mixer</span><span class="item-value">R$ 1,5–2k</span></li>
+        <li><span class="item-name">Louças, copos, xícaras, talheres</span><span class="item-value">R$ 3k</span></li>
       </ul>
-      <div class="breakdown-total"><span>Estimativa</span><span class="item-value">R$ 27–47,5k</span></div>
+      <div class="breakdown-total"><span>Estimativa</span><span class="item-value">R$ 25–31k</span></div>
     </div>
 
     <div class="breakdown-card">
@@ -3634,14 +3698,14 @@ p.body { color: var(--areia); font-size: 16px; }
       <div class="breakdown-title">Mobília <span class="it">e iluminação</span></div>
       <div class="breakdown-subtitle">O que faz a loja virar HERA</div>
       <ul class="breakdown-list">
-        <li><span class="item-name">Mesas externas (4 a 6)</span><span class="item-value">R$ 4–8k</span></li>
-        <li><span class="item-name">Cadeiras e bancos (12 a 18 lugares)</span><span class="item-value">R$ 3–6k</span></li>
-        <li><span class="item-name">Iluminação cênica (pendentes, spots)</span><span class="item-value">R$ 4–8k</span></li>
-        <li><span class="item-name">Estantes e prateleiras do empório</span><span class="item-value">R$ 5–10k</span></li>
-        <li><span class="item-name">Bancada de atendimento e caixa</span><span class="item-value">R$ 3–6k</span></li>
-        <li><span class="item-name">Plantas, quadros, decoração</span><span class="item-value">R$ 2–4k</span></li>
+        <li><span class="item-name">Mesas externas (3 a 5)</span><span class="item-value">R$ 3–4k</span></li>
+        <li><span class="item-name">Cadeiras e bancos (10 a 14 lugares)</span><span class="item-value">R$ 2–3k</span></li>
+        <li><span class="item-name">Iluminação cênica (pendentes, spots)</span><span class="item-value">R$ 4–5k</span></li>
+        <li><span class="item-name">Estantes e prateleiras do empório</span><span class="item-value">R$ 4k</span></li>
+        <li><span class="item-name">Bancada de atendimento e caixa</span><span class="item-value">R$ 2k</span></li>
+        <li><span class="item-name">Plantas, quadros, decoração</span><span class="item-value">R$ 1k</span></li>
       </ul>
-      <div class="breakdown-total"><span>Estimativa</span><span class="item-value">R$ 21–42k</span></div>
+      <div class="breakdown-total"><span>Estimativa</span><span class="item-value">R$ 16–19k</span></div>
     </div>
 
     <div class="breakdown-card">
@@ -3649,13 +3713,13 @@ p.body { color: var(--areia); font-size: 16px; }
       <div class="breakdown-title">Estoque <span class="it">inicial</span></div>
       <div class="breakdown-subtitle">Pra abrir as portas com prateleira cheia</div>
       <ul class="breakdown-list">
-        <li><span class="item-name">Vinhos (curadoria inicial)</span><span class="item-value">R$ 2–4k</span></li>
-        <li><span class="item-name">Empório (geleias, molhos, conservas)</span><span class="item-value">R$ 1,5–2,5k</span></li>
-        <li><span class="item-name">Congelados premium</span><span class="item-value">R$ 1–2k</span></li>
-        <li><span class="item-name">Café, insumos de brunch</span><span class="item-value">R$ 0,5–1,5k</span></li>
-        <li><span class="item-name">Embalagens iniciais</span><span class="item-value">R$ 1–2k</span></li>
+        <li><span class="item-name">Vinhos (curadoria inicial)</span><span class="item-value">R$ 1,5–2k</span></li>
+        <li><span class="item-name">Empório (geleias, molhos, conservas)</span><span class="item-value">R$ 1–1,5k</span></li>
+        <li><span class="item-name">Congelados premium</span><span class="item-value">R$ 1–1,5k</span></li>
+        <li><span class="item-name">Café, insumos de brunch</span><span class="item-value">R$ 0,5–1k</span></li>
+        <li><span class="item-name">Embalagens iniciais</span><span class="item-value">R$ 1k</span></li>
       </ul>
-      <div class="breakdown-total"><span>Estimativa</span><span class="item-value">R$ 6–12k</span></div>
+      <div class="breakdown-total"><span>Estimativa</span><span class="item-value">R$ 5–7k</span></div>
     </div>
 
     <div class="breakdown-card">
@@ -3663,12 +3727,12 @@ p.body { color: var(--areia); font-size: 16px; }
       <div class="breakdown-title">Marketing <span class="it">de inauguração</span></div>
       <div class="breakdown-subtitle">A festa de boas-vindas, bem feita</div>
       <ul class="breakdown-list">
-        <li><span class="item-name">Pré-lançamento (creators, conteúdo)</span><span class="item-value">R$ 1–2k</span></li>
-        <li><span class="item-name">Anúncios pagos (primeiros 30 dias)</span><span class="item-value">R$ 1,5–3k</span></li>
-        <li><span class="item-name">Evento de degustação</span><span class="item-value">R$ 1–1,5k</span></li>
-        <li><span class="item-name">Material gráfico e impressos</span><span class="item-value">R$ 0,5–1k</span></li>
+        <li><span class="item-name">Pré-lançamento (creators, conteúdo)</span><span class="item-value">R$ 0,5–1k</span></li>
+        <li><span class="item-name">Anúncios pagos (primeiros 30 dias)</span><span class="item-value">R$ 1–2k</span></li>
+        <li><span class="item-name">Evento de degustação</span><span class="item-value">R$ 0,3–0,5k</span></li>
+        <li><span class="item-name">Material gráfico e impressos</span><span class="item-value">R$ 0,2–0,5k</span></li>
       </ul>
-      <div class="breakdown-total"><span>Estimativa</span><span class="item-value">R$ 4–7,5k</span></div>
+      <div class="breakdown-total"><span>Estimativa</span><span class="item-value">R$ 2–4k</span></div>
     </div>
 
     <div class="breakdown-card" style="border-top-color: var(--musgo); background: var(--osso-warm);">
@@ -3676,18 +3740,18 @@ p.body { color: var(--areia); font-size: 16px; }
       <div class="breakdown-title">Reserva <span class="it">técnica</span></div>
       <div class="breakdown-subtitle">Pra imprevistos — sempre tem</div>
       <ul class="breakdown-list">
-        <li><span class="item-name">10% sobre o investimento total da loja</span><span class="item-value">R$ 7–13k</span></li>
-        <li><span class="item-name">Capital de giro inicial (~3 meses)</span><span class="item-value">R$ 30–50k</span></li>
+        <li><span class="item-name">10% sobre o investimento total da loja</span><span class="item-value">R$ 6–7k</span></li>
+        <li><span class="item-name">Capital de giro inicial (~3 meses)</span><span class="item-value">R$ 27–28k</span></li>
       </ul>
-      <div class="breakdown-total"><span>Estimativa</span><span class="item-value">R$ 37–63k</span></div>
+      <div class="breakdown-total"><span>Estimativa</span><span class="item-value">R$ 33–35k</span></div>
     </div>
   </div>
 
   <!-- TOTAL POR LOJA RESUMO -->
   <div class="big-number reveal" style="margin: 60px 0 40px;">
     <div class="big-number-label">TOTAL ESTIMADO POR LOJA · TIPO PEQUENA (FERRUGEM)</div>
-    <div class="big-number-value">R$ 107<span class="it"> a </span>197<span class="it">k</span></div>
-    <div class="big-number-detail">Inclui obra, equipamentos, mobília, estoque inicial, marketing de inauguração e reserva. Lojas maiores (Lagoa, Encantada) tendem a ser 1,5 a 2× esse valor.</div>
+    <div class="big-number-value">R$ 89<span class="it"> a </span>107<span class="it">k</span></div>
+    <div class="big-number-detail">Inclui obra, equipamentos, mobília, estoque inicial, marketing de inauguração e reserva. Lojas maiores (Lagoa, Encantada) tendem a ser 1,5 a 2,3× esse valor.</div>
   </div>
 
   <!-- COMPARATIVO POR TAMANHO -->
@@ -3699,13 +3763,13 @@ p.body { color: var(--areia); font-size: 16px; }
         <tr><th>CATEGORIA</th><th>PEQUENA</th><th>MÉDIA</th><th>GRANDE</th></tr>
       </thead>
       <tbody>
-        <tr><td>Obra e adequação</td><td>R$ 12–25k</td><td>R$ 20–40k</td><td>R$ 32–55k</td></tr>
-        <tr><td>Equipamentos da loja</td><td>R$ 27–47k</td><td>R$ 40–70k</td><td>R$ 60–100k</td></tr>
-        <tr><td>Mobília e iluminação</td><td>R$ 21–42k</td><td>R$ 35–60k</td><td>R$ 55–95k</td></tr>
-        <tr><td>Estoque inicial</td><td>R$ 6–12k</td><td>R$ 8–15k</td><td>R$ 10–20k</td></tr>
-        <tr><td>Marketing de inauguração</td><td>R$ 4–7,5k</td><td>R$ 6–11k</td><td>R$ 9–16k</td></tr>
-        <tr><td>Reserva e giro inicial</td><td>R$ 37–63k</td><td>R$ 50–85k</td><td>R$ 70–120k</td></tr>
-        <tr class="total"><td>TOTAL ESTIMADO</td><td>R$ 107–197k</td><td>R$ 159–281k</td><td>R$ 236–406k</td></tr>
+        <tr><td>Obra e adequação</td><td>R$ 8–11k</td><td>R$ 14–22k</td><td>R$ 22–32k</td></tr>
+        <tr><td>Equipamentos da loja</td><td>R$ 25–31k</td><td>R$ 38–48k</td><td>R$ 55–68k</td></tr>
+        <tr><td>Mobília e iluminação</td><td>R$ 16–19k</td><td>R$ 24–30k</td><td>R$ 36–46k</td></tr>
+        <tr><td>Estoque inicial</td><td>R$ 5–7k</td><td>R$ 7–10k</td><td>R$ 9–13k</td></tr>
+        <tr><td>Marketing de inauguração</td><td>R$ 2–4k</td><td>R$ 3–5k</td><td>R$ 4–6k</td></tr>
+        <tr><td>Reserva e giro inicial</td><td>R$ 33–35k</td><td>R$ 44–55k</td><td>R$ 69–85k</td></tr>
+        <tr class="total"><td>TOTAL ESTIMADO</td><td>R$ 89–107k</td><td>R$ 130–170k</td><td>R$ 195–250k</td></tr>
       </tbody>
     </table>
   </div>
