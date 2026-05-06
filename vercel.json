@@ -1,0 +1,10 @@
+{
+  "cleanUrls": true,
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/HERA-Apresentacao-v6.html",
+      "permanent": false
+    }
+  ]
+}
