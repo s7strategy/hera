@@ -1069,7 +1069,7 @@ p.body { color: var(--areia); font-size: 16px; }
    16. ZOOM PHRASES (scroll-driven word reveal)
 ============================================================ */
 .zoom-phrase {
-  min-height: 110vh;
+  min-height: 96vh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1078,7 +1078,7 @@ p.body { color: var(--areia); font-size: 16px; }
   position: relative;
 }
 @media (max-width: 768px) {
-  .zoom-phrase { min-height: 90vh; }
+  .zoom-phrase { min-height: 82vh; }
 }
 .zoom-phrase-content {
   font-family: 'Cormorant Garamond', serif;
@@ -1705,11 +1705,11 @@ p.body { color: var(--areia); font-size: 16px; }
 .pin-section {
   background: var(--osso);
   color: var(--musgo);
-  height: 260vh;
+  height: 165vh;
   position: relative;
 }
 @media (max-width: 768px) {
-  .pin-section { height: 200vh; }
+  .pin-section { height: 135vh; }
 }
 .pin-sticky {
   position: sticky;
@@ -1726,7 +1726,8 @@ p.body { color: var(--areia); font-size: 16px; }
   width: 100%;
   max-width: 1100px;
   text-align: center;
-  height: 60vh;
+  height: 52vh;
+  max-height: 520px;
 }
 .pin-eyebrow {
   position: absolute;
@@ -1896,6 +1897,15 @@ p.body { color: var(--areia); font-size: 16px; }
   right: 0;
   top: 0;
   height: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+.ruler-track-inner {
+  position: relative;
+  height: 100%;
+  min-width: 540px;
 }
 .ruler-axis-row {
   position: relative;
@@ -1957,6 +1967,11 @@ p.body { color: var(--areia); font-size: 16px; }
   box-shadow: 0 8px 20px rgba(0,0,0,0.3);
   z-index: 5;
 }
+.ruler-block.is-open {
+  filter: brightness(1.08);
+  box-shadow: 0 0 0 2px var(--osso), 0 8px 20px rgba(0,0,0,0.35);
+  z-index: 8;
+}
 .ruler-block.prep { background: var(--cimento); color: var(--musgo); }
 .ruler-block.obra { background: var(--areia); color: var(--musgo); }
 .ruler-block.abre { background: var(--pimenta); }
@@ -1969,7 +1984,11 @@ p.body { color: var(--areia); font-size: 16px; }
   padding: 10px 14px;
   border-radius: 4px;
   font-size: 11px;
-  white-space: nowrap;
+  white-space: normal;
+  max-width: min(280px, 85vw);
+  width: max-content;
+  text-align: center;
+  line-height: 1.4;
   bottom: calc(100% + 10px);
   left: 50%;
   transform: translateX(-50%);
@@ -1983,7 +2002,8 @@ p.body { color: var(--areia); font-size: 16px; }
   z-index: 10;
   box-shadow: 0 6px 24px rgba(0,0,0,0.4);
 }
-.ruler-block:hover .ruler-tooltip { opacity: 1; }
+.ruler-block:hover .ruler-tooltip,
+.ruler-block.is-open .ruler-tooltip { opacity: 1; }
 .ruler-legend {
   margin-top: 28px;
   display: flex;
@@ -2004,7 +2024,7 @@ p.body { color: var(--areia); font-size: 16px; }
   display: inline-block;
 }
 @media (max-width: 900px) {
-  .cronogram-ruler { padding: 40px 24px; }
+  .cronogram-ruler { padding: 40px 24px 56px; }
   .ruler-block { font-size: 9px; padding: 0 6px; letter-spacing: 0.04em; }
   .ruler-row-label { font-size: 9px; width: 80px; letter-spacing: 0.15em; }
   .ruler-row-track { left: 90px; }
@@ -2012,14 +2032,23 @@ p.body { color: var(--areia); font-size: 16px; }
   .ruler-month { font-size: 9px; }
 }
 @media (max-width: 640px) {
-  .cronogram-ruler { padding: 32px 18px; }
-  .ruler-row { height: 40px; margin-bottom: 14px; }
-  .ruler-row-label { font-size: 8px; width: 60px; letter-spacing: 0.12em; }
-  .ruler-row-track { left: 68px; }
-  .ruler-axis-line { left: 68px; }
-  .ruler-block { font-size: 8px; padding: 0 4px; letter-spacing: 0; }
+  .cronogram-ruler { padding: 32px 14px 64px; }
+  .ruler-row { height: auto; min-height: 44px; margin-bottom: 16px; }
+  .ruler-row-label { font-size: 8px; width: 56px; letter-spacing: 0.1em; line-height: 1.2; }
+  .ruler-row-track { left: 64px; }
+  .ruler-axis-line { left: 64px; }
+  .ruler-block {
+    font-size: 8px;
+    padding: 6px 8px;
+    letter-spacing: 0.06em;
+    white-space: normal;
+    line-height: 1.2;
+    justify-content: center;
+    text-align: center;
+  }
   .ruler-month { font-size: 8px; letter-spacing: 0.05em; }
   .ruler-month.skip-mobile { display: none; }
+  .ruler-track-inner { min-width: 520px; }
 }
 
 /* ============================================================
@@ -2143,18 +2172,38 @@ p.body { color: var(--areia); font-size: 16px; }
 }
 .map-canvas {
   width: 100%;
-  max-width: 640px;
+  max-width: 720px;
   margin: 0 auto;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 4 / 5;
   position: relative;
   background: var(--musgo-deep);
   border-radius: 4px;
   overflow: hidden;
 }
-.map-canvas svg {
+.map-canvas img {
+  vertical-align: middle;
+}
+.map-photo {
   width: 100%;
   height: 100%;
+  object-fit: contain;
+  object-position: center center;
   display: block;
+  background: #1a1c16;
+}
+.map-pin-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.map-pin-layer .map-pin {
+  pointer-events: auto;
+}
+.map-pin-active .map-pin-label {
+  opacity: 1;
+}
+@media (hover: hover) and (pointer: fine) {
+  .map-pin:hover .map-pin-label { opacity: 1; }
 }
 .map-pin {
   position: absolute;
@@ -2187,7 +2236,10 @@ p.body { color: var(--areia); font-size: 16px; }
   font-size: 11px;
   font-family: 'Inter', sans-serif;
   font-weight: 500;
-  white-space: nowrap;
+  white-space: normal;
+  max-width: min(220px, 70vw);
+  text-align: center;
+  line-height: 1.35;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s;
@@ -2203,7 +2255,11 @@ p.body { color: var(--areia); font-size: 16px; }
   border-right: 6px solid transparent;
   border-top: 6px solid var(--osso);
 }
-.map-pin:hover .map-pin-label { opacity: 1; }
+.map-pin-active {
+  background: var(--osso);
+  transform: translate(-50%, -50%) scale(1.35);
+  z-index: 6;
+}
 
 /* GALERIA DE PONTOS */
 .points-gallery {
@@ -2858,28 +2914,72 @@ p.body { color: var(--areia); font-size: 16px; }
 }
 
 .have-stat {
-  display: inline-flex;
-  align-items: baseline;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   gap: 10px;
   margin-top: 32px;
-  padding: 14px 24px;
+  padding: 18px 22px;
   background: rgba(198, 59, 46, 0.15);
   border-radius: 6px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  letter-spacing: 0.3em;
+  font-size: 10px;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--areia);
   border: 1px solid rgba(198, 59, 46, 0.3);
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.have-stat-pre {
+  line-height: 1.5;
+  opacity: 0.95;
 }
 .have-stat strong {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 22px;
+  font-size: clamp(22px, 6vw, 28px);
   color: var(--pimenta);
   font-style: italic;
   font-weight: 600;
   letter-spacing: 0;
   text-transform: none;
+  display: block;
+  text-align: center;
+  white-space: nowrap;
+}
+.have-stat-post {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 15px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--cimento);
+  text-align: center;
+  line-height: 1.45;
+}
+@media (min-width: 640px) {
+  .have-stat {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 12px 14px;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    padding: 14px 24px;
+  }
+  .have-stat strong {
+    display: inline;
+    text-align: inherit;
+    font-size: 26px;
+  }
+  .have-stat-post {
+    display: inline;
+    font-size: inherit;
+    font-family: 'JetBrains Mono', monospace;
+    font-style: normal;
+    color: var(--areia);
+  }
 }
 
 /* Tabela de aluguéis */
@@ -3593,7 +3693,7 @@ p.body { color: var(--areia); font-size: 16px; }
     <div class="kits-grid">
       <div class="kits-text">
         <h3>Kits <span class="it">mensais</span> — a HERA chega na sua porta</h3>
-        <p>Imagina o cliente assinando uma caixa por mês com curadoria da HERA: <strong>geleia da estação, pão de fermentação natural, um molho autoral, um café exclusivo, um doce surpresa.</strong> Caixa bonita, embalagem que vira presente, valor recorrente fixo.</p>
+        <p>Plano inicial sugerido — <strong>R$ 149/mês</strong>: <strong>2 pacotes de café de 500g</strong> (1 kg no total), <strong>uma geleia ou um molho especial da casa</strong>, <strong>2 pães ciabatta</strong> pra completar a mesa. Caixa bonita, embalagem que vira presente, valor recorrente fixo.</p>
         <p>Vira <strong>renda mensal previsível</strong>, fideliza fora da loja, atinge quem mora longe e vira até item de presente corporativo. Marca de luxo discreto se constrói assim.</p>
       </div>
       <div class="kits-features">
@@ -3662,9 +3762,9 @@ p.body { color: var(--areia); font-size: 16px; }
     </div>
     <div class="scale-card tilt">
       <div class="scale-card-tag">RECORRÊNCIA</div>
-      <div class="scale-card-num">R$ <span class="it">79</span> <span class="small">/mês</span></div>
-      <h4>Assinatura mensal previsível</h4>
-      <p>Caixa curada que chega todo mês na casa do cliente. Receita recorrente, fideliza fora da loja, vira até presente corporativo.</p>
+      <div class="scale-card-num">R$ <span class="it">149</span> <span class="small">/mês</span></div>
+      <h4>Plano inicial · café + geleia ou molho + ciabatta</h4>
+      <p>2 cafés de 500g, geleia ou molho especial, 2 ciabattas — ticket recorrente forte sem depender só da loja física.</p>
     </div>
     <div class="scale-card tilt">
       <div class="scale-card-tag">TICKET ONLINE</div>
@@ -3797,16 +3897,18 @@ p.body { color: var(--areia); font-size: 16px; }
   <div class="cronogram-ruler reveal">
     <div class="cronogram-tag">CRONOGRAMA · 9 MESES</div>
     <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 400; color: var(--osso); margin-bottom: 8px;">Como tudo <span style="font-style: italic; color: var(--pimenta);">se encaixa no tempo</span></h3>
-    <p style="font-size: 13px; color: var(--cimento); margin-bottom: 16px;">Passe o mouse sobre cada bloco pra ver o detalhe.</p>
+    <p style="font-size: 13px; color: var(--cimento); margin-bottom: 16px;">Toque em cada bloco no celular — ou passe o mouse no computador — pra ver o detalhe.</p>
 
     <div class="ruler-track">
       <!-- Linha 1: Preparação -->
       <div class="ruler-row">
         <div class="ruler-row-label">Cozinha</div>
         <div class="ruler-row-track">
-          <div class="ruler-block prep" style="left: 0%; width: 22.2%;">
-            RECEITAS + COZINHA
-            <div class="ruler-tooltip">Jun–Jul · 2 meses · receitas testadas e cozinha central pronta</div>
+          <div class="ruler-track-inner">
+            <div class="ruler-block prep" style="left: 0%; width: 22.2%;">
+              RECEITAS + COZINHA
+              <div class="ruler-tooltip">Jun–Jul · 2 meses · receitas testadas e cozinha central pronta</div>
+            </div>
           </div>
         </div>
       </div>
@@ -3815,9 +3917,11 @@ p.body { color: var(--areia); font-size: 16px; }
       <div class="ruler-row">
         <div class="ruler-row-label">Obra</div>
         <div class="ruler-row-track">
-          <div class="ruler-block obra" style="left: 11.1%; width: 22.2%;">
-            OBRA · 1ª LOJA
-            <div class="ruler-tooltip">Jul–Ago · 2 meses · roda em paralelo à cozinha</div>
+          <div class="ruler-track-inner">
+            <div class="ruler-block obra" style="left: 11.1%; width: 22.2%;">
+              OBRA · 1ª LOJA
+              <div class="ruler-tooltip">Jul–Ago · 2 meses · roda em paralelo à cozinha</div>
+            </div>
           </div>
         </div>
       </div>
@@ -3826,21 +3930,23 @@ p.body { color: var(--areia); font-size: 16px; }
       <div class="ruler-row">
         <div class="ruler-row-label">Lojas</div>
         <div class="ruler-row-track">
-          <div class="ruler-block abre" style="left: 33.3%; width: 11.1%;">
-            1ª
-            <div class="ruler-tooltip">Setembro · primeira loja abre, pra validar a operação</div>
-          </div>
-          <div class="ruler-block cluster" style="left: 44.4%; width: 22.2%;">
-            2ª · 3ª
-            <div class="ruler-tooltip">Out–Nov · com os primeiros erros já corrigidos</div>
-          </div>
-          <div class="ruler-block cluster" style="left: 66.6%; width: 22.2%;">
-            4ª · 5ª
-            <div class="ruler-tooltip">Dez–Jan · operação rodando no automático</div>
-          </div>
-          <div class="ruler-block completa" style="left: 88.8%; width: 11.1%;">
-            6ª
-            <div class="ruler-tooltip">Fev · cluster completo, 6 lojas operando</div>
+          <div class="ruler-track-inner">
+            <div class="ruler-block abre" style="left: 33.3%; width: 11.1%;">
+              1ª
+              <div class="ruler-tooltip">Setembro · primeira loja abre, pra validar a operação</div>
+            </div>
+            <div class="ruler-block cluster" style="left: 44.4%; width: 22.2%;">
+              2ª · 3ª
+              <div class="ruler-tooltip">Out–Nov · com os primeiros erros já corrigidos</div>
+            </div>
+            <div class="ruler-block cluster" style="left: 66.6%; width: 22.2%;">
+              4ª · 5ª
+              <div class="ruler-tooltip">Dez–Jan · operação rodando no automático</div>
+            </div>
+            <div class="ruler-block completa" style="left: 88.8%; width: 11.1%;">
+              6ª
+              <div class="ruler-tooltip">Fev · cluster completo, 6 lojas operando</div>
+            </div>
           </div>
         </div>
       </div>
@@ -3849,15 +3955,17 @@ p.body { color: var(--areia); font-size: 16px; }
       <div class="ruler-axis-row">
         <div class="ruler-axis-line"></div>
         <div class="ruler-row-track">
-          <div class="ruler-month" style="left: 5.55%;">JUN</div>
-          <div class="ruler-month skip-mobile" style="left: 16.66%;">JUL</div>
-          <div class="ruler-month" style="left: 27.77%;">AGO</div>
-          <div class="ruler-month skip-mobile" style="left: 38.88%;">SET</div>
-          <div class="ruler-month" style="left: 50%;">OUT</div>
-          <div class="ruler-month skip-mobile" style="left: 61.11%;">NOV</div>
-          <div class="ruler-month" style="left: 72.22%;">DEZ</div>
-          <div class="ruler-month skip-mobile" style="left: 83.33%;">JAN</div>
-          <div class="ruler-month" style="left: 94.44%;">FEV</div>
+          <div class="ruler-track-inner">
+            <div class="ruler-month" style="left: 5.55%;">JUN</div>
+            <div class="ruler-month skip-mobile" style="left: 16.66%;">JUL</div>
+            <div class="ruler-month" style="left: 27.77%;">AGO</div>
+            <div class="ruler-month skip-mobile" style="left: 38.88%;">SET</div>
+            <div class="ruler-month" style="left: 50%;">OUT</div>
+            <div class="ruler-month skip-mobile" style="left: 61.11%;">NOV</div>
+            <div class="ruler-month" style="left: 72.22%;">DEZ</div>
+            <div class="ruler-month skip-mobile" style="left: 83.33%;">JAN</div>
+            <div class="ruler-month" style="left: 94.44%;">FEV</div>
+          </div>
         </div>
       </div>
     </div>
@@ -3867,7 +3975,7 @@ p.body { color: var(--areia); font-size: 16px; }
       <span><i style="background: var(--cimento);"></i>Preparação · cozinha central</span>
       <span><i style="background: var(--areia);"></i>Obra da loja</span>
       <span><i style="background: var(--pimenta);"></i>Lojas abrindo</span>
-      <span style="opacity: 0.7;">Passe o mouse em cada bloco pro detalhe</span>
+      <span style="opacity: 0.7;">Toque de novo no bloco pra fechar o detalhe</span>
     </div>
   </div>
 </section>
@@ -3916,107 +4024,16 @@ p.body { color: var(--areia); font-size: 16px; }
   <div class="map-wrap reveal">
     <div class="map-tag">UM PASSEIO PELA REGIÃO</div>
     <div class="map-title">Onde cada <span class="it">loja</span> ficaria</div>
-    <div class="map-sub">Da Lagoa da Conceição (Florianópolis) até Praia do Rosa (Imbituba), passando por Garopaba — ~95 km de litoral. Passe o mouse pra ver cada ponto.</div>
+    <div class="map-sub">Da Lagoa da Conceição (Florianópolis) até Imbituba / Praia do Rosa, pela BR-101 — ~95 km de costa. Toque nos marcadores no celular para ver o nome de cada ponto.</div>
     <div class="map-canvas" id="mapCanvas">
-      <svg viewBox="0 0 600 800" preserveAspectRatio="xMidYMid meet">
-        <defs>
-          <linearGradient id="seaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#1c1e18"/>
-            <stop offset="100%" stop-color="#14160f"/>
-          </linearGradient>
-          <linearGradient id="landGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#3a3e33"/>
-            <stop offset="100%" stop-color="#2D3027"/>
-          </linearGradient>
-        </defs>
-
-        <!-- Mar (fundo) -->
-        <rect width="600" height="800" fill="url(#seaGrad)"/>
-
-        <!-- Linhas batimétricas suaves -->
-        <path d="M 540 60 Q 580 220 555 420 Q 530 600 575 780" fill="none" stroke="#2a2d24" stroke-width="0.6" opacity="0.35"/>
-        <path d="M 565 30 Q 595 220 575 440 Q 545 640 590 790" fill="none" stroke="#2a2d24" stroke-width="0.6" opacity="0.25"/>
-
-        <!-- Continente (lado oeste, do norte ao sul) -->
-        <path d="M 0 0
-                 L 0 800
-                 L 230 800
-                 L 240 770 L 232 740 L 245 710 L 238 680 L 250 650
-                 L 245 620 L 258 590 L 252 560 L 260 530 L 255 500
-                 L 268 470 L 260 440 L 272 410 L 265 380 L 278 350
-                 L 270 320 L 282 290 L 275 260 L 285 230 L 278 200
-                 L 290 170 L 285 140 L 295 110 L 300 80 L 305 50
-                 L 312 25 L 320 0 Z"
-              fill="url(#landGrad)"/>
-
-        <!-- Ilha de Florianópolis (norte) -->
-        <path d="M 380 35
-                 Q 440 28 472 65
-                 Q 495 100 488 140
-                 Q 482 180 462 215
-                 Q 448 250 442 285
-                 Q 428 312 408 318
-                 Q 388 308 384 280
-                 Q 380 248 388 218
-                 Q 368 188 374 158
-                 Q 360 125 380 95
-                 Q 365 70 380 35 Z"
-              fill="url(#landGrad)"/>
-
-        <!-- Lagoa da Conceição (na ilha, mais ao leste) -->
-        <ellipse cx="442" cy="160" rx="12" ry="34" fill="#1c1e18" opacity="0.9"/>
-
-        <!-- Estreito entre ilha e continente -->
-        <path d="M 295 90 Q 340 80 370 95 Q 360 120 320 130 Q 300 110 295 90 Z"
-              fill="url(#landGrad)" opacity="0.4"/>
-
-        <!-- Ilha do Campeche -->
-        <ellipse cx="455" cy="320" rx="6" ry="14" fill="url(#landGrad)" opacity="0.65"/>
-
-        <!-- Cabo de Garopaba / Praia da Silveira-Ferrugem-Barrinha-Encantada -->
-        <path d="M 252 540
-                 Q 285 530 320 540
-                 Q 348 552 355 580
-                 Q 360 608 348 632
-                 Q 332 648 308 650
-                 Q 285 658 268 648
-                 Q 252 632 248 610
-                 Q 245 580 252 540 Z"
-              fill="url(#landGrad)"/>
-
-        <!-- Pequena saliência: Praia do Rosa / Imbituba -->
-        <path d="M 245 720
-                 Q 282 712 305 728
-                 Q 320 750 308 770
-                 Q 285 782 262 776
-                 Q 245 766 240 748
-                 Q 235 732 245 720 Z"
-              fill="url(#landGrad)"/>
-
-        <!-- Labels regionais -->
-        <text x="24" y="40" font-family="JetBrains Mono, monospace" font-size="10" fill="#A8A49A" letter-spacing="2">SANTA CATARINA</text>
-        <text x="400" y="70" font-family="Cormorant Garamond, serif" font-style="italic" font-size="14" fill="#C6B8A6">Florianópolis</text>
-        <text x="100" y="600" font-family="Cormorant Garamond, serif" font-style="italic" font-size="14" fill="#C6B8A6">Garopaba</text>
-        <text x="100" y="760" font-family="Cormorant Garamond, serif" font-style="italic" font-size="13" fill="#C6B8A6">Imbituba</text>
-        <text x="570" y="780" font-family="JetBrains Mono, monospace" font-size="9" fill="#A8A49A" letter-spacing="2" text-anchor="end">OCEANO ATLÂNTICO</text>
-
-        <!-- Indicador de norte -->
-        <g transform="translate(48, 740)">
-          <circle r="14" fill="none" stroke="#A8A49A" stroke-width="0.6" opacity="0.5"/>
-          <path d="M 0 -10 L 4 4 L 0 1 L -4 4 Z" fill="#C63B2E"/>
-          <text x="0" y="-18" font-family="JetBrains Mono, monospace" font-size="8" fill="#A8A49A" text-anchor="middle" letter-spacing="2">N</text>
-        </g>
-
-        <!-- Linha conectando Floripa-ilha à Lagoa (referência sutil) -->
-        <line x1="442" y1="195" x2="500" y2="225" stroke="#A8A49A" stroke-width="0.4" opacity="0.25" stroke-dasharray="2,3"/>
-      </svg>
-
-      <!-- Pins (% relativo ao container) -->
-      <div class="map-pin" style="left: 73.7%; top: 20%;"><div class="map-pin-label">Lagoa da Conceição · Floripa</div></div>
-      <div class="map-pin" style="left: 51.3%; top: 71%;"><div class="map-pin-label">Praia da Ferrugem · piloto</div></div>
-      <div class="map-pin" style="left: 56%; top: 73.5%;"><div class="map-pin-label">Praia da Barrinha · Garopaba</div></div>
-      <div class="map-pin" style="left: 52.5%; top: 78%;"><div class="map-pin-label">Praia da Encantada</div></div>
-      <div class="map-pin map-pin-open" style="left: 47.5%; top: 92%;"><div class="map-pin-label">5º e 6º pontos · a definir</div></div>
+      <img class="map-photo" src="map-regiao-sc.png" alt="Mapa de referência: litoral de Santa Catarina — Biguaçu, Florianópolis, Palhoça, Garopaba e Imbituba, BR-101" loading="lazy">
+      <div class="map-pin-layer" aria-hidden="true">
+        <div class="map-pin" style="left: 62%; top: 24%;"><div class="map-pin-label">Lagoa da Conceição · Floripa</div></div>
+        <div class="map-pin" style="left: 41%; top: 54%;"><div class="map-pin-label">Praia da Ferrugem · piloto</div></div>
+        <div class="map-pin" style="left: 44%; top: 58%;"><div class="map-pin-label">Praia da Barrinha · Garopaba</div></div>
+        <div class="map-pin" style="left: 42%; top: 62%;"><div class="map-pin-label">Praia da Encantada</div></div>
+        <div class="map-pin map-pin-open" style="left: 36%; top: 76%;"><div class="map-pin-label">5º e 6º pontos · região de Imbituba / Rosa</div></div>
+      </div>
     </div>
   </div>
 
@@ -4147,7 +4164,11 @@ p.body { color: var(--areia); font-size: 16px; }
       </div>
     </div>
 
-    <div class="have-stat">QUE ECONOMIA REPRESENTA <strong>~R$ 150-200 mil</strong> de investimento já feito</div>
+    <div class="have-stat">
+      <span class="have-stat-pre">Economia estimada (equipamentos da cozinha central já adquiridos)</span>
+      <strong>~R$ 90–135 mil</strong>
+      <span class="have-stat-post">equivalente a investimento já realizado — antes de abrir a primeira loja</span>
+    </div>
   </div>
 
   <!-- BREAKDOWN DETALHADO POR LOJA -->
@@ -4321,8 +4342,8 @@ p.body { color: var(--areia); font-size: 16px; }
         <div class="calc-result-value" id="annualRev">R$ 6,6M</div>
       </div>
       <div class="calc-result-item">
-        <div class="calc-result-label">LUCRO POR MÊS</div>
-        <div class="calc-result-value highlight" id="netProfit">R$ 49k</div>
+        <div class="calc-result-label">LUCRO POR MÊS <span style="display:block;font-size:10px;opacity:.65;font-weight:400;letter-spacing:.15em;margin-top:4px;">(~15% do faturamento)</span></div>
+        <div class="calc-result-value highlight" id="netProfit">R$ 83k</div>
       </div>
       <div class="calc-result-item">
         <div class="calc-result-label">TICKET MÉDIO ESTIMADO</div>
@@ -4344,7 +4365,7 @@ p.body { color: var(--areia); font-size: 16px; }
       <div class="scenario-row"><span>Cada loja vende</span><strong>R$ 75k/mês</strong></div>
       <div class="scenario-row"><span>Total das 5</span><strong>R$ 375k/mês</strong></div>
       <div class="scenario-row"><span>CMV (insumos)</span><strong>~38%</strong></div>
-      <div class="scenario-row"><span>Lucro do mês</span><strong>R$ 19–26k</strong></div>
+      <div class="scenario-row"><span>Lucro do mês (~15%)</span><strong>R$ 54–58k</strong></div>
     </div>
     <div class="scenario realistic tilt">
       <div class="scenario-label">CENÁRIO REAL</div>
@@ -4352,7 +4373,7 @@ p.body { color: var(--areia); font-size: 16px; }
       <div class="scenario-row"><span>Cada loja vende</span><strong>R$ 110k/mês</strong></div>
       <div class="scenario-row"><span>Total das 5</span><strong>R$ 550k/mês</strong></div>
       <div class="scenario-row"><span>CMV (insumos)</span><strong>~32%</strong></div>
-      <div class="scenario-row"><span>Lucro do mês</span><strong>R$ 44–55k</strong></div>
+      <div class="scenario-row"><span>Lucro do mês (~15%)</span><strong>R$ 80–85k</strong></div>
     </div>
     <div class="scenario tilt">
       <div class="scenario-label">CENÁRIO BOM</div>
@@ -4360,7 +4381,7 @@ p.body { color: var(--areia); font-size: 16px; }
       <div class="scenario-row"><span>Cada loja vende</span><strong>R$ 150k/mês</strong></div>
       <div class="scenario-row"><span>Total das 5</span><strong>R$ 750k/mês</strong></div>
       <div class="scenario-row"><span>CMV (insumos)</span><strong>~25%</strong></div>
-      <div class="scenario-row"><span>Lucro do mês</span><strong>R$ 75–98k</strong></div>
+      <div class="scenario-row"><span>Lucro do mês (~15%)</span><strong>R$ 108–118k</strong></div>
     </div>
   </div>
 
@@ -4995,12 +5016,7 @@ function calcUpdate() {
   ticketVal.textContent = ticket;
   const monthly = stores * ticket; // em milhares
   const annual = monthly * 12;
-  // margem varia conforme volume e ticket
-  let margin = 0.06;
-  if (ticket >= 100) margin = 0.08;
-  if (ticket >= 130) margin = 0.10;
-  if (stores >= 4) margin += 0.005;
-  if (stores >= 6) margin += 0.005;
+  const margin = 0.15;
   const profit = monthly * margin;
 
   totalRev.textContent = fmt(monthly);
@@ -5019,6 +5035,29 @@ function calcUpdate() {
 storesSlider.addEventListener('input', calcUpdate);
 ticketSlider.addEventListener('input', calcUpdate);
 calcUpdate();
+
+/* Toque no cronograma (mobile) + pins do mapa */
+document.querySelectorAll('.cronogram-ruler .ruler-block').forEach(block => {
+  block.setAttribute('role', 'button');
+  block.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const wasOpen = block.classList.contains('is-open');
+    document.querySelectorAll('.ruler-block.is-open').forEach(b => b.classList.remove('is-open'));
+    if (!wasOpen) block.classList.add('is-open');
+  });
+});
+document.querySelectorAll('.map-pin-layer .map-pin').forEach(pin => {
+  pin.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const was = pin.classList.contains('map-pin-active');
+    document.querySelectorAll('.map-pin.map-pin-active').forEach(p => p.classList.remove('map-pin-active'));
+    if (!was) pin.classList.add('map-pin-active');
+  });
+});
+document.addEventListener('click', () => {
+  document.querySelectorAll('.ruler-block.is-open').forEach(b => b.classList.remove('is-open'));
+  document.querySelectorAll('.map-pin.map-pin-active').forEach(p => p.classList.remove('map-pin-active'));
+});
 
 /* =====================================================
    14. EASTER EGG — clicar 3x no ponto da logo
