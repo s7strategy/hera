@@ -62,6 +62,175 @@ body {
   pointer-events: none;
   transform: scale(1.1);
 }
+
+/* ============================================================
+   01b. BLOQUEIO DO SITE (até liberação por deploy)
+   Ative com html.hera-site-locked (ver script no início do <body>).
+============================================================ */
+html.hera-site-locked,
+html.hera-site-locked body {
+  overflow: hidden !important;
+  height: 100% !important;
+  max-height: 100vh !important;
+}
+html.hera-site-locked .loader { display: none !important; }
+html.hera-site-locked body > *:not(.site-gate) {
+  visibility: hidden !important;
+  pointer-events: none !important;
+  user-select: none !important;
+}
+html.hera-site-locked .site-gate {
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+.site-gate {
+  display: none;
+  box-sizing: border-box;
+  position: fixed;
+  inset: 0;
+  z-index: 200000;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 28px;
+  text-align: center;
+  color: var(--osso);
+  font-family: 'Cormorant Garamond', serif;
+  background: radial-gradient(ellipse 100% 80% at 50% 35%, #32362c 0%, #1c1e18 50%, #0d0e0b 100%);
+}
+html.hera-site-locked .site-gate { display: flex; }
+.site-gate-bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 20%, rgba(198, 59, 46, 0.12) 0%, transparent 45%),
+              radial-gradient(circle at 70% 80%, rgba(198, 59, 46, 0.08) 0%, transparent 40%);
+  animation: gateBgPulse 5s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes gateBgPulse {
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.03); }
+}
+.site-gate-orbit {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin-bottom: 36px;
+  animation: gateOrbitSpin 14s linear infinite;
+}
+.site-gate-orbit span {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--pimenta);
+  box-shadow: 0 0 18px var(--pimenta-glow);
+  top: 50%;
+  left: 50%;
+  margin: -5px 0 0 -5px;
+}
+.site-gate-orbit span:nth-child(1) { transform: rotate(0deg) translateY(-52px); opacity: 1; }
+.site-gate-orbit span:nth-child(2) { transform: rotate(120deg) translateY(-52px); opacity: 0.75; }
+.site-gate-orbit span:nth-child(3) { transform: rotate(240deg) translateY(-52px); opacity: 0.55; }
+@keyframes gateOrbitSpin {
+  to { transform: rotate(360deg); }
+}
+.site-gate-kicker {
+  position: relative;
+  z-index: 2;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--pimenta);
+  margin-bottom: 16px;
+}
+.site-gate-title {
+  position: relative;
+  z-index: 2;
+  font-size: clamp(40px, 10vw, 72px);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
+  line-height: 1.05;
+  background: linear-gradient(105deg, var(--osso) 0%, var(--areia) 45%, var(--osso) 90%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gateTitleShine 4s ease-in-out infinite;
+}
+@keyframes gateTitleShine {
+  0%, 100% { background-position: 0% center; }
+  50% { background-position: 100% center; }
+}
+.site-gate-line {
+  position: relative;
+  z-index: 2;
+  font-size: clamp(20px, 3.5vw, 32px);
+  font-style: italic;
+  color: var(--areia);
+  margin: 0 0 28px;
+  min-height: 1.4em;
+}
+.site-gate-scan {
+  border-right: 2px solid rgba(198, 59, 46, 0.5);
+  padding-right: 6px;
+  margin-right: 2px;
+  animation: gateCaret 0.9s step-end infinite;
+}
+@keyframes gateCaret {
+  0%, 100% { border-color: rgba(198, 59, 46, 0.6); }
+  50% { border-color: transparent; }
+}
+.site-gate-ellipsis {
+  display: inline-block;
+  min-width: 1.25em;
+  text-align: left;
+  animation: gateDotsPulse 1.25s ease-in-out infinite;
+}
+.site-gate-ellipsis::after {
+  content: '…';
+}
+@keyframes gateDotsPulse {
+  0%, 100% { opacity: 0.35; transform: translateY(1px); }
+  50% { opacity: 1; transform: translateY(0); }
+}
+.site-gate-bar {
+  position: relative;
+  z-index: 2;
+  width: min(280px, 85vw);
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(242, 238, 232, 0.08);
+  overflow: hidden;
+  margin-bottom: 28px;
+}
+.site-gate-bar-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 45%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--pimenta), var(--osso), var(--pimenta), transparent);
+  animation: gateBarSlide 2.4s ease-in-out infinite;
+}
+@keyframes gateBarSlide {
+  0% { transform: translateX(-100%); opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { transform: translateX(240%); opacity: 0.6; }
+}
+.site-gate-note {
+  position: relative;
+  z-index: 2;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--cimento);
+  max-width: 360px;
+  margin: 0;
+}
 .loader-curtain-top, .loader-curtain-bottom {
   position: absolute;
   left: 0; right: 0;
@@ -3505,6 +3674,31 @@ section[id] { scroll-margin-top: 72px; }
 </style>
 </head>
 <body>
+<script>
+(function () {
+  /**
+   * BLOQUEIO DO SITE
+   * ---------------
+   * `true`  = visitantes veem só a tela "Em breve · analisando viabilidade".
+   * `false` = site normal (após deploy).
+   *
+   * Para liberar: altere para false, salve, commit e push (ou deploy na Vercel).
+   */
+  window.HERA_SITE_LOCKED = true;
+  if (window.HERA_SITE_LOCKED) document.documentElement.classList.add('hera-site-locked');
+})();
+</script>
+
+<!-- TELA DE BLOQUEIO (motion + mensagem) -->
+<div id="siteGate" class="site-gate" role="dialog" aria-modal="true" aria-labelledby="gateTitle" aria-live="polite">
+  <div class="site-gate-bg" aria-hidden="true"></div>
+  <div class="site-gate-orbit" aria-hidden="true"><span></span><span></span><span></span></div>
+  <p class="site-gate-kicker">HERA · plano de parceria</p>
+  <h1 id="gateTitle" class="site-gate-title">Em breve</h1>
+  <p class="site-gate-line"><span class="site-gate-scan">Analisando viabilidade</span><span class="site-gate-ellipsis" aria-hidden="true"></span></p>
+  <div class="site-gate-bar" aria-hidden="true"><div class="site-gate-bar-fill"></div></div>
+  <p class="site-gate-note">Esta página está temporariamente restrita.<br>O conteúdo completo ficará disponível após liberação interna (alteração no código + deploy).</p>
+</div>
 
 <!-- LOADER CINEMATOGRÁFICO -->
 <div class="loader" id="loader">
@@ -4713,7 +4907,7 @@ section[id] { scroll-margin-top: 72px; }
 
   <button class="cta-button reveal" id="ctaButton">VAMOS MARCAR A REUNIÃO</button>
 
-  <div class="closing-meta reveal">CONFIDENCIAL · MAIO 2026</div>
+  <div class="closing-meta reveal">CONFIDENCIAL · MAIO 2026 · DOC v1.1</div>
   <div class="closing-meta reveal" style="margin-top:8px; opacity:0.55; font-size:9px;">trilha · "Jazzy Frenchy" by Bensound · uso licenciado</div>
 </section>
 
@@ -4742,19 +4936,22 @@ document.addEventListener('DOMContentLoaded', () => {
 ===================================================== */
 const loader = document.getElementById('loader');
 const loaderNum = document.getElementById('loaderNum');
+const siteLocked = document.documentElement.classList.contains('hera-site-locked');
 let loadProgress = 0;
-const loadInterval = setInterval(() => {
-  loadProgress += Math.random() * 18;
-  if (loadProgress >= 100) {
-    loadProgress = 100;
-    clearInterval(loadInterval);
-    setTimeout(() => {
-      loader.classList.add('parting');
-      setTimeout(() => loader.classList.add('done'), 800);
-    }, 400);
-  }
-  loaderNum.textContent = String(Math.floor(loadProgress)).padStart(3, '0');
-}, 100);
+if (!siteLocked && loader && loaderNum) {
+  const loadInterval = setInterval(() => {
+    loadProgress += Math.random() * 18;
+    if (loadProgress >= 100) {
+      loadProgress = 100;
+      clearInterval(loadInterval);
+      setTimeout(() => {
+        loader.classList.add('parting');
+        setTimeout(() => loader.classList.add('done'), 800);
+      }, 400);
+    }
+    loaderNum.textContent = String(Math.floor(loadProgress)).padStart(3, '0');
+  }, 100);
+}
 
 /* =====================================================
    02. CURSOR + TRAIL
@@ -5047,6 +5244,7 @@ audioToggle.addEventListener('click', () => {
 // Autoplay agressivo: tenta tocar com som assim que possível.
 // Se o navegador bloquear (política de autoplay), espera a 1ª interação.
 async function attemptAutoplay() {
+  if (document.documentElement.classList.contains('hera-site-locked')) return;
   const ok = await startAmbient();
   if (ok) return;
 
