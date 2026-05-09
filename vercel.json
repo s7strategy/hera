@@ -6,5 +6,15 @@
       "destination": "/HERA-Apresentacao-v7.html",
       "permanent": false
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/livre",
+      "destination": "/HERA-Apresentacao-v7.html"
+    },
+    {
+      "source": "/livre/",
+      "destination": "/HERA-Apresentacao-v7.html"
+    }
   ]
 }

@@ -3657,12 +3657,14 @@ section[id] { scroll-margin-top: 72px; }
   /**
    * BLOQUEIO DO SITE
    * ---------------
-   * `true`  = visitantes veem só a tela "Analisando viabilidade".
-   * `false` = site normal (após deploy).
-   *
-   * Para liberar: altere para false, salve, commit e push (ou deploy na Vercel).
+   * Raiz (/) = tela "Analisando viabilidade" quando HERA_SITE_LOCKED está ativo.
+   * Rota alternativa /livre (rewrite na Vercel) = mesmo HTML, sem bloqueio — não divulgar o link.
+   * Para liberar tudo: altere lockedDefault para false + deploy.
    */
-  window.HERA_SITE_LOCKED = true;
+  var path = location.pathname || '';
+  var unlockedByPath = /^\/livre\/?$/.test(path) || /^\/livre\.html$/.test(path);
+  var lockedDefault = true;
+  window.HERA_SITE_LOCKED = unlockedByPath ? false : lockedDefault;
   if (window.HERA_SITE_LOCKED) document.documentElement.classList.add('hera-site-locked');
 })();
 </script>
