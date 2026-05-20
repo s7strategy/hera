@@ -1,3 +1,4 @@
 .DS_Store
-.vercel
+.vercel/*
+!.vercel/project.json
 node_modules
