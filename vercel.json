@@ -1,20 +1,21 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "cleanUrls": true,
   "redirects": [
     {
       "source": "/",
-      "destination": "/HERA-Apresentacao-v7.html",
+      "destination": "/HERA-Apresentacao-v7",
       "permanent": false
     }
   ],
   "rewrites": [
     {
       "source": "/livre",
-      "destination": "/HERA-Apresentacao-v7.html"
+      "destination": "/HERA-Apresentacao-v7"
     },
     {
       "source": "/livre/",
-      "destination": "/HERA-Apresentacao-v7.html"
+      "destination": "/HERA-Apresentacao-v7"
     }
   ]
 }
