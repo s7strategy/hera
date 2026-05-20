@@ -3654,17 +3654,8 @@ section[id] { scroll-margin-top: 72px; }
 <body>
 <script>
 (function () {
-  /**
-   * BLOQUEIO DO SITE
-   * ---------------
-   * lockedDefault = true  → visitantes veem só "Analisando viabilidade" (exceto rota /livre).
-   * lockedDefault = false → site completo no link normal (estado atual).
-   */
-  var path = (location.pathname || '').split('?')[0].replace(/\/+$/, '') || '/';
-  var unlockedByPath = /(^|\/)livre\/?$/.test(path) || /(^|\/)livre\.html$/.test(path);
-  var lockedDefault = false;
-  window.HERA_SITE_LOCKED = unlockedByPath ? false : lockedDefault;
-  if (window.HERA_SITE_LOCKED) document.documentElement.classList.add('hera-site-locked');
+  /* Site aberto. Só volta o bloqueio se puseres true e adicionares a classe no html. */
+  window.HERA_SITE_LOCKED = false;
 })();
 </script>
 
