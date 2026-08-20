@@ -276,6 +276,9 @@ comparação acima de tudo.
    recalcula com os parâmetros originais e compara com o pipeline: se os dois modelos divergirem, a
    tela avisa em vez de fingir que está tudo certo.
 
+5. **Sincronizar** — atualizar os dados sem terminal. Uma linha por fonte com quando ela foi
+   coletada e se ainda vale, e um botão que dispara o pipeline.
+
 **Sem tiles pagos e sem tiles nenhum, por padrão.** A malha municipal já é o mapa. Isso zera custo
 de basemap (Mapbox e Google Maps JS estão fora por preço), acelera o carregamento e faz o dashboard
 funcionar offline. Quem quiser contexto define `VITE_BASEMAP_STYLE` com um style MapLibre próprio.
@@ -284,11 +287,52 @@ Acessibilidade e qualidade mínima: responsivo até tablet, foco de teclado vis�
 tabela operáveis por teclado, `prefers-reduced-motion` respeitado, estados de carregamento e vazio
 com direção clara.
 
+### Sincronizar sem terminal
+
+O pipeline é Python e lê o CNES em `.DBC` — nada disso roda num navegador. Então o botão não roda o
+pipeline: ele **aciona o robô**.
+
+```
+botão na aba Sincronizar
+  → POST /api/sincronizar          (função serverless da Vercel; é ela que guarda o token)
+  → workflow_dispatch no GitHub Actions
+  → pipeline roda, grava no Supabase e commita o snapshot novo
+  → deploy automático, dados novos no ar
+```
+
+O token do GitHub fica na função serverless e **nunca vai ao navegador** — quem tem o token pode
+rodar workflows no repositório. O navegador só consegue pedir duas coisas: "como está" e "dispara
+com estes parâmetros"; o que é aceitável em cada uma delas é decidido no servidor.
+
+Três garantias que a tela oferece:
+
+- **Nunca gasta sem mostrar a conta.** O Places é a única fonte que cobra. A estimativa aparece
+  antes (número de consultas × preço por consulta) e o disparo exige uma confirmação separada.
+  Município já consultado não é consultado de novo, então a conta real tende a ser menor.
+- **Cada fonte envelhece no seu ritmo.** O CNES publica competência mensal; o Censo dura anos. Uma
+  barra única de "atualizado em" esconderia justamente a fonte que precisa de atenção.
+- **Falta de configuração não é erro.** Sem o `GITHUB_TOKEN` a aba explica o que falta e quem
+  resolve, em vez de mostrar um botão que não funciona.
+
+Além do botão, o workflow roda sozinho todo dia 5, quando o CNES publica a competência nova.
+
 ### Deploy
 
 O dashboard é estático. Na Vercel, aponte um projeto para `mapa-optico/web` (o `vercel.json` de lá
-já traz a configuração). O `snapshot.json` versionado é o que vai ao ar — republicar dados novos é
-rodar o pipeline, commitar o snapshot e fazer deploy.
+já traz a configuração, inclusive a exclusão de `api/` do rewrite de SPA — sem ela a rota de
+sincronização receberia HTML no lugar de JSON). O `snapshot.json` versionado é o que vai ao ar.
+
+Variáveis de ambiente do projeto na Vercel:
+
+| Variável | Para quê | Vai ao navegador? |
+|---|---|---|
+| `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` | ler o ranking do banco em vez do snapshot | sim (por isso é a chave anônima) |
+| `VITE_BASEMAP_STYLE` | basemap opcional | sim |
+| `GITHUB_TOKEN` | disparar o pipeline pela aba Sincronizar | **não** |
+| `GITHUB_REPO`, `GITHUB_REF_SINCRONIZACAO` | onde o workflow roda | não |
+
+O `GITHUB_TOKEN` deve ser fine-grained, com permissão **Actions: read and write** apenas neste
+repositório. A ausência do prefixo `VITE_` é o que garante que ele não entre no bundle.
 
 ---
 

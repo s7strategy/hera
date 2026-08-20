@@ -104,8 +104,26 @@ def snapshot_para_web(
     registros = []
     for reg in df.to_dict("records"):
         registros.append({k: _limpar(v) for k, v in reg.items()})
+    # O custo por chamada do Places vive em fontes.yaml. Levar essa informacao ao
+    # snapshot deixa a tela de sincronizacao estimar a conta ANTES de gastar, sem
+    # duplicar o numero no codigo do front.
+    try:
+        from ..ingest.fontes import carregar as _carregar_fontes
+
+        cfg_places = _carregar_fontes().get("places", {})
+        fontes_cfg = {
+            "places": {
+                "termos": cfg_places.get("termos", []),
+                "custo_por_chamada_usd": cfg_places.get("custo_estimado_usd_por_chamada"),
+            }
+        }
+    except Exception as exc:  # noqa: BLE001 - a estimativa e conveniencia, nao pode derrubar a exportacao
+        log("config de fontes nao embutida no snapshot", erro=str(exc))
+        fontes_cfg = {}
+
     payload = {
         "gerado_em": _agora(),
+        "fontes_config": fontes_cfg,
         "versao_modelo": pesos.get("versao", "v1"),
         "versao_negocio": (negocio or {}).get("versao", "n1"),
         "pesos": pesos,

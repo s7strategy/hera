@@ -5,6 +5,7 @@ import FiltrosBar from "./components/FiltrosBar";
 import FichaMunicipio from "./components/FichaMunicipio";
 import PainelPesos from "./components/PainelPesos";
 import PainelNegocio from "./components/PainelNegocio";
+import PainelSincronizacao from "./components/PainelSincronizacao";
 import { carregarDados, type DadosCarregados } from "./lib/data";
 import { FILTROS_INICIAIS, aplicar, type Filtros } from "./lib/filtros";
 import { calcularScore, haversineKm } from "./lib/score";
@@ -14,7 +15,7 @@ import { baixarCSV } from "./lib/exportar";
 import { dataHora } from "./lib/format";
 import type { Municipio, Negocio, Pesos } from "./lib/types";
 
-type Aba = "mapa" | "negocio" | "pesos";
+type Aba = "mapa" | "negocio" | "pesos" | "sincronizar";
 
 export default function App() {
   const [dados, setDados] = useState<DadosCarregados | null>(null);
@@ -183,6 +184,14 @@ export default function App() {
           >
             Ajuste de pesos
           </button>
+          <button
+            className="aba"
+            role="tab"
+            aria-selected={aba === "sincronizar"}
+            onClick={() => setAba("sincronizar")}
+          >
+            Sincronizar
+          </button>
         </div>
       </header>
 
@@ -263,6 +272,8 @@ export default function App() {
             )}
           </div>
         </>
+      ) : aba === "sincronizar" ? (
+        <PainelSincronizacao snapshot={dados.snapshot} />
       ) : aba === "negocio" ? (
         <PainelNegocio
           negocioBase={negocioBase}

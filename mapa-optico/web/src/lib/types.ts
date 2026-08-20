@@ -250,7 +250,15 @@ export interface Snapshot {
   pesos: Pesos;
   negocio?: Negocio;
   circuitos?: CircuitoSnapshot[];
-  proveniencia: { fontes?: Record<string, string>; avisos?: string[]; demo?: boolean };
+  proveniencia: {
+    fontes?: Record<string, string>;
+    /** Um bloco por fonte, com carimbo de tempo — alimenta a tela de sincronização. */
+    detalhes?: Record<string, { origem?: string; atualizado_em?: string | null; motivo?: string; demo?: boolean }>;
+    avisos?: string[];
+    demo?: boolean;
+  };
+  /** Config das fontes embutida no snapshot para a tela estimar custo sem duplicar número. */
+  fontes_config?: { places?: { termos?: string[]; custo_por_chamada_usd?: number | null } };
   avisos: string[];
   canibalizacao: ParCanibalizacao[];
   oticas: Otica[];

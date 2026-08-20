@@ -709,6 +709,48 @@ textarea.nota {
 .resumo-negocio b { font-size: 19px; font-variant-numeric: tabular-nums; }
 .resumo-negocio small { font-size: 12px; color: var(--txt-3); font-weight: 400; }
 
+/* ------------------------------------------------------- sincronização */
+.lista-fontes { display: flex; flex-direction: column; }
+
+.linha-fonte {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--linha);
+}
+.linha-fonte:last-child { border-bottom: none; }
+.linha-fonte b { font-size: 13px; }
+.linha-fonte .slider-ajuda { margin-top: 2px; }
+.erro-fonte { color: var(--erro); }
+
+.quando-fonte { font-size: 11px; color: var(--txt-3); white-space: nowrap; }
+
+.opcoes-sync { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+.opcoes-sync label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.opcoes-sync input[type="checkbox"] { accent-color: var(--acento); margin-top: 2px; }
+.opcoes-sync b { font-weight: 500; }
+.opcoes-sync small { color: var(--txt-3); display: block; }
+
+.confirma-custo {
+  border: 1px solid var(--acento-medio);
+  background: var(--acento-fraco);
+  border-radius: var(--r);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.confirma-custo p { margin: 0; font-size: 12px; color: var(--txt-2); line-height: 1.5; }
+
 /* --------------------------------------------------------------- tablet */
 @media (max-width: 1100px) {
   .ficha { width: 320px; flex-basis: 320px; }

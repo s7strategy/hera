@@ -17,6 +17,14 @@ on:
         description: "Consultar o Google Places (custa dinheiro)"
         type: boolean
         default: false
+      com_osrm:
+        description: "Recalcular distância até o polo (gratuito, mas lento)"
+        type: boolean
+        default: true
+      refresh:
+        description: "Ignorar o cache em disco e buscar tudo de novo"
+        type: boolean
+        default: false
 
 jobs:
   pipeline:
@@ -51,11 +59,14 @@ jobs:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
           UFS="${{ inputs.ufs || 'SC' }}"
-          if [ "${{ inputs.com_places }}" = "true" ]; then
-            mapa-optico --json-logs ingest --uf "$UFS"
-          else
-            mapa-optico --json-logs ingest --uf "$UFS" --sem-places
-          fi
+          FLAGS=""
+          # O padrao de cada flag e o mais barato: sem Places e com cache. Quem
+          # quer gastar (dinheiro ou tempo) pede explicitamente na tela.
+          [ "${{ inputs.com_places }}" = "true" ] || FLAGS="$FLAGS --sem-places"
+          [ "${{ inputs.com_osrm }}" = "false" ] && FLAGS="$FLAGS --sem-osrm"
+          [ "${{ inputs.refresh }}" = "true" ] && FLAGS="$FLAGS --refresh"
+          echo "mapa-optico ingest --uf $UFS$FLAGS"
+          mapa-optico --json-logs ingest --uf "$UFS" $FLAGS
 
       - name: Carregar no Supabase
         if: ${{ env.SUPABASE_URL != '' }}

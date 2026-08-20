@@ -8,6 +8,7 @@ e a ausencia derruba a confianca do municipio no score.
 from __future__ import annotations
 
 import json
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -35,24 +36,41 @@ COLUNAS_BASE = [
 
 
 class Proveniencia:
-    """Registra de onde veio cada bloco de dado e o que faltou."""
+    """Registra de onde veio cada bloco de dado, quando, e o que faltou.
+
+    O carimbo de tempo por bloco existe para a tela de sincronizacao: ela
+    precisa dizer "os medicos sao da competencia de junho, as oticas foram
+    consultadas ha 4 meses" sem ter que adivinhar pela data do arquivo inteiro.
+    Fontes diferentes envelhecem em ritmos diferentes.
+    """
 
     def __init__(self) -> None:
         self.fontes: dict[str, str] = {}
         self.avisos: list[str] = []
+        self.detalhes: dict[str, dict[str, Any]] = {}
 
     def ok(self, bloco: str, origem: str, **extra: Any) -> None:
         self.fontes[bloco] = origem
+        self.detalhes[bloco] = {
+            "origem": origem,
+            "atualizado_em": datetime.now(UTC).isoformat(timespec="seconds"),
+            **{k: v for k, v in extra.items() if isinstance(v, (str, int, float, bool))},
+        }
         log("fonte carregada", bloco=bloco, origem=origem, **extra)
 
     def falhou(self, bloco: str, motivo: str) -> None:
         self.fontes[bloco] = "indisponivel"
         texto = f"{bloco}: {motivo}"
         self.avisos.append(texto)
+        self.detalhes[bloco] = {
+            "origem": "indisponivel",
+            "atualizado_em": None,
+            "motivo": motivo,
+        }
         aviso("fonte indisponivel — campos ficarao NULOS", bloco=bloco, motivo=motivo)
 
     def como_dict(self) -> dict[str, Any]:
-        return {"fontes": self.fontes, "avisos": self.avisos}
+        return {"fontes": self.fontes, "avisos": self.avisos, "detalhes": self.detalhes}
 
 
 def caminho_base(ufs: list[str]) -> Path:
@@ -82,8 +100,10 @@ def carregar_base(ufs: list[str]) -> tuple[pd.DataFrame, Proveniencia, list[dict
         )
     payload = json.loads(destino.read_text(encoding="utf-8"))
     prov = Proveniencia()
-    prov.fontes = payload.get("proveniencia", {}).get("fontes", {})
-    prov.avisos = payload.get("proveniencia", {}).get("avisos", [])
+    guardado = payload.get("proveniencia", {})
+    prov.fontes = guardado.get("fontes", {})
+    prov.avisos = guardado.get("avisos", [])
+    prov.detalhes = guardado.get("detalhes", {})
     return pd.DataFrame(payload["municipios"]), prov, payload.get("oticas", [])
 
 

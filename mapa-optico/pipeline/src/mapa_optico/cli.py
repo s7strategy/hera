@@ -314,7 +314,12 @@ def demo(uf: str = typer.Option("SC")) -> None:
     df = df[pipe.COLUNAS_BASE]
 
     prov = pipe.Proveniencia()
-    prov.fontes = {"TUDO": "DEMO_SINTETICO"}
+    # Um bloco por fonte, todos marcados como sinteticos: a tela de
+    # sincronizacao precisa mostrar cada fonte separada mesmo no modo demo,
+    # e precisa deixar obvio que nenhuma delas foi realmente consultada.
+    for bloco in ("municipios", "populacao", "renda", "cnes", "distancia_polo", "oticas"):
+        prov.fontes[bloco] = "DEMO_SINTETICO"
+        prov.detalhes[bloco] = {"origem": "DEMO_SINTETICO", "atualizado_em": None, "demo": True}
     prov.avisos = [
         (
             "DADOS SINTETICOS: numeros gerados por funcao pseudoaleatoria apenas para "
