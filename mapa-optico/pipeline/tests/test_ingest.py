@@ -3,7 +3,7 @@
 import pandas as pd
 import pytest
 
-from mapa_optico.geo import UF_CODIGO, area_km2, centroide, dbscan_geo, haversine_km
+from mapa_optico.geo import UF_CODIGO, area_km2, centroide, haversine_km
 from mapa_optico.ingest.cnes import CnesIndisponivel, _preparar, agregar_por_municipio
 from mapa_optico.ingest.ibge import _mapa_colunas, _num, idade_inicial
 from mapa_optico.ingest.places import raio_metros
@@ -117,13 +117,6 @@ def test_centroide_e_area_de_um_quadrado():
     assert lon == pytest.approx(-48.95, abs=0.01)
     area = area_km2(geom)
     assert 90 < area < 130  # ~0,1 grau x 0,1 grau nessa latitude
-
-
-def test_dbscan_separa_grupos_distantes():
-    pontos = [("a", -27.0, -49.0), ("b", -27.2, -49.1), ("c", -20.0, -40.0)]
-    rotulos = dbscan_geo(pontos, eps_km=60, min_amostras=2)
-    assert rotulos["a"] == rotulos["b"] >= 0
-    assert rotulos["c"] == -1
 
 
 def test_tabela_de_ufs_completa():

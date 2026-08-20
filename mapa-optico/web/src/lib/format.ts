@@ -13,6 +13,20 @@ export const num = (v: number | null | undefined, casas: 0 | 1 | 2 = 0): string 
 export const moeda = (v: number | null | undefined): string =>
   v === null || v === undefined || Number.isNaN(v) ? VAZIO : `R$ ${nf0.format(v)}`;
 
+/** Dinheiro compacto para caber em coluna de tabela: R$ 27 mil, R$ 1,2 mi. */
+export const moedaCurta = (v: number | null | undefined): string => {
+  if (v === null || v === undefined || Number.isNaN(v)) return VAZIO;
+  const sinal = v < 0 ? "-" : "";
+  const a = Math.abs(v);
+  if (a >= 1_000_000) return `${sinal}R$ ${nf1.format(a / 1_000_000)} mi`;
+  if (a >= 1_000) return `${sinal}R$ ${nf0.format(a / 1_000)} mil`;
+  return `${sinal}R$ ${nf0.format(a)}`;
+};
+
+/** Percentual a partir de um valor ja em 0-100 (o pct() espera 0-1). */
+export const pontos = (v: number | null | undefined, casas: 0 | 1 = 0): string =>
+  v === null || v === undefined || Number.isNaN(v) ? VAZIO : `${(casas === 0 ? nf0 : nf1).format(v)}%`;
+
 export const pct = (v: number | null | undefined): string =>
   v === null || v === undefined || Number.isNaN(v) ? VAZIO : `${nf0.format(v * 100)}%`;
 

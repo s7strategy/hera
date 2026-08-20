@@ -6,11 +6,12 @@
  * componente é caixa preta, e caixa preta não sustenta decisão comercial.
  */
 import { useEffect, useMemo, useState } from "react";
-import type { Componente, Municipio, Otica } from "../lib/types";
+import type { Componente, Municipio, Negocio, Otica } from "../lib/types";
 import { km, moeda, num, VAZIO } from "../lib/format";
 import { ROTULO_FATOR } from "../lib/score";
 import { lerNotasLocais, salvarNota, temSupabase } from "../lib/data";
 import { CORES } from "./MapaChoropleth";
+import BlocoProjecao from "./BlocoProjecao";
 
 const COR_FATOR: Record<string, string> = {
   distancia_polo: CORES[4],
@@ -30,12 +31,13 @@ const EXPLICACAO: Record<string, string> = {
 
 interface Props {
   municipio: Municipio;
+  negocio: Negocio;
   oticas: Otica[];
   vizinhosProximos: { nome: string; km: number }[];
   onFechar: () => void;
 }
 
-export default function FichaMunicipio({ municipio: m, oticas, vizinhosProximos, onFechar }: Props) {
+export default function FichaMunicipio({ municipio: m, negocio, oticas, vizinhosProximos, onFechar }: Props) {
   const [nota, setNota] = useState("");
   const [fila, setFila] = useState<string>("");
   const [salvo, setSalvo] = useState(false);
@@ -84,6 +86,8 @@ export default function FichaMunicipio({ municipio: m, oticas, vizinhosProximos,
       </div>
 
       <div className="ficha-corpo">
+        <BlocoProjecao municipio={m} negocio={negocio} />
+
         <section className="secao">
           <h3>Score {num(m.score_total, 1)} · confiança {num(m.confianca, 2)}</h3>
           <div className="trilho" style={{ height: 12 }}>

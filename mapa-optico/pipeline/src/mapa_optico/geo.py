@@ -91,47 +91,6 @@ def area_km2(geometry: dict[str, Any]) -> float | None:
     return round(total, 2) if total else None
 
 
-def dbscan_geo(
-    pontos: Sequence[tuple[str, float, float]],
-    eps_km: float,
-    min_amostras: int = 2,
-) -> dict[str, int]:
-    """DBSCAN sobre coordenadas, distancia em km. Devolve {id: cluster} (-1 = ruido).
-
-    Implementacao direta: O(n^2) e irrelevante para 295 municipios de SC e
-    aceitavel para 5.570 do Brasil (~15M comparacoes, poucos segundos).
-    """
-    n = len(pontos)
-    vizinhos: list[list[int]] = [[] for _ in range(n)]
-    for i in range(n):
-        for j in range(i + 1, n):
-            if haversine_km(pontos[i][1], pontos[i][2], pontos[j][1], pontos[j][2]) <= eps_km:
-                vizinhos[i].append(j)
-                vizinhos[j].append(i)
-
-    rotulos = [-1] * n
-    visitado = [False] * n
-    cluster = 0
-    for i in range(n):
-        if visitado[i]:
-            continue
-        visitado[i] = True
-        if len(vizinhos[i]) + 1 < min_amostras:
-            continue
-        rotulos[i] = cluster
-        fila = list(vizinhos[i])
-        while fila:
-            k = fila.pop()
-            if not visitado[k]:
-                visitado[k] = True
-                if len(vizinhos[k]) + 1 >= min_amostras:
-                    fila.extend(v for v in vizinhos[k] if not visitado[v])
-            if rotulos[k] == -1:
-                rotulos[k] = cluster
-        cluster += 1
-    return {pontos[i][0]: rotulos[i] for i in range(n)}
-
-
 def pares_proximos(
     pontos: Iterable[tuple[str, float, float]], raio_km: float
 ) -> list[tuple[str, str, float]]:

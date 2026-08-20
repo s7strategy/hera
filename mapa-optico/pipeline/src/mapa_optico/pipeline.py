@@ -22,13 +22,15 @@ from .ingest import places as ing_places
 from .load import exports
 from .logs import aviso, etapa, log
 from .score.model import calcular_score, circuitos, pares_canibalizacao
-from .settings import DATA_DIR, carregar_pesos, garantir_dirs
+from .score.projecao import projecao_de_circuito, projetar
+from .settings import DATA_DIR, carregar_negocio, carregar_pesos, garantir_dirs
 
 COLUNAS_BASE = [
     "codigo_ibge", "nome", "uf", "microrregiao", "mesorregiao", "lat", "lon", "area_km2",
     "populacao_total", "populacao_40mais", "renda_mediana",
     "qtd_oftalmologistas", "oftalmo_equivalente", "horas_semanais_total", "competencia_cnes",
-    "polo_codigo_ibge", "polo_nome", "distancia_km", "tempo_minutos", "qtd_oticas",
+    "polo_codigo_ibge", "polo_nome", "distancia_km", "tempo_minutos",
+    "qtd_oticas", "oticas_nota_media", "oticas_avaliacoes",
 ]
 
 
@@ -213,10 +215,12 @@ def montar_base(
             base = base.merge(contagem, on="codigo_ibge", how="left")
             prov.ok("oticas", "google_places", encontradas=len(oticas))
         except (FonteIndisponivel, RuntimeError) as exc:
-            base["qtd_oticas"] = pd.NA
+            for col in ("qtd_oticas", "oticas_nota_media", "oticas_avaliacoes"):
+                base[col] = pd.NA
             prov.falhou("oticas", str(exc))
     else:
-        base["qtd_oticas"] = pd.NA
+        for col in ("qtd_oticas", "oticas_nota_media", "oticas_avaliacoes"):
+            base[col] = pd.NA
         prov.falhou("oticas", "coleta do Places desligada nesta execucao (--sem-places)")
 
     for col in COLUNAS_BASE:
@@ -233,24 +237,37 @@ def rodar_score(
     prov: Proveniencia,
     *,
     caminho_pesos: str | None = None,
+    caminho_negocio: str | None = None,
     exportar: bool = True,
     oticas: list[dict[str, Any]] | None = None,
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
-    """Score + circuitos + canibalizacao + exportacoes."""
+    """Score + projecao financeira + circuitos + canibalizacao + exportacoes.
+
+    A ordem importa: os circuitos saem do score, e a projecao de circuito soma a
+    projecao ja calculada por municipio. Rodar a projecao depois do cluster
+    permite diluir o deslocamento do medico uma vez por viagem, nao por cidade.
+    """
     pesos = carregar_pesos(caminho_pesos)
+    negocio = carregar_negocio(caminho_negocio)
     with etapa("pipeline.score"):
         ranking = calcular_score(base, pesos)
         if ranking.empty:
-            return ranking, {"canibalizacao": [], "circuitos": 0}
+            return ranking, {"canibalizacao": [], "circuitos": 0, "circuitos_projetados": []}
         cl = circuitos(ranking, pesos)
         ranking = ranking.merge(cl, on="codigo_ibge", how="left")
         canibais = pares_canibalizacao(ranking, pesos)
+        ranking = projetar(ranking, negocio)
+        circuitos_projetados = projecao_de_circuito(ranking, negocio)
     if exportar:
         exports.exportar_planilhas(ranking, prefixo=f"ranking-{pesos.get('versao', 'v1')}")
         exports.snapshot_para_web(
             ranking,
             pesos,
+            negocio=negocio,
             canibalizacao=canibais,
+            circuitos=json.loads(circuitos_projetados.to_json(orient="records"))
+            if not circuitos_projetados.empty
+            else [],
             oticas=oticas,
             proveniencia=prov.como_dict(),
             avisos=prov.avisos,
@@ -258,4 +275,7 @@ def rodar_score(
     return ranking, {
         "canibalizacao": canibais,
         "circuitos": int(cl["circuito"].nunique()) if not cl.empty else 0,
+        "circuitos_projetados": json.loads(circuitos_projetados.to_json(orient="records"))
+        if not circuitos_projetados.empty
+        else [],
     }

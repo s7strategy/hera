@@ -160,3 +160,59 @@ def test_circuitos_agrupam_vizinhos():
     assert cl.at["4200001", "circuito"] == cl.at["4200002", "circuito"]
     assert cl.at["4200003", "circuito"] == cl.at["4200004", "circuito"]
     assert cl.at["4200001", "circuito"] != cl.at["4200003", "circuito"]
+
+
+# ------------------------------------------------------- circuitos gulosos
+def _grade(n: int, passo_km: float = 0.25) -> pd.DataFrame:
+    """n municipios enfileirados em linha reta, com score decrescente.
+
+    Passo de 0,25 grau ≈ 27 km: cada um esta dentro do raio do vizinho, mas as
+    pontas da fila estao longe uma da outra. E exatamente o arranjo em que o
+    DBSCAN encadeia tudo num cluster so.
+    """
+    return pd.DataFrame(
+        [
+            {
+                "codigo_ibge": f"42{i:05d}",
+                "nome": f"Cidade {i}",
+                "uf": "SC",
+                "lat": -27.0 - i * passo_km,
+                "lon": -49.0,
+                "score_total": 100.0 - i,
+                "ranqueavel": True,
+            }
+            for i in range(n)
+        ]
+    )
+
+
+def test_circuito_nao_encadeia_o_estado_inteiro():
+    """A regressao que motivou trocar o DBSCAN: SC virava um circuito de 186 cidades."""
+    pesos = {"circuitos": {"eps_km": 60, "min_municipios": 2, "tamanho_sugerido": [3, 4]}}
+    saida = circuitos(_grade(40), pesos)
+    tamanhos = saida[saida["circuito"] >= 0].groupby("circuito").size()
+    assert len(tamanhos) > 1, "uma fila de 40 cidades nao pode virar um circuito so"
+    assert tamanhos.max() <= 4, "circuito nao pode passar do tamanho maximo configurado"
+
+
+def test_circuito_agrupa_pelos_melhores_vizinhos_dentro_do_raio():
+    pesos = {"circuitos": {"eps_km": 60, "min_municipios": 2, "tamanho_sugerido": [3, 3]}}
+    saida = circuitos(_grade(6), pesos)
+    primeiro = saida[saida["circuito"] == 0]["codigo_ibge"].tolist()
+    # A ancora e a de melhor score (i=0) e leva as duas vizinhas mais bem pontuadas.
+    assert set(primeiro) == {"4200000", "4200001", "4200002"}
+
+
+def test_municipio_isolado_fica_avulso_em_vez_de_virar_circuito_de_um():
+    pesos = {"circuitos": {"eps_km": 20, "min_municipios": 2, "tamanho_sugerido": [3, 4]}}
+    # passo de 1 grau ≈ 111 km: ninguem alcanca ninguem dentro de 20 km
+    saida = circuitos(_grade(4, passo_km=1.0), pesos)
+    assert (saida["circuito"] == -1).all()
+
+
+def test_circuito_ignora_municipio_nao_ranqueavel():
+    base = _grade(4)
+    base.loc[1, "ranqueavel"] = False
+    pesos = {"circuitos": {"eps_km": 60, "min_municipios": 2, "tamanho_sugerido": [3, 4]}}
+    saida = circuitos(base, pesos)
+    assert "4200001" not in set(saida["codigo_ibge"])

@@ -10,10 +10,11 @@
  * sentidos — hover na linha acende o município, clique no mapa seleciona, e
  * shift+arrastar filtra o conjunto pela área.
  */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import maplibregl, { type MapGeoJSONFeature } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Municipio } from "../lib/types";
+import { type ModoOrdenacao, modoPorChave } from "../lib/ordenacao";
 import { num } from "../lib/format";
 
 const ESTILO_BASE = import.meta.env.VITE_BASEMAP_STYLE as string | undefined;
@@ -25,6 +26,8 @@ interface Props {
   malha: GeoJSON.FeatureCollection | null;
   municipios: Municipio[];
   visiveis: Municipio[];
+  /** Campo que pinta o mapa — acompanha a ordenação escolhida na barra. */
+  metrica: ModoOrdenacao;
   selecionado: string | null;
   destacado: string | null;
   onSelecionar: (codigo: string | null) => void;
@@ -49,6 +52,7 @@ export default function MapaChoropleth({
   malha,
   municipios,
   visiveis,
+  metrica,
   selecionado,
   destacado,
   onSelecionar,
@@ -69,9 +73,17 @@ export default function MapaChoropleth({
     () => new Set(visiveis.map((m) => m.codigo_ibge)),
     [visiveis],
   );
+  const valorMetrica = useCallback(
+    (m: Municipio | undefined): number | null => {
+      if (!m) return null;
+      const v = m[metrica];
+      return typeof v === "number" && Number.isFinite(v) ? v : null;
+    },
+    [metrica],
+  );
   const quebras = useMemo(
-    () => calcularQuebras(visiveis.map((m) => m.score_total).filter((v): v is number => v !== null)),
-    [visiveis],
+    () => calcularQuebras(visiveis.map(valorMetrica).filter((v): v is number => v !== null)),
+    [visiveis, valorMetrica],
   );
 
   /* ------------------------------------------------------------- mapa base */
@@ -124,7 +136,7 @@ export default function MapaChoropleth({
           properties: {
             codigo_ibge: codigo,
             nome: mun?.nome ?? "",
-            score: mun?.score_total ?? null,
+            score: valorMetrica(mun),
             visivel: codigosVisiveis.has(codigo) ? 1 : 0,
             confianca: mun?.confianca ?? 0,
           },
@@ -319,12 +331,13 @@ export default function MapaChoropleth({
             top: dica.y + 12,
           }}
         >
-          <b>{dica.m.nome}</b> · score {num(dica.m.score_total, 1)}
+          <b>{dica.m.nome}</b> · {modoPorChave(metrica).rotulo.toLowerCase()}{" "}
+          {num(valorMetrica(dica.m), 1)}
         </div>
       )}
       <div className="dica-mapa">clique seleciona · shift + arrastar filtra a área</div>
       <div className="legenda">
-        <h4>Score do modelo</h4>
+        <h4>{modoPorChave(metrica).rotulo}</h4>
         <div className="legenda-escala">
           {CORES.map((c) => (
             <div key={c} className="legenda-passo" style={{ background: c }} />

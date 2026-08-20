@@ -138,10 +138,78 @@ bruto, a nota normalizada, o peso efetivo e quantos pontos ele contribuiu. A som
 é exatamente o score — é isso que a ficha do município mostra. Sem isso o modelo vira caixa preta,
 e caixa preta não sustenta decisão comercial.
 
-**Circuitos e canibalização.** Municípios vizinhos de score alto são agrupados em circuitos
-sugeridos (DBSCAN sobre os centroides, eps ≈ 60 km) para diluir o deslocamento do médico. E dois
-municípios do topo a menos de 30 km um do outro geram alerta: provavelmente compartilham público e
-devem virar um circuito único, não dois eventos.
+**Circuitos e canibalização.** Municípios vizinhos de score alto são agrupados em circuitos de 3 a
+4 cidades para diluir o deslocamento do médico. O briefing sugeria DBSCAN com eps de 60 km, e foi
+assim que começou — mas DBSCAN agrupa por alcançabilidade transitiva, e rodando em SC o estado
+inteiro virou **um** circuito de 186 municípios. Verdade geográfica, inútil como roteiro. O que
+está no lugar é guloso e explicável: pega o município de melhor score ainda sem circuito, junta os
+melhores vizinhos dentro do raio até fechar o tamanho, remove todos e repete. Município que não
+alcança ninguém fica avulso em vez de virar circuito de um.
+
+E dois municípios do topo a menos de 30 km um do outro geram alerta: provavelmente compartilham
+público e devem virar um circuito único, não dois eventos.
+
+---
+
+## O modelo de faturamento, em português claro
+
+O score responde **onde** há demanda reprimida. Esta parte responde **quanto** isso vira dinheiro.
+Os parâmetros ficam em `pipeline/config/negocio.yaml`, separados dos pesos de propósito: peso muda
+quando aprendemos sobre o mercado, ticket muda quando o fornecedor reajusta.
+
+A cadeia inteira, de habitante a lucro:
+
+```
+população 40+
+  × prevalência de necessidade de correção
+  × renovação anual de receita            = demanda anual da cidade
+  − capacidade instalada dos oftalmos locais   ← CNES: carga horária real
+                                          = demanda não atendida
+  × atrito de deslocamento até o polo      = demanda represada AQUI
+  × anos de fila acumulada                 = público de um primeiro evento
+  × alcance da mídia × agendamento × comparecimento
+  LIMITADO PELA AGENDA FÍSICA DO MÉDICO    = consultas
+  × conversão em venda                     ← óticas locais, notas e avaliações
+  × ticket (modulado pela renda)           = faturamento
+  − CMV − custo do evento − mídia          = lucro
+```
+
+**O teto físico é o que impede o ranking de virar "ordene por população".** Um médico faz N
+refrações por dia; um evento de 3 dias tem um teto que nenhuma cidade grande ultrapassa. Quando a
+procura passa desse teto, o excedente não some: vira `dias_sugeridos` e `demanda_nao_capturada` —
+sinal de que aquela cidade comporta um evento mais longo ou uma segunda visita.
+
+**A "% de possibilidade" é o faturamento contra o teto teórico** (agenda cheia × conversão máxima ×
+ticket máximo). Como o teto é o mesmo para todos, o percentual compara cidades — e, por construção,
+se decompõe em exatamente três fatores multiplicativos:
+
+```
+potencial = ocupação da agenda × (conversão / conversão máxima) × (ticket / ticket máximo)
+```
+
+Os três aparecem separados na ficha, e o teste `test_potencial_e_exatamente_o_produto_dos_tres_fatores_mostrados_na_ficha`
+garante que o número da tela é reconstruível a partir da explicação da tela. **Ocupação** vem dos
+médicos e da distância; **conversão** vem das óticas, suas notas e o volume de avaliações;
+**ticket** vem da renda.
+
+**As três leituras da concorrência são independentes, e as três saem do Google Places:**
+
+| Sinal | O que mede | Por que importa |
+|---|---|---|
+| Quantidade de óticas por 10 mil hab | saturação | mercado cheio converte menos |
+| Nota média, ponderada por avaliações | força | concorrente nota 4,8 segura o cliente; nota 3,2 é oportunidade, não ameaça |
+| Avaliações por mil habitantes | movimento real | trinta óticas sem avaliação nenhuma pesam menos que três com 400 |
+
+**Cidade com zero ótica não herda a nota mediana do estado.** Ausência de concorrente é informação,
+não buraco de coleta — imputar a média puniria justamente o município mais virgem. Já cidade que
+nunca foi consultada no Places recebe a mediana do universo, **marcada como imputada** e descontada
+de `projecao_confianca`.
+
+**Sobre a confiança dos parâmetros.** Cada número do `negocio.yaml` carrega sua origem:
+`[informado]` veio da operação, `[estimado]` é constante clínica ou demográfica com base
+defensável, `[calibrável]` é chute inicial. Os calibráveis movem o **tamanho** da projeção, não a
+**ordem** do ranking, porque incidem igual em todos os municípios — e cada evento registrado na
+tabela `eventos` corrige um deles.
 
 ---
 
@@ -183,19 +251,30 @@ a confiança cai. A origem de cada bloco aparece no resumo de proveniência ao f
 
 ## Dashboard
 
-Três telas, pensadas como terminal de análise e não como site: densidade legível e velocidade de
+Telas pensadas como terminal de análise e não como site: densidade legível e velocidade de
 comparação acima de tudo.
 
-1. **Mapa + tabela** — split redimensionável, choropleth por score, colunas ordenáveis, filtros e
-   exportação do conjunto filtrado. Mapa e tabela são ligados nos dois sentidos: hover na linha
-   acende o município, clique no mapa seleciona, **shift + arrastar** no mapa filtra o conjunto pela
-   área.
-2. **Ficha do município** — breakdown do score fator a fator, dados brutos, polo e distância,
-   óticas encontradas, alertas de canibalização e campo de notas de validação de campo (incluindo
-   fila do SUS, preenchida à mão).
-3. **Ajuste de pesos** — sliders com recálculo ao vivo e comparação lado a lado com o ranking
-   atual. O selo "conferência" recalcula com os pesos originais e compara com o que o pipeline
-   gravou: se os dois modelos divergirem, a tela avisa.
+1. **Mapa + tabela** — split redimensionável, colunas ordenáveis, filtros e exportação do conjunto
+   filtrado. Mapa e tabela são ligados nos dois sentidos: hover na linha acende o município, clique
+   no mapa seleciona, **shift + arrastar** no mapa filtra o conjunto pela área.
+
+   O seletor **Ordenar por** é o controle mais forte da barra, porque "melhor cidade" muda de
+   significado conforme a pergunta: *lucro estimado* (padrão), *potencial %*, *faturamento*,
+   *retorno sobre o custo* e *demanda reprimida*. O choropleth acompanha a escolha — o mapa sempre
+   pinta a métrica que está ordenando a tabela.
+
+2. **Ficha do município** — a projeção financeira abre a ficha: o potencial decomposto nos três
+   fatores, o funil inteiro de habitante a consulta, a leitura da concorrência e a conta fechada até
+   o lucro. Depois vêm o breakdown do score, dados brutos, polo e distância, óticas encontradas,
+   alertas de canibalização e o campo de notas de validação de campo (incluindo fila do SUS).
+
+3. **Faturamento** — os parâmetros do negócio em sliders, cada um marcado com a origem do número
+   (informado / estimado / calibrável), com recálculo ao vivo do ranking de lucro e comparação lado
+   a lado com o que o pipeline gravou.
+
+4. **Ajuste de pesos** — o mesmo, para os pesos do score. Em ambas as telas o selo "conferência"
+   recalcula com os parâmetros originais e compara com o pipeline: se os dois modelos divergirem, a
+   tela avisa em vez de fingir que está tudo certo.
 
 **Sem tiles pagos e sem tiles nenhum, por padrão.** A malha municipal já é o mapa. Isso zera custo
 de basemap (Mapbox e Google Maps JS estão fora por preço), acelera o carregamento e faz o dashboard
@@ -223,7 +302,9 @@ rodar o pipeline, commitar o snapshot e fazer deploy.
 - **Fase 4 — escala nacional**: o pipeline aceita `--uf` com várias UFs ou nenhuma (Brasil inteiro);
   o Places tem estimativa de custo e limite de chamadas.
 - **Fase 5 — loop de calibração**: tabela `eventos` criada no schema; a entrada de resultados pela
-  interface é o próximo passo.
+  interface é o próximo passo. É ela que transforma o `potencial %` de índice comparativo em
+  probabilidade calibrada — enquanto não houver evento executado, o número ordena cidades, mas não
+  afirma chance de sucesso, e a interface diz isso.
 
 > **Nota sobre o ambiente de desenvolvimento**: o sandbox onde este código foi escrito bloqueia
 > `cnes.datasus.gov.br`, `servicodados.ibge.gov.br`, `apisidra.ibge.gov.br` e

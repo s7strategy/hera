@@ -25,7 +25,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from ..geo import dbscan_geo, haversine_km
+from ..geo import haversine_km
 from ..logs import aviso, etapa, log
 
 # Colunas de entrada esperadas por fator do weights.yaml
@@ -268,20 +268,72 @@ def pares_canibalizacao(df: pd.DataFrame, pesos: dict[str, Any]) -> list[dict[st
 
 
 def circuitos(df: pd.DataFrame, pesos: dict[str, Any]) -> pd.DataFrame:
-    """Agrupa municipios vizinhos de score alto em circuitos sugeridos.
+    """Agrupa municipios vizinhos de score alto em circuitos de 3-4 cidades.
 
-    Diluir o deslocamento do medico entre 3-4 cidades proximas e o que torna a
-    operacao viavel; o cluster e uma sugestao de roteiro, nao uma regra.
+    POR QUE NAO E DBSCAN. O briefing sugeria DBSCAN com eps de 60 km, e foi assim
+    que comecou — mas DBSCAN agrupa por alcancabilidade transitiva: A perto de B,
+    B perto de C, e o cluster cresce em cadeia. Rodando em SC com 60 km, o estado
+    inteiro virou UM circuito de 186 municipios. Isso e verdade geografica e
+    inutil como roteiro: ninguem leva o medico a 186 cidades numa viagem.
+
+    O que a operacao precisa e outra coisa — uma sequencia de 3 a 4 cidades que
+    caibam numa saida. Entao: pega o municipio de melhor score ainda sem
+    circuito, junta os melhores vizinhos dentro do raio ate fechar o tamanho,
+    tira todos da lista e repete. Circuito com menos que o minimo e desfeito, e
+    seus municipios voltam a valer sozinhos (circuito = -1).
+
+    O resultado e guloso, nao otimo. E deliberado: o usuario vai reordenar o
+    roteiro na mao de qualquer jeito, e um agrupamento que ele entende vale mais
+    que um que ele teria de aceitar no escuro.
     """
     cfg = pesos.get("circuitos", {})
-    eps = float(cfg.get("eps_km", 60))
+    raio = float(cfg.get("eps_km", 60))
     minimo = int(cfg.get("min_municipios", 2))
+    tamanho = cfg.get("tamanho_sugerido") or [3, 4]
+    maximo = int(max(tamanho))
+
     base = df[df["ranqueavel"]].dropna(subset=["lat", "lon"])
     if base.empty:
         return pd.DataFrame(columns=["codigo_ibge", "circuito"])
-    pontos = [(r["codigo_ibge"], r["lat"], r["lon"]) for r in base.to_dict("records")]
-    rotulos = dbscan_geo(pontos, eps_km=eps, min_amostras=minimo)
+
+    # Melhor score primeiro: o circuito nasce ancorado na cidade que puxa a viagem.
+    candidatos = base.sort_values("score_total", ascending=False).to_dict("records")
+    restantes = {r["codigo_ibge"]: r for r in candidatos}
+    rotulos: dict[str, int] = {codigo: -1 for codigo in restantes}
+    proximo = 0
+
+    for ancora in candidatos:
+        codigo = ancora["codigo_ibge"]
+        if codigo not in restantes:
+            continue
+        del restantes[codigo]
+
+        vizinhos = [
+            (haversine_km(ancora["lat"], ancora["lon"], r["lat"], r["lon"]), r)
+            for r in restantes.values()
+        ]
+        # Dentro do raio, os de melhor score entram primeiro; a distancia so desempata.
+        dentro = sorted(
+            [(d, r) for d, r in vizinhos if d <= raio],
+            key=lambda par: (-(par[1].get("score_total") or 0), par[0]),
+        )[: maximo - 1]
+
+        grupo = [codigo] + [r["codigo_ibge"] for _, r in dentro]
+        if len(grupo) < minimo:
+            continue  # sozinho demais para virar roteiro; segue como municipio avulso
+        for c in grupo:
+            rotulos[c] = proximo
+            restantes.pop(c, None)
+        proximo += 1
+
     saida = pd.DataFrame({"codigo_ibge": list(rotulos.keys()), "circuito": list(rotulos.values())})
-    n_clusters = len({v for v in rotulos.values() if v >= 0})
-    log("circuitos sugeridos", clusters=n_clusters, eps_km=eps)
+    agrupados = sum(1 for v in rotulos.values() if v >= 0)
+    log(
+        "circuitos sugeridos",
+        circuitos=proximo,
+        municipios_agrupados=agrupados,
+        avulsos=len(rotulos) - agrupados,
+        raio_km=raio,
+        tamanho_maximo=maximo,
+    )
     return saida

@@ -140,7 +140,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 .corpo { flex: 1; min-height: 0; display: flex; }
 
-.split { display: flex; width: 100%; min-height: 0; }
+.split { display: flex; flex: 1 1 auto; min-width: 0; min-height: 0; }
 .divisor {
   width: 6px;
   cursor: col-resize;
@@ -528,13 +528,194 @@ textarea.nota {
 .pilula-ok { border-color: #2c5a4a; color: var(--ok); }
 .pilula-alerta { border-color: #6a5320; color: var(--alerta); }
 
+
+/* ================================================================ dinheiro
+   Blocos da projeção financeira. Semântica de cor separada do acento:
+   --ok/--erro dizem "fecha a conta" / "não fecha", e nunca competem com o
+   laranja que marca score alto no mapa. */
+
+.bom { color: var(--ok); }
+.ruim { color: var(--erro); }
+
+.rotulo-mini {
+  font-family: var(--fonte-dados);
+  font-size: 10px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--txt-3);
+  display: block;
+}
+
+.pilula-atencao { border-color: #6a4820; color: var(--acento); }
+.pilula-mini { font-size: 9px; padding: 0 5px; margin-left: 6px; vertical-align: middle; }
+
+.aviso-imputado {
+  color: var(--acento);
+  font-family: var(--fonte-dados);
+  margin-left: 4px;
+  cursor: help;
+}
+
+/* ------------------------------------------------- cabeça da projeção */
+.projecao-cabeca {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--linha);
+  margin-bottom: 12px;
+}
+
+.projecao-numero {
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1.05;
+  color: var(--acento);
+  font-variant-numeric: tabular-nums;
+}
+
+.projecao-numero.bom { color: var(--ok); }
+.projecao-numero.ruim { color: var(--erro); }
+.projecao-lucro { text-align: right; }
+.projecao-numero-menor {
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--txt);
+  font-variant-numeric: tabular-nums;
+}
+
+.fatores-produto { display: flex; flex-direction: column; gap: 10px; }
+.fator-mult .trilho i { background: var(--acento-medio); }
+
+.identidade {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--linha-forte);
+  color: var(--txt-2);
+}
+
+/* ------------------------------------------------------------- funil */
+.funil { display: flex; flex-direction: column; gap: 3px; }
+
+.funil-etapa {
+  display: grid;
+  grid-template-columns: minmax(96px, 1.1fr) minmax(60px, 1fr) minmax(52px, auto);
+  align-items: center;
+  gap: 10px;
+  padding: 3px 0;
+}
+
+.funil-rotulo { min-width: 0; }
+.funil-rotulo b { font-size: 12px; font-weight: 500; display: block; }
+.funil-rotulo small {
+  display: block;
+  font-family: var(--fonte-dados);
+  font-size: 10px;
+  color: var(--txt-3);
+  line-height: 1.3;
+}
+
+.funil-trilho { height: 12px; background: var(--painel-2); border-radius: 2px; overflow: hidden; }
+.funil-trilho i { display: block; height: 100%; background: var(--c3); }
+.funil-destaque .funil-trilho i { background: var(--acento); }
+.funil-destaque .funil-rotulo b { color: var(--acento); }
+
+.funil-valor {
+  text-align: right;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--txt);
+}
+
+/* -------------------------------------------------------- concorrência */
+.conversao-cabeca {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.efeito { color: var(--txt-3); font-family: var(--fonte-ui); font-size: 11px; display: block; }
+
+/* --------------------------------------------------------------- conta */
+.conta {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 5px 12px;
+  font-size: 12px;
+  align-items: baseline;
+}
+
+.conta .negativo { color: var(--txt-3); }
+.conta > span:nth-child(even) { text-align: right; font-variant-numeric: tabular-nums; }
+.conta .total {
+  font-weight: 600;
+  border-top: 1px solid var(--linha-forte);
+  padding-top: 7px;
+  margin-top: 3px;
+  color: var(--txt);
+}
+
+/* ------------------------------------------------ barra de ordenação */
+.campo-modo select { font-weight: 600; color: var(--acento); }
+.ajuda-modo {
+  display: block;
+  font-size: 10px;
+  color: var(--txt-3);
+  margin-top: 2px;
+  max-width: 190px;
+  line-height: 1.25;
+}
+
+.campo-caixas { gap: 2px; }
+.campo-caixas label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--txt-2);
+  text-transform: none;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+.campo-caixas input[type="checkbox"] { accent-color: var(--acento); margin: 0; }
+
+/* -------------------------------------------- painel de parâmetros */
+.grupo-negocio {
+  border-top: 1px solid var(--linha);
+  padding-top: 12px;
+  margin-top: 14px;
+}
+.grupo-negocio:first-of-type { border-top: none; padding-top: 0; margin-top: 8px; }
+.grupo-negocio h4 {
+  margin: 0 0 2px;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--txt-2);
+}
+.grupo-negocio input[type="range"] { width: 100%; accent-color: var(--acento); }
+.grupo-negocio .slider-linha-topo label { display: flex; align-items: center; font-size: 12px; }
+.grupo-negocio label { cursor: pointer; }
+
+.resumo-negocio {
+  display: flex;
+  gap: 24px;
+  padding: 10px 0 14px;
+  border-bottom: 1px solid var(--linha);
+  margin-bottom: 10px;
+}
+.resumo-negocio b { font-size: 19px; font-variant-numeric: tabular-nums; }
+.resumo-negocio small { font-size: 12px; color: var(--txt-3); font-weight: 400; }
+
 /* --------------------------------------------------------------- tablet */
 @media (max-width: 1100px) {
   .ficha { width: 320px; flex-basis: 320px; }
 }
 @media (max-width: 900px) {
   .corpo { flex-direction: column; }
-  .split { flex-direction: column; }
+  .split { flex-direction: column; width: 100%; }
   .painel-mapa { height: 42vh; flex: 0 0 42vh; }
   .divisor { display: none; }
   .painel-tabela { border-left: none; border-top: 1px solid var(--linha); }

@@ -1,0 +1,99 @@
+# Parametros do NEGOCIO — separados de weights.yaml de proposito.
+#
+# weights.yaml responde "onde ha demanda reprimida" (ranking relativo).
+# negocio.yaml responde "quanto isso vira dinheiro" (projecao absoluta).
+#
+# Sao coisas diferentes e mudam por motivos diferentes: o peso de um fator muda
+# quando aprendemos sobre o mercado; o ticket medio muda quando o fornecedor
+# reajusta. Versionados separadamente para poder comparar um contra o outro.
+#
+# ------------------------------------------------------------------------
+# COMO LER A CONFIANCA DE CADA NUMERO AQUI
+#
+#   [informado]  veio da operacao. Trocar so quando a operacao mudar.
+#   [estimado]   constante clinica/demografica com base defensavel. Ajustavel.
+#   [calibravel] chute inicial. AFETA O TAMANHO DA PROJECAO, NAO A ORDEM DO
+#                RANKING, porque incide igual em todos os municipios. Cada
+#                evento registrado na tabela `eventos` corrige este numero.
+#
+# Enquanto nao houver evento executado, os [calibravel] sao a maior fonte de
+# erro absoluto do modelo — e a interface diz isso, em vez de esconder.
+# ------------------------------------------------------------------------
+
+versao: "n1"
+
+venda:
+  ticket_medio: 1500 # [informado] media entre os 1200 e 1800 praticados
+  custo_produto: 500 # [informado] media entre os 400 e 600 pagos ao fornecedor
+  # O CMV e proporcional ao ticket (1200/400 e 1800/600 dao a mesma fracao),
+  # entao o modelo usa custo_produto/ticket_medio e nao o valor absoluto.
+
+  # Renda da cidade move o ticket: onde a renda e menor, vende-se a linha barata.
+  renda_referencia: 2200 # [estimado] renda mediana onde o ticket_medio se aplica
+  elasticidade_renda: 0.35 # [calibravel] 0 = ticket igual em todo lugar; 1 = proporcional a renda
+  ticket_min: 700 # [informado] piso: abaixo disso nao vale vender
+  ticket_max: 2600 # [informado] teto: linha premium
+
+evento:
+  dias: 3 # [informado] duracao padrao de um evento
+  consultas_por_dia: 45 # [estimado] teto fisico de refracoes de um oftalmo em um dia
+  custo_medico_dia: 1200 # [calibravel] cache do medico por dia
+  custo_estrutura_dia: 500 # [calibravel] espaco, montagem, equipe local
+  custo_deslocamento: 800 # [calibravel] por VIAGEM, diluido entre as cidades do circuito
+  investimento_midia: 3000 # [informado] verba de midia por cidade
+  cidades_por_circuito: 3 # [informado] usado so para diluir o deslocamento
+
+demanda:
+  # Quantas pessoas precisam de receita nova por ano na cidade.
+  prevalencia_40mais: 0.85 # [estimado] fracao dos 40+ que precisa de correcao (presbiopia e quase universal apos os 45)
+  renovacao_anual: 0.22 # [estimado] fracao que precisa de receita nova por ano (troca a cada ~4,5 anos)
+
+  # Quanto dessa demanda o proprio municipio ja consegue atender.
+  # Sai do CNES: carga horaria ambulatorial dos oftalmologistas cadastrados.
+  consultas_refracao_por_hora: 2.5 # [estimado] refracao e consulta curta
+  fracao_tempo_em_refracao: 0.45 # [estimado] o oftalmo tambem faz cirurgia, retina, glaucoma
+  semanas_por_ano: 44 # [estimado] descontando ferias e feriados
+  horas_semanais_fallback: 20 # [estimado] usado so quando o CNES traz o profissional sem carga horaria
+
+  # Quem nao e atendido na cidade pode resolver viajando ate o polo. Quanto mais
+  # longe o polo, menos gente viaja — e maior a demanda que fica represada aqui.
+  atrito_saturacao_km: 120 # [estimado] a partir daqui praticamente ninguem viaja de rotina
+  atrito_minimo: 0.15 # [estimado] mesmo colado no polo, uma fracao nao vai (custo, transporte, idoso sozinho)
+
+  # Primeiro evento numa cidade virgem nao pega so o fluxo do ano: pega o
+  # estoque acumulado de quem esta ha anos sem consultar.
+  backlog_anos: 3.0 # [calibravel] anos de demanda represada que o primeiro evento alcanca
+
+captacao:
+  # Quanto do publico-alvo fica sabendo do evento, dado o investimento em midia.
+  alcance_por_mil_reais: 0.09 # [calibravel] fracao alcancada por R$ 1.000 de midia
+  alcance_maximo: 0.55 # [calibravel] teto de alcance por mais que se invista
+  taxa_agendamento: 0.14 # [calibravel] de quem foi alcancado E tem necessidade represada
+  taxa_comparecimento: 0.72 # [calibravel] no-show e alto em consulta gratuita/barata
+
+conversao:
+  # Dos que consultam, quantos compram o oculos com a gente. A receita e
+  # entregue em maos e incondicional, entao a pessoa PODE comprar em qualquer
+  # lugar — o que segura a conversao e estarmos ali na hora, com a receita
+  # quente. A concorrencia local e o que derruba essa fracao.
+  base: 0.42 # [calibravel] conversao numa cidade sem nenhuma otica
+
+  peso_saturacao: 0.30 # [calibravel] quanto a QUANTIDADE de oticas derruba
+  saturacao_referencia: 4.0 # [estimado] oticas por 10 mil habitantes ja considerado mercado saturado
+
+  peso_reputacao: 0.20 # [calibravel] quanto a NOTA das oticas locais derruba
+  nota_neutra: 4.0 # [estimado] acima disso o concorrente e forte; abaixo vira oportunidade
+
+  peso_presenca: 0.15 # [calibravel] quanto o VOLUME DE AVALIACOES derruba
+  avaliacoes_referencia: 40 # [estimado] avaliacoes por mil habitantes = mercado otico ativo
+
+  minimo: 0.12 # [estimado] piso: nem na cidade mais saturada a conversao zera
+  maximo: 0.70 # [estimado] teto: nem na cidade mais virgem todo mundo compra
+
+# Teto teorico usado para transformar o faturamento em "% de possibilidade".
+# potencial_pct = faturamento_estimado / (agenda cheia x conversao maxima x ticket maximo)
+# Como o teto e o mesmo para todo municipio, o % e comparavel entre cidades e
+# se decompoe em tres fatores multiplicativos rastreaveis: ocupacao da agenda,
+# forca da conversao e nivel do ticket.
+potencial:
+  usar_teto_teorico: true

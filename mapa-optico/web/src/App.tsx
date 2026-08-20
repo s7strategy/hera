@@ -4,14 +4,17 @@ import TabelaRanking from "./components/TabelaRanking";
 import FiltrosBar from "./components/FiltrosBar";
 import FichaMunicipio from "./components/FichaMunicipio";
 import PainelPesos from "./components/PainelPesos";
+import PainelNegocio from "./components/PainelNegocio";
 import { carregarDados, type DadosCarregados } from "./lib/data";
 import { FILTROS_INICIAIS, aplicar, type Filtros } from "./lib/filtros";
 import { calcularScore, haversineKm } from "./lib/score";
+import { projetar } from "./lib/projecao";
+import { MODO_PADRAO, type ModoOrdenacao, ordenarPor, reposicionar } from "./lib/ordenacao";
 import { baixarCSV } from "./lib/exportar";
 import { dataHora } from "./lib/format";
-import type { Municipio, Pesos } from "./lib/types";
+import type { Municipio, Negocio, Pesos } from "./lib/types";
 
-type Aba = "mapa" | "pesos";
+type Aba = "mapa" | "negocio" | "pesos";
 
 export default function App() {
   const [dados, setDados] = useState<DadosCarregados | null>(null);
@@ -21,7 +24,9 @@ export default function App() {
   const [selecionado, setSelecionado] = useState<string | null>(null);
   const [destacado, setDestacado] = useState<string | null>(null);
   const [pesosAjustados, setPesosAjustados] = useState<Pesos | null>(null);
-  const [larguraMapa, setLarguraMapa] = useState(60);
+  const [negocioAjustado, setNegocioAjustado] = useState<Negocio | null>(null);
+  const [modo, setModo] = useState<ModoOrdenacao>(MODO_PADRAO);
+  const [larguraMapa, setLarguraMapa] = useState(50);
   const splitRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -32,13 +37,21 @@ export default function App() {
 
   const pesosBase = dados?.snapshot.pesos ?? null;
   const pesos = pesosAjustados ?? pesosBase;
+  const negocioBase = dados?.snapshot.negocio ?? null;
+  const negocio = negocioAjustado ?? negocioBase;
 
-  /** Ranking exibido: o do pipeline, ou o recalculado se o usuário mexeu nos pesos. */
+  /**
+   * Ranking exibido: o do pipeline, ou recalculado quando o usuário mexeu nos
+   * pesos ou nos parâmetros do negócio. A ordem final vem do modo escolhido na
+   * barra — e a coluna "#" é reatribuída para acompanhar.
+   */
   const ranking: Municipio[] = useMemo(() => {
     if (!dados) return [];
-    if (!pesosAjustados || !pesos) return dados.snapshot.municipios;
-    return calcularScore(dados.snapshot.municipios, pesos).municipios;
-  }, [dados, pesosAjustados, pesos]);
+    let base = dados.snapshot.municipios;
+    if (pesosAjustados && pesos) base = calcularScore(base, pesos).municipios;
+    if (negocioAjustado && negocio) base = projetar(base, negocio);
+    return reposicionar(ordenarPor(base, modo));
+  }, [dados, pesosAjustados, pesos, negocioAjustado, negocio, modo]);
 
   const visiveis = useMemo(() => aplicar(ranking, filtros), [ranking, filtros]);
   const ufs = useMemo(
@@ -113,7 +126,7 @@ export default function App() {
     );
   }
 
-  if (!dados || !pesos || !pesosBase) {
+  if (!dados || !pesos || !pesosBase || !negocio || !negocioBase) {
     return <div className="carregando">carregando dados…</div>;
   }
 
@@ -157,6 +170,14 @@ export default function App() {
           <button
             className="aba"
             role="tab"
+            aria-selected={aba === "negocio"}
+            onClick={() => setAba("negocio")}
+          >
+            Faturamento
+          </button>
+          <button
+            className="aba"
+            role="tab"
             aria-selected={aba === "pesos"}
             onClick={() => setAba("pesos")}
           >
@@ -170,6 +191,8 @@ export default function App() {
           <FiltrosBar
             filtros={filtros}
             ufsDisponiveis={ufs}
+            modo={modo}
+            onMudarModo={setModo}
             onMudar={setFiltros}
             total={ranking.length}
             visiveis={visiveis.length}
@@ -184,6 +207,7 @@ export default function App() {
                   malha={dados.malha}
                   municipios={ranking}
                   visiveis={visiveis}
+                  metrica={modo}
                   selecionado={selecionado}
                   destacado={destacado}
                   onSelecionar={setSelecionado}
@@ -203,6 +227,7 @@ export default function App() {
               <div className="painel-tabela">
                 <TabelaRanking
                   municipios={visiveis}
+                  modo={modo}
                   selecionado={selecionado}
                   destacado={destacado}
                   onSelecionar={setSelecionado}
@@ -230,6 +255,7 @@ export default function App() {
             {municipioSelecionado && (
               <FichaMunicipio
                 municipio={municipioSelecionado}
+                negocio={negocio}
                 oticas={oticasDoSelecionado}
                 vizinhosProximos={vizinhosProximos}
                 onFechar={() => setSelecionado(null)}
@@ -237,6 +263,14 @@ export default function App() {
             )}
           </div>
         </>
+      ) : aba === "negocio" ? (
+        <PainelNegocio
+          negocioBase={negocioBase}
+          negocio={negocio}
+          municipios={dados.snapshot.municipios}
+          onMudar={setNegocioAjustado}
+          onRestaurar={() => setNegocioAjustado(null)}
+        />
       ) : (
         <PainelPesos
           pesosBase={pesosBase}

@@ -93,6 +93,26 @@ def carregar_pesos(caminho: str | None = None) -> dict[str, Any]:
     return cfg
 
 
+@lru_cache(maxsize=8)
+def carregar_negocio(caminho: str | None = None) -> dict[str, Any]:
+    """Le o negocio.yaml — ticket, custos e taxas de conversao da operacao.
+
+    Separado de weights.yaml de proposito: pesos respondem "onde ha demanda",
+    negocio responde "quanto isso vira dinheiro". Mudam por motivos diferentes.
+    """
+    p = Path(caminho) if caminho else CONFIG_DIR / "negocio.yaml"
+    if not p.exists():
+        raise FileNotFoundError(
+            f"negocio.yaml nao encontrado em {p}. A projecao financeira nao roda sem os "
+            "parametros do negocio (ticket, custos, taxas)."
+        )
+    with p.open(encoding="utf-8") as fh:
+        cfg = yaml.safe_load(fh)
+    if not isinstance(cfg, dict) or "venda" not in cfg:
+        raise ValueError(f"{p} nao parece um negocio.yaml valido (falta a chave 'venda').")
+    return cfg
+
+
 def garantir_dirs() -> None:
     for d in (DATA_DIR, CACHE_DIR, OUT_DIR, WEB_DATA_DIR):
         d.mkdir(parents=True, exist_ok=True)

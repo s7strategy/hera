@@ -1,9 +1,12 @@
 /** Filtros do conjunto. Mudou aqui, muda mapa e tabela ao mesmo tempo. */
 import type { Filtros } from "../lib/filtros";
+import { MODOS, type ModoOrdenacao, modoPorChave } from "../lib/ordenacao";
 
 interface Props {
   filtros: Filtros;
   ufsDisponiveis: string[];
+  modo: ModoOrdenacao;
+  onMudarModo: (m: ModoOrdenacao) => void;
   onMudar: (f: Filtros) => void;
   total: number;
   visiveis: number;
@@ -15,6 +18,8 @@ interface Props {
 export default function FiltrosBar({
   filtros,
   ufsDisponiveis,
+  modo,
+  onMudarModo,
   onMudar,
   total,
   visiveis,
@@ -26,6 +31,23 @@ export default function FiltrosBar({
 
   return (
     <div className="filtros">
+      <div className="campo campo-modo">
+        <label htmlFor="f-modo">Ordenar por</label>
+        <select
+          id="f-modo"
+          value={modo}
+          onChange={(e) => onMudarModo(e.target.value as ModoOrdenacao)}
+          title={modoPorChave(modo).responde}
+        >
+          {MODOS.map((m) => (
+            <option key={m.chave} value={m.chave}>
+              {m.rotulo}
+            </option>
+          ))}
+        </select>
+        <small className="ajuda-modo">{modoPorChave(modo).responde}</small>
+      </div>
+
       <div className="campo">
         <label htmlFor="f-busca">Município</label>
         <input
@@ -73,6 +95,41 @@ export default function FiltrosBar({
             onChange={(e) => set({ popMax: e.target.value === "" ? null : Number(e.target.value) })}
           />
         </div>
+      </div>
+
+      <div className="campo">
+        <label htmlFor="f-lucro">Lucro mínimo</label>
+        <input
+          id="f-lucro"
+          className="dados"
+          type="number"
+          step={500}
+          placeholder="R$ —"
+          value={filtros.lucroMin ?? ""}
+          onChange={(e) => set({ lucroMin: e.target.value === "" ? null : Number(e.target.value) })}
+          style={{ width: 90 }}
+        />
+      </div>
+
+      <div className="campo campo-caixas">
+        <label>
+          <input
+            type="checkbox"
+            checked={filtros.apenasViaveis}
+            onChange={(e) => set({ apenasViaveis: e.target.checked })}
+          />
+          <span title="Esconde municípios cuja projeção não paga o custo do evento">só viáveis</span>
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={filtros.apenasProjecaoConfiavel}
+            onChange={(e) => set({ apenasProjecaoConfiavel: e.target.checked })}
+          />
+          <span title="Esconde municípios cuja projeção depende de dado imputado pela mediana">
+            só dado completo
+          </span>
+        </label>
       </div>
 
       <div className="campo">

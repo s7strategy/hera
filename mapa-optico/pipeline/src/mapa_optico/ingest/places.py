@@ -167,20 +167,63 @@ def coletar(
 
 
 def contar_por_municipio(oticas: pd.DataFrame, municipios: pd.DataFrame) -> pd.DataFrame:
-    """Contagem de oticas por municipio, com zero explicito so onde houve consulta."""
+    """Agrega as oticas por municipio: quantidade, nota media e volume de avaliacoes.
+
+    Os tres sinais medem coisas diferentes e o modelo de conversao usa os tres:
+
+      qtd_oticas          saturacao — quantos concorrentes disputam o mesmo bolso.
+      oticas_nota_media   forca — concorrente com nota 4,8 segura o cliente;
+                          concorrente com nota 3,2 e oportunidade, nao ameaca.
+      oticas_avaliacoes   movimento real — trinta oticas sem avaliacao nenhuma
+                          pesam menos que tres com 400 avaliacoes cada. E o
+                          proxy mais honesto de quanto comercio otico a cidade
+                          de fato movimenta.
+
+    A nota media e ponderada pelo numero de avaliacoes: uma otica com nota 5 e
+    uma unica avaliacao nao pode valer o mesmo que uma com 4,3 e 300.
+    """
+    colunas = ["qtd_oticas", "oticas_nota_media", "oticas_avaliacoes"]
     if oticas.empty:
         base = municipios[["codigo_ibge"]].copy()
-        base["qtd_oticas"] = pd.NA
+        for col in colunas:
+            base[col] = pd.NA
         return base
-    contagem = oticas.groupby("codigo_ibge").size().rename("qtd_oticas").reset_index()
+
+    trabalho = oticas.copy()
+    trabalho["rating"] = pd.to_numeric(trabalho.get("rating"), errors="coerce")
+    trabalho["total_ratings"] = pd.to_numeric(trabalho.get("total_ratings"), errors="coerce")
+
+    def _agregar(grupo: pd.DataFrame) -> pd.Series:
+        avaliacoes = grupo["total_ratings"].fillna(0)
+        com_nota = grupo[grupo["rating"].notna()]
+        peso = com_nota["total_ratings"].fillna(0)
+        if len(com_nota) and peso.sum() > 0:
+            nota = float((com_nota["rating"] * peso).sum() / peso.sum())
+        elif len(com_nota):
+            # Todas sem contagem de avaliacoes: media simples e o melhor disponivel.
+            nota = float(com_nota["rating"].mean())
+        else:
+            # Nenhuma otica com nota: a cidade nao tem nota, e nota 0 seria mentira.
+            nota = None
+        return pd.Series(
+            {
+                "qtd_oticas": len(grupo),
+                "oticas_nota_media": None if nota is None else round(nota, 2),
+                "oticas_avaliacoes": int(avaliacoes.sum()),
+            }
+        )
+
+    contagem = trabalho.groupby("codigo_ibge").apply(_agregar, include_groups=False).reset_index()
     consultados = municipios_ja_consultados(
         list(municipios["codigo_ibge"]), carregar()["places"]["termos"]
     )
     base = municipios[["codigo_ibge"]].merge(contagem, on="codigo_ibge", how="left")
-    # Municipio consultado e sem resultado = zero de verdade.
-    # Municipio nao consultado = NULO, e a confianca cai.
-    base["qtd_oticas"] = [
-        (0 if pd.isna(q) and cod in consultados else q)
-        for cod, q in zip(base["codigo_ibge"], base["qtd_oticas"])
-    ]
+    # Municipio consultado e sem resultado = zero de verdade (cidade sem otica).
+    # Municipio nao consultado = NULO, e a confianca cai. A nota, porem, NUNCA
+    # vira zero: cidade sem otica nao tem nota, e nota 0 seria mentira.
+    consultado = base["codigo_ibge"].isin(consultados)
+    base["qtd_oticas"] = base["qtd_oticas"].where(base["qtd_oticas"].notna(), consultado.map({True: 0, False: pd.NA}))
+    base["oticas_avaliacoes"] = base["oticas_avaliacoes"].where(
+        base["oticas_avaliacoes"].notna(), consultado.map({True: 0, False: pd.NA})
+    )
     return base

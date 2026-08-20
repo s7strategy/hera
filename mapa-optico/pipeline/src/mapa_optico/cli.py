@@ -25,7 +25,7 @@ from .ingest import cnes as ing_cnes
 from .ingest.fontes import carregar as carregar_fontes
 from .load import exports
 from .logs import configurar
-from .settings import carregar_pesos, garantir_dirs, get_settings
+from .settings import carregar_negocio, carregar_pesos, garantir_dirs, get_settings
 
 app = typer.Typer(add_completion=False, help="Mapa Optico — ranking de municipios para eventos de saude ocular")
 console = Console()
@@ -197,10 +197,13 @@ def ingest(
 def score(
     uf: str = typer.Option("SC"),
     pesos: str = typer.Option(None, "--pesos", help="caminho de um weights.yaml alternativo"),
+    negocio: str = typer.Option(None, "--negocio", help="caminho de um negocio.yaml alternativo"),
 ) -> None:
-    """Recalcula o ranking a partir da base ja ingerida (nao toca a rede)."""
+    """Recalcula ranking e projecao financeira a partir da base ja ingerida (nao toca a rede)."""
     base, prov, oticas = pipe.carregar_base(_ufs(uf))
-    ranking, extras = pipe.rodar_score(base, prov, caminho_pesos=pesos, oticas=oticas)
+    ranking, extras = pipe.rodar_score(
+        base, prov, caminho_pesos=pesos, caminho_negocio=negocio, oticas=oticas
+    )
     _mostrar_ranking(ranking, extras)
 
 
@@ -217,9 +220,10 @@ def carregar(uf: str = typer.Option("SC")) -> None:
     """Sobe a base e o ranking para o Supabase (upsert idempotente)."""
     from .load.supabase_loader import SupabaseIndisponivel, carregar_tudo
 
-    base, prov, _oticas = pipe.carregar_base(_ufs(uf))
+    base, prov, oticas_registros = pipe.carregar_base(_ufs(uf))
     ranking, _ = pipe.rodar_score(base, prov, exportar=False)
     vazio = pd.DataFrame()
+    negocio = carregar_negocio()
     try:
         resumo = carregar_tudo(
             municipios=base,
@@ -231,8 +235,10 @@ def carregar(uf: str = typer.Option("SC")) -> None:
             distancias=base[base["distancia_km"].notna()][
                 ["codigo_ibge", "polo_codigo_ibge", "polo_nome", "distancia_km", "tempo_minutos"]
             ],
-            oticas=vazio,
+            oticas=pd.DataFrame(oticas_registros) if oticas_registros else vazio,
             scores=ranking,
+            projecoes=ranking,
+            versao_negocio=negocio.get("versao", "n1"),
         )
     except SupabaseIndisponivel as exc:
         console.print(f"[yellow]{exc}[/]")
@@ -267,6 +273,17 @@ def demo(uf: str = typer.Option("SC")) -> None:
         h = int(hashlib.sha256((codigo + sal).encode()).hexdigest()[:8], 16)
         return minimo + (h % 10_000) / 10_000 * (maximo - minimo)
 
+    def _oticas_demo(codigo: str, pop: int, rnd: Any) -> dict[str, Any]:
+        """Cidade sem otica nao tem nota — e nao pode ter nota zero inventada."""
+        qtd = int(rnd(codigo, "ot", 0, 14))
+        if qtd == 0:
+            return {"qtd_oticas": 0, "oticas_nota_media": None, "oticas_avaliacoes": 0}
+        return {
+            "qtd_oticas": qtd,
+            "oticas_nota_media": round(rnd(codigo, "nota", 3.1, 4.9), 2),
+            "oticas_avaliacoes": int(qtd * rnd(codigo, "aval", 2, 90)),
+        }
+
     linhas = []
     for r in base.to_dict("records"):
         codigo = r["codigo_ibge"]
@@ -287,7 +304,7 @@ def demo(uf: str = typer.Option("SC")) -> None:
                 "polo_nome": "(demo)",
                 "distancia_km": round(_rnd(codigo, "dist", 5, 220), 1),
                 "tempo_minutos": round(_rnd(codigo, "dist", 5, 220) * 1.15, 1),
-                "qtd_oticas": int(_rnd(codigo, "ot", 0, 14)),
+                **_oticas_demo(codigo, pop, _rnd),
             }
         )
     df = pd.DataFrame(linhas)
@@ -309,7 +326,9 @@ def demo(uf: str = typer.Option("SC")) -> None:
     caminho = exports.snapshot_para_web(
         ranking,
         pesos,
+        negocio=carregar_negocio(),
         canibalizacao=extras["canibalizacao"],
+        circuitos=extras.get("circuitos_projetados", []),
         proveniencia={**prov.como_dict(), "demo": True},
         avisos=prov.avisos,
     )
@@ -337,24 +356,45 @@ def _mostrar_ranking(ranking: pd.DataFrame, extras: dict[str, Any]) -> None:
         console.print("[yellow]Nenhum municipio no ranking com os filtros atuais.[/]")
         return
     tabela = Table(title=f"Top 15 — modelo {ranking['versao_modelo'].iloc[0]}")
-    for col in ("#", "municipio", "UF", "score", "conf.", "pop 40+", "oftalmo", "km ao polo", "oticas"):
+    colunas = (
+        "#", "municipio", "UF", "potencial", "faturamento", "lucro",
+        "consultas", "score", "pop 40+", "oftalmo", "km ao polo", "oticas", "nota",
+    )
+    for col in colunas:
         tabela.add_column(col, justify="right" if col not in ("municipio", "UF") else "left")
     for r in ranking.head(15).to_dict("records"):
         def _f(v: Any, casas: int = 0) -> str:
             return "—" if v is None or pd.isna(v) else f"{float(v):.{casas}f}"
 
+        def _reais(v: Any) -> str:
+            if v is None or pd.isna(v):
+                return "—"
+            cor = "green" if float(v) > 0 else "red"
+            return f"[{cor}]{float(v):,.0f}[/]".replace(",", ".")
+
         tabela.add_row(
             str(r["posicao"]),
             str(r["nome"]),
             str(r["uf"]),
+            _f(r.get("potencial_pct"), 1) + "%" if r.get("potencial_pct") is not None else "—",
+            _reais(r.get("faturamento_estimado")),
+            _reais(r.get("lucro_estimado")),
+            _f(r.get("consultas_esperadas")),
             _f(r["score_total"], 1),
-            _f(r["confianca"], 2),
             _f(r.get("populacao_40mais")),
             _f(r.get("qtd_oftalmologistas")),
             _f(r.get("distancia_km"), 1),
             _f(r.get("qtd_oticas")),
+            _f(r.get("oticas_nota_media"), 1),
         )
     console.print(tabela)
+    if "lucro_estimado" in ranking.columns:
+        lucro = pd.to_numeric(ranking["lucro_estimado"], errors="coerce")
+        console.print(
+            f"[dim]projecao: {int(lucro.notna().sum())} municipios com projecao · "
+            f"{int((lucro > 0).sum())} com lucro estimado positivo · "
+            f"valores dependem de config/negocio.yaml[/]"
+        )
     if extras.get("canibalizacao"):
         console.print("[yellow]Alerta de canibalizacao (viram um circuito unico, nao dois eventos):[/]")
         for p in extras["canibalizacao"][:8]:
