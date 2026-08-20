@@ -1,0 +1,84 @@
+# Reprocessa o ranking e commita o snapshot que o dashboard lê.
+#
+# O CNES publica uma competência por mês, então rodar mais que isso só gasta
+# quota. O Places NÃO roda aqui por padrão: é a única fonte que custa dinheiro e
+# ela merece uma decisão consciente, não um agendamento.
+name: Mapa Óptico — pipeline
+
+on:
+  schedule:
+    - cron: "0 9 5 * *" # dia 5 de cada mês, 09:00 UTC
+  workflow_dispatch:
+    inputs:
+      ufs:
+        description: "UFs separadas por vírgula"
+        default: "SC"
+      com_places:
+        description: "Consultar o Google Places (custa dinheiro)"
+        type: boolean
+        default: false
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mapa-optico/pipeline
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Instalar dependências
+        run: uv pip install --system -e ".[dev,cnes]"
+
+      - name: Testes
+        run: pytest -q
+
+      - name: Cache das fontes externas
+        uses: actions/cache@v4
+        with:
+          path: mapa-optico/pipeline/data/cache
+          key: mapa-optico-cache-${{ github.run_id }}
+          restore-keys: mapa-optico-cache-
+
+      - name: Rodar pipeline
+        env:
+          GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          UFS="${{ inputs.ufs || 'SC' }}"
+          if [ "${{ inputs.com_places }}" = "true" ]; then
+            mapa-optico --json-logs ingest --uf "$UFS"
+          else
+            mapa-optico --json-logs ingest --uf "$UFS" --sem-places
+          fi
+
+      - name: Carregar no Supabase
+        if: ${{ env.SUPABASE_URL != '' }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: uv pip install --system -e ".[supabase]" && mapa-optico carregar --uf "${{ inputs.ufs || 'SC' }}"
+
+      - name: Publicar planilhas do ranking
+        uses: actions/upload-artifact@v4
+        with:
+          name: ranking
+          path: mapa-optico/pipeline/out/
+
+      - name: Commitar snapshot do dashboard
+        run: |
+          cd "$GITHUB_WORKSPACE"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add mapa-optico/web/public/data/
+          if git diff --staged --quiet; then
+            echo "snapshot sem mudança"
+          else
+            git commit -m "chore(mapa-optico): atualiza snapshot do ranking"
+            git push
+          fi

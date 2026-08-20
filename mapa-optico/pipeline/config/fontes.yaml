@@ -1,0 +1,58 @@
+# Identificadores externos que mudam com o tempo (tabelas SIDRA, codigos CBO).
+# Ficam aqui, fora do codigo, porque precisam ser CONFERIDOS na fonte oficial
+# antes de rodar em producao. `mapa-optico checar-fontes` testa cada um.
+
+cnes:
+  # CBO 2002 — Medico Oftalmologista. O briefing indica 225265; confirmar na
+  # tabela oficial antes de confiar. Correlatos entram so se decidirmos incluir.
+  cbo_oftalmologista: ["225265"]
+  cbo_correlatos: [] # ex.: ["225124"] — deixar vazio ate validar caso a caso
+  competencia: null # "YYYYMM"; null = ultima competencia disponivel
+  ufs: ["SC"]
+
+ibge:
+  localidades_url: "https://servicodados.ibge.gov.br/api/v1/localidades/municipios"
+  malha_uf_url: "https://servicodados.ibge.gov.br/api/v3/malhas/estados/{uf}?formato=application/vnd.geo+json&intrarregiao=municipio&qualidade=minima"
+  malha_municipio_url: "https://servicodados.ibge.gov.br/api/v3/malhas/municipios/{codigo}?formato=application/vnd.geo+json"
+
+  populacao:
+    # Censo 2022, populacao residente por idade. As faixas etarias NAO sao
+    # filtradas por codigo: pedimos todas (c287/all) e somamos as faixas cujo
+    # rotulo comeca em 40+. Assim uma mudanca de codigo nao quebra o pipeline.
+    sidra_url: "https://apisidra.ibge.gov.br/values/t/{tabela}/{n6}/v/{variavel}/p/{periodo}/c287/all"
+    tabela: "9514"
+    variavel: "93"
+    periodo: "2022"
+    idade_minima: 40
+
+  renda:
+    # Rendimento nominal mensal domiciliar per capita (mediana ou media).
+    # ATENCAO: confirmar tabela/variavel no SIDRA — varia entre Censo e PNAD.
+    # Se a consulta falhar, o campo fica NULO e a confianca do municipio cai.
+    sidra_url: "https://apisidra.ibge.gov.br/values/t/{tabela}/{n6}/v/{variavel}/p/{periodo}"
+    tabela: "7113"
+    variavel: "10267"
+    periodo: "2022"
+
+places:
+  # Places API (New) — Text Search. Unica fonte que custa dinheiro.
+  endpoint: "https://places.googleapis.com/v1/places:searchText"
+  termos: ["ótica", "óptica"]
+  raio_min_m: 3000
+  raio_max_m: 25000
+  campos: "places.id,places.displayName,places.location,places.rating,places.userRatingCount,places.formattedAddress"
+  custo_estimado_usd_por_chamada: 0.032 # Text Search Pro — conferir na tabela de precos vigente
+
+osrm:
+  perfil: "driving"
+  # Pre-filtro euclidiano antes de chamar o roteador (evita 5570 x 5570)
+  raio_candidatos_km: 250
+  max_candidatos: 8
+
+# Espelhos de dados publicos usados quando as APIs oficiais estao inacessiveis
+# (rede corporativa, apagao do DATASUS, sandbox sem egress). Sao copias de dados
+# publicos do IBGE, nao substituem a fonte oficial: o pipeline marca a origem
+# de cada campo em `fonte_por_campo` e a interface mostra isso.
+espelhos:
+  municipios_csv: "https://raw.githubusercontent.com/kelvins/municipios-brasileiros/main/csv/municipios.csv"
+  malha_uf_geojson: "https://raw.githubusercontent.com/tbrugz/geodata-br/master/geojson/geojs-{uf_codigo}-mun.json"

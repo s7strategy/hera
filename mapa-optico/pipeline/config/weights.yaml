@@ -1,0 +1,65 @@
+# Modelo de score — TODO peso vive aqui, nada hardcoded no codigo.
+# Mexer neste arquivo e rodar `mapa-optico score` recalcula o ranking inteiro.
+# A versao entra na chave primaria de `scores`, entao versoes diferentes coexistem
+# no banco e podem ser comparadas lado a lado no dashboard.
+
+versao: "v1"
+
+filtros:
+  populacao_min: 5000
+  populacao_max: 40000
+  ufs: ["SC"] # comecar restrito, expandir depois. [] = Brasil inteiro
+
+# Um municipio e considerado "polo oftalmologico" se tiver pelo menos N
+# oftalmologistas unicos. A distancia rodoviaria ate o polo mais proximo
+# e o fator de maior peso do modelo.
+polo:
+  min_oftalmologistas: 3
+
+fatores:
+  distancia_polo:
+    peso: 30
+    tipo: crescente # mais longe do polo = melhor
+    saturacao_km: 150 # acima disso nao melhora mais (satura antes do percentil)
+
+  ausencia_oftalmo:
+    peso: 25
+    tipo: inverso # menos oftalmo = melhor
+    bonus_zero: 15 # bonus fixo (pontos no fator, 0-100) se nao houver nenhum
+    usar_equivalente: true # ponderar por carga horaria em vez de contar cabecas
+
+  populacao_40mais:
+    peso: 20
+    tipo: crescente # mercado endereçavel real (presbiopia)
+
+  concorrencia_oticas:
+    peso: 15
+    tipo: inverso
+    per_capita: true # oticas por 10 mil habitantes, nao contagem absoluta
+
+  renda:
+    peso: 10
+    tipo: faixa_otima # curva de sino achatada, nao linear
+    faixa_min: 1200 # abaixo disso o ticket medio cai
+    faixa_max: 3500 # acima disso a pessoa compra na otica da cidade grande
+    decaimento: 0.6 # 0-1: quao rapido cai fora da faixa (1 = cai rapido)
+
+# Confianca: cada fonte ausente derruba a confianca do municipio.
+# A confianca NUNCA vira zero silencioso — ela aparece na interface.
+confianca:
+  peso_por_fonte:
+    cnes: 0.35
+    ibge_populacao: 0.25
+    distancia_polo: 0.25
+    places: 0.15
+  minimo_para_ranquear: 0.5 # abaixo disso o municipio sai do ranking principal
+
+# Regras de circuito e canibalizacao
+circuitos:
+  eps_km: 60 # DBSCAN sobre centroides
+  min_municipios: 2
+  tamanho_sugerido: [3, 4]
+
+canibalizacao:
+  raio_km: 30 # dois municipios do top N a menos disso = alerta
+  top_n: 20
