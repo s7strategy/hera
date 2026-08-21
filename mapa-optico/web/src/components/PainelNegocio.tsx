@@ -17,7 +17,7 @@
 import { useMemo, useState } from "react";
 import type { Municipio, Negocio } from "../lib/types";
 import { moeda, moedaCurta, num, pct } from "../lib/format";
-import { conferirProjecaoComPipeline, projetar } from "../lib/projecao";
+import { conferirProjecaoComPipeline, margemPorPar, projetar } from "../lib/projecao";
 import { ordenarPor, reposicionar } from "../lib/ordenacao";
 
 type Origem = "informado" | "estimado" | "calibravel";
@@ -36,26 +36,39 @@ interface Campo {
 const GRUPOS: { titulo: string; nota: string; campos: Campo[] }[] = [
   {
     titulo: "O que você vende",
-    nota: "Os números que você já pratica. São os mais firmes do modelo.",
+    nota:
+      "A faixa que você pratica. Referência: o ticket médio do setor óptico brasileiro fica perto " +
+      "de R$ 250 por par — a sua faixa está bem acima, o que faz sentido para venda com a receita " +
+      "na mão, mas é um número a vigiar.",
     campos: [
       {
         caminho: ["venda", "ticket_medio"],
         rotulo: "Ticket médio",
         origem: "informado",
-        ajuda: "Média do que sai um par completo. Você citou 1.200 e 1.800.",
-        min: 300,
-        max: 3500,
-        passo: 50,
+        ajuda: "Meio da faixa que você pratica. Você citou de 400 a 1.200 o par completo.",
+        min: 200,
+        max: 2000,
+        passo: 25,
         formato: "reais",
       },
       {
-        caminho: ["venda", "custo_produto"],
-        rotulo: "Custo do par",
+        caminho: ["venda", "ticket_min"],
+        rotulo: "Piso da faixa",
         origem: "informado",
-        ajuda: "O que você paga ao fornecedor. Você citou 400 e 600.",
+        ajuda: "O par mais barato que você vende. Segura o ticket nas cidades de renda baixa.",
         min: 100,
-        max: 2000,
+        max: 1500,
         passo: 25,
+        formato: "reais",
+      },
+      {
+        caminho: ["venda", "ticket_max"],
+        rotulo: "Teto da faixa",
+        origem: "informado",
+        ajuda: "O par mais caro. Também é o teto teórico usado no cálculo do potencial %.",
+        min: 300,
+        max: 3000,
+        passo: 50,
         formato: "reais",
       },
       {
@@ -67,6 +80,45 @@ const GRUPOS: { titulo: string; nota: string; campos: Campo[] }[] = [
         max: 1,
         passo: 0.05,
         formato: "num",
+      },
+    ],
+  },
+  {
+    titulo: "O que você paga ao fornecedor",
+    nota:
+      "O custo NÃO é uma fração fixa do preço: par de R$ 400 custa 10% dele, par de R$ 1.200 custa " +
+      "15%. O modelo interpola entre os dois pontos que você informou, então lente boa não fica " +
+      "barata demais nem lente básica cara demais.",
+    campos: [
+      {
+        caminho: ["venda", "custo_par.custo_baixo"],
+        rotulo: "Custo do par mais barato",
+        origem: "informado",
+        ajuda: "Quanto custa o par no piso da faixa. Você citou R$ 40 no par de R$ 400.",
+        min: 10,
+        max: 400,
+        passo: 5,
+        formato: "reais",
+      },
+      {
+        caminho: ["venda", "custo_par.custo_alto"],
+        rotulo: "Custo do par mais caro",
+        origem: "informado",
+        ajuda: "Quanto custa o par no teto da faixa. Você citou R$ 180 no par de R$ 1.200.",
+        min: 20,
+        max: 800,
+        passo: 10,
+        formato: "reais",
+      },
+      {
+        caminho: ["venda", "custo_par.custo_maximo"],
+        rotulo: "Teto absoluto do custo",
+        origem: "informado",
+        ajuda: "Trava: nenhum par completo custa mais que isso, aconteça o que acontecer.",
+        min: 50,
+        max: 1000,
+        passo: 10,
+        formato: "reais",
       },
     ],
   },
@@ -276,13 +328,21 @@ interface Props {
   onRestaurar: () => void;
 }
 
+/** A chave aceita um nível de aninhamento ("custo_par.custo_baixo"). */
 function lerValor(n: Negocio, [grupo, chave]: [keyof Negocio, string]): number {
-  const bloco = n[grupo] as Record<string, number> | undefined;
-  return bloco?.[chave] ?? 0;
+  const bloco = (n[grupo] ?? {}) as Record<string, unknown>;
+  const [primeira, segunda] = chave.split(".");
+  if (segunda === undefined) return (bloco[primeira] as number) ?? 0;
+  const interno = (bloco[primeira] ?? {}) as Record<string, number>;
+  return interno[segunda] ?? 0;
 }
 
 function comValor(n: Negocio, [grupo, chave]: [keyof Negocio, string], valor: number): Negocio {
-  return { ...n, [grupo]: { ...((n[grupo] as object) ?? {}), [chave]: valor } };
+  const bloco = (n[grupo] ?? {}) as Record<string, unknown>;
+  const [primeira, segunda] = chave.split(".");
+  if (segunda === undefined) return { ...n, [grupo]: { ...bloco, [primeira]: valor } };
+  const interno = (bloco[primeira] ?? {}) as Record<string, number>;
+  return { ...n, [grupo]: { ...bloco, [primeira]: { ...interno, [segunda]: valor } } };
 }
 
 function formatar(valor: number, formato: Campo["formato"]): string {
@@ -325,10 +385,11 @@ export default function PainelNegocio({
     return { viaveis: viaveis.length, total: novo.length, somaTop };
   }, [novo]);
 
-  const margem = (negocio.venda?.ticket_medio ?? 0) - (negocio.venda?.custo_produto ?? 0);
-  const margemPct = negocio.venda?.ticket_medio
-    ? margem / negocio.venda.ticket_medio
-    : 0;
+  const ticketMedio = negocio.venda?.ticket_medio ?? 0;
+  const margem = margemPorPar(ticketMedio, negocio.venda ?? {});
+  const margemPct = ticketMedio ? margem / ticketMedio : 0;
+  const margemPiso = margemPorPar(negocio.venda?.ticket_min ?? 0, negocio.venda ?? {});
+  const margemTeto = margemPorPar(negocio.venda?.ticket_max ?? 0, negocio.venda ?? {});
 
   return (
     <div className="tela-pesos">
@@ -336,8 +397,10 @@ export default function PainelNegocio({
         <div className="cartao">
           <h3>Parâmetros do negócio</h3>
           <p style={{ color: "var(--txt-2)", fontSize: 12, marginTop: 0 }}>
-            Mexa e o ranking de faturamento se refaz na hora. A margem por par hoje é{" "}
-            <b className="dados">{moeda(margem)}</b> ({pct(margemPct)} do ticket).
+            Mexa e o ranking de faturamento se refaz na hora. No ticket médio sobra{" "}
+            <b className="dados">{moeda(margem)}</b> por par ({pct(margemPct)} do preço) — de{" "}
+            <b className="dados">{moeda(margemPiso)}</b> no par mais barato a{" "}
+            <b className="dados">{moeda(margemTeto)}</b> no mais caro.
           </p>
 
           {GRUPOS.map((g) => (

@@ -249,7 +249,10 @@ export default function BlocoProjecao({ municipio: m, negocio }: Props) {
           </span>
           <span className="dados">{moeda(dinheiro.faturamento)}</span>
 
-          <span className="negativo">− lentes e armações ({pct(dinheiro.cmv_fracao)} do ticket)</span>
+          <span className="negativo">
+            − lentes e armações ({moeda(dinheiro.custo_por_par)} por par ={" "}
+            {pct(dinheiro.cmv_fracao)} deste ticket)
+          </span>
           <span className="dados negativo">− {moeda(dinheiro.faturamento - dinheiro.margem_bruta)}</span>
 
           <span className="negativo">− médico ({diasEvento} dias)</span>
@@ -272,6 +275,11 @@ export default function BlocoProjecao({ municipio: m, negocio }: Props) {
         <dl className="grade-kv" style={{ marginTop: 10 }}>
           <dt>Retorno sobre o custo</dt>
           <dd>{m.retorno_sobre_custo === null ? VAZIO : pct(m.retorno_sobre_custo)}</dd>
+          <dt title="O que sobra em cada par depois do fornecedor">Margem por par</dt>
+          <dd>
+            {moeda(dinheiro.margem_por_par)}
+            <small className="efeito"> {pct(1 - dinheiro.cmv_fracao)} do ticket</small>
+          </dd>
           <dt title="Quantos pares pagam o evento inteiro">Ponto de equilíbrio</dt>
           <dd>
             {dinheiro.ponto_equilibrio_vendas === null

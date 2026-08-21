@@ -52,13 +52,25 @@ export interface Municipio extends Projecao {
 
 /* ------------------------------------------------------------------ negocio */
 
+/** Dois pontos informados da curva de custo; o modelo interpola entre eles. */
+export interface CustoPar {
+  ticket_baixo?: number;
+  custo_baixo?: number;
+  ticket_alto?: number;
+  custo_alto?: number;
+  custo_maximo?: number;
+}
+
 export interface NegocioVenda {
   ticket_medio?: number;
+  ticket_min?: number;
+  ticket_max?: number;
+  /** O custo do par NÃO é fração fixa do ticket: sobe com ele. */
+  custo_par?: CustoPar;
+  /** Config antiga, valor único. Só é usado se `custo_par` não existir. */
   custo_produto?: number;
   renda_referencia?: number;
   elasticidade_renda?: number;
-  ticket_min?: number;
-  ticket_max?: number;
 }
 
 export interface NegocioEvento {
@@ -151,6 +163,8 @@ export interface DetalheProjecao {
     vendas: number;
     ticket: number;
     faturamento: number;
+    custo_por_par: number;
+    margem_por_par: number;
     cmv_fracao: number;
     margem_bruta: number;
     custos: { medico: number; estrutura: number; deslocamento: number; midia: number; total: number };

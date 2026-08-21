@@ -171,7 +171,7 @@ população 40+
   LIMITADO PELA AGENDA FÍSICA DO MÉDICO    = consultas
   × conversão em venda                     ← óticas locais, notas e avaliações
   × ticket (modulado pela renda)           = faturamento
-  − CMV − custo do evento − mídia          = lucro
+  − custo do par − custo do evento − mídia = lucro
 ```
 
 **O teto físico é o que impede o ranking de virar "ordene por população".** Um médico faz N
@@ -204,6 +204,27 @@ médicos e da distância; **conversão** vem das óticas, suas notas e o volume 
 não buraco de coleta — imputar a média puniria justamente o município mais virgem. Já cidade que
 nunca foi consultada no Places recebe a mediana do universo, **marcada como imputada** e descontada
 de `projecao_confianca`.
+
+**O custo do par não é fração fixa do ticket.** Este arquivo começou assim, e estava errado. Com
+par de R$ 400 custando R$ 40 (10%) e par de R$ 1.200 custando R$ 180 (15%), a fração **sobe** com o
+preço — lente melhor custa proporcionalmente mais. Uma fração única erraria os dois extremos ao
+mesmo tempo: subestimaria o custo da linha de cima e superestimaria o da de baixo. O modelo
+interpola entre os dois pontos informados, e como o ticket já chega limitado à faixa praticada,
+nunca extrapola para fora do que a operação de fato conhece.
+
+O efeito no negócio é grande: a margem é de 85% a 90% do preço, e o **ponto de equilíbrio de um
+evento fica na casa de uma dezena de pares**. É esse número que decide o risco de ir a uma cidade.
+
+**Onde isso se compara com o mercado.** O ticket médio do setor óptico brasileiro fica em torno de
+R$ 250 por par, com cerca de 106,5 milhões de pares por ano em 71 mil pontos de venda
+([Abióptica](https://atacadooptico.com/blog/mercado-optico-brasileiro-2026-numeros-e-oportunidades-reais)).
+A faixa de R$ 400 a R$ 1.200 praticada aqui está bem acima da média nacional — coerente com venda
+feita com a receita na mão, mas é um número a vigiar: se o mix real cair para perto do piso, a
+projeção inteira encolhe. Do lado da demanda, a fila do SUS para oftalmologia passa de dois anos
+segundo as associações de pacientes
+([Câmara dos Deputados](https://www.camara.leg.br/noticias/1080344-associacoes-de-pacientes-com-problemas-de-visao-sugerem-prazos-para-atendimento-no-sus/)),
+e o país tem 9,2 oftalmologistas por 100 mil habitantes — o que sustenta o parâmetro de anos de
+fila acumulada e serve de conferência de sanidade para a contagem do CNES.
 
 **Sobre a confiança dos parâmetros.** Cada número do `negocio.yaml` carrega sua origem:
 `[informado]` veio da operação, `[estimado]` é constante clínica ou demográfica com base

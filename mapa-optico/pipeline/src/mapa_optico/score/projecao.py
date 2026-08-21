@@ -109,18 +109,45 @@ def _mediana(serie: pd.Series) -> float | None:
     return float(validos.median()) if len(validos) else None
 
 
-def cmv_fracao(venda: dict[str, Any]) -> float:
-    """Fracao do ticket que vai para o fornecedor.
+def custo_do_par(ticket: float, venda: dict[str, Any]) -> float:
+    """Quanto o par custa do fornecedor, para um ticket de venda.
 
-    O usuario informa em pares (vende 1800 / paga 600, vende 1200 / paga 400).
-    A fracao e a mesma nos dois casos, entao o modelo guarda a fracao e nao o
-    valor absoluto: assim o custo acompanha o ticket quando a renda o modula.
+    NAO E FRACAO FIXA DO TICKET, e essa foi a correcao mais importante do modelo.
+    Com par de R$ 400 custando R$ 40 (10%) e par de R$ 1.200 custando R$ 180
+    (15%), a fracao SOBE com o preco: lente melhor custa proporcionalmente mais.
+    Uma fracao unica erraria os dois extremos ao mesmo tempo — subestimaria o
+    custo da linha de cima e superestimaria o da linha de baixo.
+
+    Interpola linearmente entre os dois pontos informados. O ticket ja chega aqui
+    limitado a faixa praticada, entao nunca extrapolamos para fora do que a
+    operacao de fato conhece. O teto absoluto ainda vale como trava.
     """
-    ticket = _num(venda.get("ticket_medio")) or 0.0
-    custo = _num(venda.get("custo_produto")) or 0.0
+    cfg = venda.get("custo_par") or {}
+    t_baixo = _num(cfg.get("ticket_baixo"))
+    c_baixo = _num(cfg.get("custo_baixo"))
+    t_alto = _num(cfg.get("ticket_alto"))
+    c_alto = _num(cfg.get("custo_alto"))
+    teto = _num(cfg.get("custo_maximo"))
+
+    if None in (t_baixo, c_baixo, t_alto, c_alto) or t_alto == t_baixo:
+        # Sem os dois pontos nao ha curva. Cai para o par informado no ticket
+        # medio, que e o melhor que resta — nunca para zero.
+        base = _num(venda.get("custo_produto"))
+        if base is None:
+            return 0.0
+        return _clamp(base, 0.0, teto if teto is not None else base)
+
+    fatia = (ticket - t_baixo) / (t_alto - t_baixo)
+    custo = c_baixo + (c_alto - c_baixo) * fatia
+    piso = 0.0
+    return _clamp(custo, piso, teto if teto is not None else float("inf"))
+
+
+def cmv_fracao(ticket: float, venda: dict[str, Any]) -> float:
+    """Fracao do ticket que vai para o fornecedor NAQUELE ticket. So para exibir."""
     if ticket <= 0:
         return 0.0
-    return _clamp(custo / ticket, 0.0, 0.95)
+    return _clamp(custo_do_par(ticket, venda) / ticket, 0.0, 0.95)
 
 
 def ticket_da_cidade(renda: float | None, venda: dict[str, Any]) -> tuple[float, bool]:
@@ -253,6 +280,11 @@ def teto_faturamento(negocio: dict[str, Any]) -> float:
     return max(1e-9, capacidade * conv_max * ticket_max)
 
 
+def margem_por_par(ticket: float, venda: dict[str, Any]) -> float:
+    """Quanto sobra em cada par vendido, depois do fornecedor."""
+    return max(0.0, ticket - custo_do_par(ticket, venda))
+
+
 def projetar(df: pd.DataFrame, negocio: dict[str, Any]) -> pd.DataFrame:
     """Adiciona as colunas de projecao financeira ao ranking.
 
@@ -288,7 +320,6 @@ def projetar(df: pd.DataFrame, negocio: dict[str, Any]) -> pd.DataFrame:
         mediana_distancia = _mediana(saida.get("distancia_km", pd.Series(dtype="float64")))
 
         custos = custo_do_evento(evento)
-        cmv = cmv_fracao(venda)
         capacidade_evento = (_num(evento.get("dias")) or 1.0) * (
             _num(evento.get("consultas_por_dia")) or 1.0
         )
@@ -392,11 +423,13 @@ def projetar(df: pd.DataFrame, negocio: dict[str, Any]) -> pd.DataFrame:
             if ticket_imputado:
                 imputados.append("renda_mediana")
             faturamento = vendas * ticket
-            margem = faturamento * (1.0 - cmv)
+            custo_unitario = custo_do_par(ticket, venda)
+            margem_unitaria = ticket - custo_unitario
+            margem = vendas * margem_unitaria
             lucro = margem - custos["total"]
             retorno = lucro / custos["total"] if custos["total"] > 0 else None
-            margem_unitaria = ticket * (1.0 - cmv)
             equilibrio = custos["total"] / margem_unitaria if margem_unitaria > 0 else None
+            cmv = custo_unitario / ticket if ticket > 0 else 0.0
 
             potencial = _clamp(100.0 * faturamento / teto, 0.0, 100.0)
             confianca = round(max(0.0, 1.0 - sum(PENALIDADE.get(i, 0.0) for i in imputados)), 3)
@@ -463,6 +496,8 @@ def projetar(df: pd.DataFrame, negocio: dict[str, Any]) -> pd.DataFrame:
                         "vendas": round(vendas, 1),
                         "ticket": round(ticket, 2),
                         "faturamento": round(faturamento, 2),
+                        "custo_por_par": round(custo_unitario, 2),
+                        "margem_por_par": round(margem_unitaria, 2),
                         "cmv_fracao": round(cmv, 4),
                         "margem_bruta": round(margem, 2),
                         "custos": {k: round(v, 2) for k, v in custos.items()},

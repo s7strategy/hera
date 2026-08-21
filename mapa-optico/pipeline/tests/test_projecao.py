@@ -24,7 +24,9 @@ from mapa_optico.score.projecao import (
     capacidade_local_anual,
     cmv_fracao,
     custo_do_evento,
+    custo_do_par,
     forca_concorrencia,
+    margem_por_par,
     projecao_de_circuito,
     projetar,
     teto_faturamento,
@@ -34,12 +36,18 @@ from mapa_optico.score.projecao import (
 NEGOCIO = {
     "versao": "teste",
     "venda": {
-        "ticket_medio": 1500,
-        "custo_produto": 500,
+        "ticket_medio": 750,
+        "ticket_min": 400,
+        "ticket_max": 1200,
+        "custo_par": {
+            "ticket_baixo": 400,
+            "custo_baixo": 40,
+            "ticket_alto": 1200,
+            "custo_alto": 180,
+            "custo_maximo": 220,
+        },
         "renda_referencia": 2200,
         "elasticidade_renda": 0.35,
-        "ticket_min": 700,
-        "ticket_max": 2600,
     },
     "evento": {
         "dias": 3,
@@ -102,38 +110,75 @@ def municipio(**campos):
     return padrao
 
 
-# --------------------------------------------------------------- venda e CMV
-def test_cmv_e_o_mesmo_nos_dois_pares_informados():
-    """1800/600 e 1200/400 dao a mesma fracao — por isso o modelo guarda a fracao."""
-    assert cmv_fracao({"ticket_medio": 1800, "custo_produto": 600}) == pytest.approx(1 / 3)
-    assert cmv_fracao({"ticket_medio": 1200, "custo_produto": 400}) == pytest.approx(1 / 3)
+# ------------------------------------------------------- venda e custo do par
+def test_custo_do_par_bate_nos_dois_pontos_informados():
+    venda = NEGOCIO["venda"]
+    assert custo_do_par(400, venda) == pytest.approx(40)
+    assert custo_do_par(1200, venda) == pytest.approx(180)
+
+
+def test_custo_do_par_nao_e_fracao_fixa_do_ticket():
+    """A correcao que motivou refazer o modelo.
+
+    Par de R$ 400 custa 10% do preco; par de R$ 1.200 custa 15%. Uma fracao unica
+    erraria os dois extremos ao mesmo tempo. A fracao tem que SUBIR com o ticket.
+    """
+    venda = NEGOCIO["venda"]
+    barato = cmv_fracao(400, venda)
+    caro = cmv_fracao(1200, venda)
+    assert barato == pytest.approx(0.10)
+    assert caro == pytest.approx(0.15)
+    assert caro > barato, "lente melhor custa proporcionalmente mais"
+
+
+def test_custo_do_par_interpola_no_meio_da_faixa():
+    venda = NEGOCIO["venda"]
+    # 800 esta na metade entre 400 e 1200 → custo na metade entre 40 e 180
+    assert custo_do_par(800, venda) == pytest.approx(110)
+
+
+def test_custo_do_par_respeita_o_teto_absoluto():
+    venda = {**NEGOCIO["venda"], "custo_par": {**NEGOCIO["venda"]["custo_par"], "custo_alto": 900}}
+    assert custo_do_par(1200, venda) == 220
+
+
+def test_margem_por_par_e_o_que_sobra_de_verdade():
+    venda = NEGOCIO["venda"]
+    assert margem_por_par(400, venda) == pytest.approx(360)  # 90% do preco
+    assert margem_por_par(1200, venda) == pytest.approx(1020)  # 85% do preco
+
+
+def test_sem_curva_de_custo_cai_para_o_valor_unico_e_nao_para_zero():
+    """Config antiga ou incompleta nao pode virar 'custo zero', que inflaria o lucro."""
+    venda = {"ticket_medio": 750, "custo_produto": 120}
+    assert custo_do_par(750, venda) == pytest.approx(120)
 
 
 def test_ticket_sobe_e_desce_com_a_renda_dentro_dos_limites():
     venda = NEGOCIO["venda"]
     na_referencia, imputado = ticket_da_cidade(2200, venda)
-    assert na_referencia == pytest.approx(1500)
+    assert na_referencia == pytest.approx(750)
     assert imputado is False
 
     rico, _ = ticket_da_cidade(4400, venda)  # o dobro da referencia
-    assert rico == pytest.approx(1500 * 1.35)
+    assert rico == pytest.approx(750 * 1.35)
 
     pobre, _ = ticket_da_cidade(1100, venda)  # metade da referencia
-    assert pobre == pytest.approx(1500 * 0.825)
+    assert pobre == pytest.approx(750 * 0.825)
 
     # Com elasticidade 0,35 o ticket so anda 35% para cada lado, entao o piso e o
     # teto do YAML nao chegam a morder — a elasticidade e que limita.
-    assert ticket_da_cidade(1, venda)[0] == pytest.approx(1500 * 0.65, rel=1e-3)
+    assert ticket_da_cidade(1, venda)[0] == pytest.approx(750 * 0.65, rel=1e-3)
 
-    # Com elasticidade alta eles mordem, e e isso que impede ticket absurdo.
+    # Com elasticidade alta eles mordem, e e isso que impede ticket fora da faixa.
     agressivo = {**venda, "elasticidade_renda": 3.0}
-    assert ticket_da_cidade(200, agressivo)[0] == 700
-    assert ticket_da_cidade(9_000, agressivo)[0] == 2600
+    assert ticket_da_cidade(200, agressivo)[0] == 400
+    assert ticket_da_cidade(9_000, agressivo)[0] == 1200
 
 
 def test_sem_renda_o_ticket_e_o_medio_e_o_campo_fica_marcado():
     ticket, imputado = ticket_da_cidade(None, NEGOCIO["venda"])
-    assert ticket == 1500
+    assert ticket == 750
     assert imputado is True
 
 
@@ -209,8 +254,9 @@ def test_faturamento_bate_com_a_conta_feita_na_mao():
     assert linha["faturamento_estimado"] == pytest.approx(
         consultas * linha["conversao"] * linha["ticket_estimado"], rel=1e-3
     )
-    # margem bruta e faturamento menos o CMV (1/3 do ticket)
-    assert linha["margem_bruta"] == pytest.approx(linha["faturamento_estimado"] * (2 / 3), rel=1e-3)
+    # A margem sai do custo DAQUELE ticket, nao de uma fracao fixa.
+    unitario = margem_por_par(linha["ticket_estimado"], NEGOCIO["venda"])
+    assert linha["margem_bruta"] == pytest.approx(linha["vendas_esperadas"] * unitario, rel=1e-3)
     assert linha["lucro_estimado"] == pytest.approx(
         linha["margem_bruta"] - linha["custo_evento"], rel=1e-3
     )
@@ -219,9 +265,12 @@ def test_faturamento_bate_com_a_conta_feita_na_mao():
 def test_ponto_de_equilibrio_e_quantos_pares_pagam_o_evento():
     df = pd.DataFrame([municipio()])
     linha = projetar(df, NEGOCIO).iloc[0]
-    pares = linha["ponto_equilibrio_vendas"]
-    margem_por_par = linha["ticket_estimado"] * (2 / 3)
-    assert pares * margem_por_par == pytest.approx(linha["custo_evento"], rel=1e-3)
+    unitario = margem_por_par(linha["ticket_estimado"], NEGOCIO["venda"])
+    # O campo e arredondado para uma casa, entao a conferencia e sobre os pares,
+    # nao sobre o produto: 0,05 par de folga vale dezenas de reais.
+    assert linha["ponto_equilibrio_vendas"] == pytest.approx(
+        linha["custo_evento"] / unitario, abs=0.05
+    )
 
 
 # ------------------------------------------------- a identidade do potencial
@@ -345,14 +394,14 @@ def test_dataframe_vazio_nao_quebra():
 
 
 def test_teto_de_faturamento_e_agenda_cheia_vezes_conversao_e_ticket_maximos():
-    assert teto_faturamento(NEGOCIO) == pytest.approx(3 * 45 * 0.70 * 2600)
+    assert teto_faturamento(NEGOCIO) == pytest.approx(3 * 45 * 0.70 * 1200)
 
 
 def test_nan_do_pandas_nao_passa_por_numero():
     """NaN vindo de merge nao pode ser tratado como valor — vira ausencia."""
     df = pd.DataFrame([municipio(renda_mediana=np.nan, oticas_nota_media=np.nan)])
     linha = projetar(df, NEGOCIO).iloc[0]
-    assert linha["ticket_estimado"] == 1500
+    assert linha["ticket_estimado"] == 750
     assert "renda_mediana" in linha["projecao"]["imputados"]
 
 

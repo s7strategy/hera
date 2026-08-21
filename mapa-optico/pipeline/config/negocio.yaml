@@ -23,16 +23,36 @@
 versao: "n1"
 
 venda:
-  ticket_medio: 1500 # [informado] media entre os 1200 e 1800 praticados
-  custo_produto: 500 # [informado] media entre os 400 e 600 pagos ao fornecedor
-  # O CMV e proporcional ao ticket (1200/400 e 1800/600 dao a mesma fracao),
-  # entao o modelo usa custo_produto/ticket_medio e nao o valor absoluto.
+  # Faixa real praticada: um par completo sai de R$ 400 a R$ 1.200.
+  # Referencia de mercado: o ticket medio do setor optico brasileiro fica em
+  # torno de R$ 250 por par (Abioptica, ~106,5 milhoes de pares/ano). A faixa
+  # acima esta bem acima da media nacional — coerente com venda feita com a
+  # receita na mao, mas e um numero a vigiar: se o mix real cair para perto de
+  # 400, a projecao inteira encolhe.
+  ticket_medio: 750 # [informado] meio da faixa praticada
+  ticket_min: 400 # [informado] piso da faixa
+  ticket_max: 1200 # [informado] teto da faixa
 
-  # Renda da cidade move o ticket: onde a renda e menor, vende-se a linha barata.
+  # CUSTO NAO E FRACAO FIXA DO TICKET.
+  #
+  # Foi assim que este arquivo comecou, e estava errado: com par de 400 custando
+  # 40 (10%) e par de 1.200 custando 180 (15%), a fracao SOBE com o preco — lente
+  # melhor custa proporcionalmente mais. Uma fracao unica erraria os dois lados.
+  #
+  # O modelo interpola entre os dois pontos informados. Como o ticket ja e
+  # limitado a faixa acima antes de chegar aqui, nunca extrapolamos para fora do
+  # que voce realmente conhece.
+  custo_par:
+    ticket_baixo: 400 # [informado] par de R$ 400...
+    custo_baixo: 40 # [informado] ...custa R$ 40
+    ticket_alto: 1200 # [informado] par de R$ 1.200...
+    custo_alto: 180 # [informado] ...custa R$ 180
+    custo_maximo: 220 # [informado] teto absoluto do par completo
+
+  # Renda da cidade move o ticket dentro da faixa: onde a renda e menor,
+  # vende-se a linha de baixo.
   renda_referencia: 2200 # [estimado] renda mediana onde o ticket_medio se aplica
   elasticidade_renda: 0.35 # [calibravel] 0 = ticket igual em todo lugar; 1 = proporcional a renda
-  ticket_min: 700 # [informado] piso: abaixo disso nao vale vender
-  ticket_max: 2600 # [informado] teto: linha premium
 
 evento:
   dias: 3 # [informado] duracao padrao de um evento
@@ -62,7 +82,10 @@ demanda:
 
   # Primeiro evento numa cidade virgem nao pega so o fluxo do ano: pega o
   # estoque acumulado de quem esta ha anos sem consultar.
-  backlog_anos: 3.0 # [calibravel] anos de demanda represada que o primeiro evento alcanca
+  # A fila do SUS para oftalmologia passa de 2 anos segundo as associacoes de
+  # pacientes, e ha 9,2 oftalmologistas por 100 mil habitantes no pais (CBO).
+  # Onde nao ha oftalmo local, o represamento e maior que a fila declarada.
+  backlog_anos: 3.0 # [estimado] anos de demanda represada que o primeiro evento alcanca
 
 captacao:
   # Quanto do publico-alvo fica sabendo do evento, dado o investimento em midia.

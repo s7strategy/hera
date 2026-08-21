@@ -36,11 +36,43 @@ function mediana(valores: (number | null)[]): number | null {
   return v.length % 2 ? v[meio] : (v[meio - 1] + v[meio]) / 2;
 }
 
-/** Fracao do ticket que vai para o fornecedor. Vende 1800 e paga 600 → 1/3. */
-export function cmvFracao(n: Negocio): number {
-  const ticket = num(n.venda?.ticket_medio) ?? 0;
-  const custo = num(n.venda?.custo_produto) ?? 0;
-  return ticket > 0 ? limitar(custo / ticket, 0, 0.95) : 0;
+/**
+ * Quanto o par custa do fornecedor, para um ticket de venda.
+ *
+ * NÃO é fração fixa do ticket. Par de R$ 400 custa R$ 40 (10%); par de R$ 1.200
+ * custa R$ 180 (15%) — a fração sobe com o preço, porque lente melhor custa
+ * proporcionalmente mais. Interpola entre os dois pontos informados; o ticket já
+ * chega limitado à faixa praticada, então nunca extrapolamos.
+ */
+export function custoDoPar(ticket: number, venda: Negocio["venda"]): number {
+  const cfg = venda?.custo_par;
+  const tBaixo = num(cfg?.ticket_baixo);
+  const cBaixo = num(cfg?.custo_baixo);
+  const tAlto = num(cfg?.ticket_alto);
+  const cAlto = num(cfg?.custo_alto);
+  const teto = num(cfg?.custo_maximo);
+
+  if (!ehNum(tBaixo) || !ehNum(cBaixo) || !ehNum(tAlto) || !ehNum(cAlto) || tAlto === tBaixo) {
+    // Config antiga ou incompleta cai para o valor único, nunca para zero:
+    // custo zero inflaria o lucro de todas as cidades ao mesmo tempo.
+    const base = num(venda?.custo_produto);
+    if (!ehNum(base)) return 0;
+    return limitar(base, 0, ehNum(teto) ? teto : base);
+  }
+
+  const fatia = (ticket - tBaixo) / (tAlto - tBaixo);
+  const custo = cBaixo + (cAlto - cBaixo) * fatia;
+  return limitar(custo, 0, ehNum(teto) ? teto : Number.POSITIVE_INFINITY);
+}
+
+/** Quanto sobra em cada par vendido, depois do fornecedor. */
+export function margemPorPar(ticket: number, venda: Negocio["venda"]): number {
+  return Math.max(0, ticket - custoDoPar(ticket, venda));
+}
+
+/** Fração do ticket que vai para o fornecedor NAQUELE ticket. Só para exibir. */
+export function cmvFracao(ticket: number, venda: Negocio["venda"]): number {
+  return ticket > 0 ? limitar(custoDoPar(ticket, venda) / ticket, 0, 0.95) : 0;
 }
 
 export function ticketDaCidade(
@@ -169,7 +201,6 @@ export function projetar(municipios: Municipio[], n: Negocio): MunicipioProjetad
   const medDistancia = mediana(municipios.map((m) => num(m.distancia_km)));
 
   const custos = custoDoEvento(evento);
-  const cmv = cmvFracao(n);
   const porDia = num(evento.consultas_por_dia) ?? 1;
   const diasCfg = num(evento.dias) ?? 1;
   const capacidadeEvento = diasCfg * porDia;
@@ -275,11 +306,13 @@ export function projetar(municipios: Municipio[], n: Negocio): MunicipioProjetad
     const { ticket, imputado: ticketImputado } = ticketDaCidade(num(m.renda_mediana), n.venda ?? {});
     if (ticketImputado) imputados.push("renda_mediana");
     const faturamento = vendas * ticket;
-    const margem = faturamento * (1 - cmv);
+    const custoUnitario = custoDoPar(ticket, n.venda ?? {});
+    const margemUnitaria = ticket - custoUnitario;
+    const margem = vendas * margemUnitaria;
     const lucro = margem - custos.total;
     const retorno = custos.total > 0 ? lucro / custos.total : null;
-    const margemUnitaria = ticket * (1 - cmv);
     const equilibrio = margemUnitaria > 0 ? custos.total / margemUnitaria : null;
+    const cmv = ticket > 0 ? custoUnitario / ticket : 0;
 
     const potencial = limitar((100 * faturamento) / teto, 0, 100);
     const confianca = Math.max(
@@ -343,6 +376,8 @@ export function projetar(municipios: Municipio[], n: Negocio): MunicipioProjetad
           vendas,
           ticket,
           faturamento,
+          custo_por_par: custoUnitario,
+          margem_por_par: margemUnitaria,
           cmv_fracao: cmv,
           margem_bruta: margem,
           custos,
