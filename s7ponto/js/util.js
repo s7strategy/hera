@@ -217,3 +217,22 @@ export function baixaArquivo(nome, conteudo, tipo = 'text/csv;charset=utf-8') {
 export const csvLinha = (campos) => campos
   .map((c) => { const s = String(c ?? ''); return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; })
   .join(';');
+
+/* ---------- períodos de trabalho (manhã / tarde / noite) ----------------- */
+
+export const PERIODOS = [
+  { id: 'manha', nome: 'Manhã',  dica: 'até 11:59' },
+  { id: 'tarde', nome: 'Tarde',  dica: '12:00 às 17:59' },
+  { id: 'noite', nome: 'Noite',  dica: 'a partir das 18:00' },
+];
+
+export const nomePeriodo = (id) =>
+  PERIODOS.find((p) => p.id === id)?.nome || id || '—';
+
+/** Sugere o período a partir do horário atual (ou de uma data). */
+export function sugerePeriodo(quando = new Date()) {
+  const h = new Date(quando).getHours() + new Date(quando).getMinutes() / 60;
+  if (h < 12) return 'manha';
+  if (h < 18) return 'tarde';
+  return 'noite';
+}

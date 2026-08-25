@@ -27,12 +27,9 @@ fi
 
 cd "$(dirname "$0")"
 
-# 1. o config precisa estar preenchido, senão sobe em modo demonstração
+# 1. config local vazio é normal — a VPS tem o preenchido (nunca sobrescrevemos)
 if grep -q "SUPABASE_URL: ''" js/config.js; then
-  echo "⚠️  js/config.js ainda está vazio — o app vai subir em MODO DEMONSTRAÇÃO."
-  printf "    Continuar mesmo assim? [s/N] "
-  read -r resposta
-  [ "$resposta" = "s" ] || [ "$resposta" = "S" ] || exit 1
+  echo "ℹ️  js/config.js local vazio (modo demo). A VPS mantém o config com credenciais."
 fi
 
 # 2. sintaxe dos módulos
@@ -41,11 +38,15 @@ fi
 # 3. cria a pasta no servidor
 ssh "$VPS" "mkdir -p '$DESTINO'"
 
-# 4. envia só o que o navegador precisa
-rsync -az --delete --info=stats1 \
+# 4. envia só o que o navegador precisa (não mexe no config.js da VPS)
+rsync -az --delete \
   --exclude '.git' --exclude 'deploy.sh' --exclude 'verificar.sh' \
-  --exclude 'schema.sql' --exclude 'nginx-s7ponto.conf' --exclude 'README.md' \
+  --exclude 'schema.sql' --exclude 'migrate-*.sql' --exclude 'bootstrap-*.sql' \
+  --exclude 'import-*.sql' --exclude 'js/config.js' \
+  --exclude 'nginx-s7ponto.conf' --exclude 'README.md' \
   ./ "$VPS:$DESTINO/"
+
+# Preserva config.js da VPS (credenciais); nunca sobrescreve com o local vazio.
 
 # 5. permissões de leitura para o nginx
 ssh "$VPS" "chmod -R a+rX '$DESTINO'"

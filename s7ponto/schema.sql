@@ -33,10 +33,14 @@ create table if not exists s7ponto.profiles (
   full_name   text        not null,
   role        text        not null default 'employee'
                           check (role in ('admin', 'employee')),
+  pay_mode    text        not null default 'hourly'
+                          check (pay_mode in ('hourly', 'task', 'shift')),
   active      boolean     not null default true,
   created_at  timestamptz not null default now()
 );
 comment on table s7ponto.profiles is 'Equipe do S7 PONTO. role=admin enxerga e edita tudo.';
+comment on column s7ponto.profiles.pay_mode is
+  'hourly=hora×tarefa; task=valor fixo da tarefa; shift=valor fixo manhã/tarde/noite.';
 
 -- Tarefas e quanto vale a hora de cada uma.
 create table if not exists s7ponto.tasks (
@@ -57,18 +61,47 @@ create table if not exists s7ponto.task_assignments (
   primary key (user_id, task_id)
 );
 
+-- Empresas / sedes (Pessoal, Cineplay, S7…). A pessoa pode ter uma ou várias.
+create table if not exists s7ponto.companies (
+  id          uuid        primary key default gen_random_uuid(),
+  name        text        not null,
+  color       text        not null default '#3987e5',
+  active      boolean     not null default true,
+  sort_order  integer     not null default 0,
+  created_at  timestamptz not null default now()
+);
+comment on table s7ponto.companies is
+  'Empresas / sedes onde a equipe trabalha (Pessoal, Cineplay, S7…).';
+
+create table if not exists s7ponto.company_assignments (
+  user_id    uuid not null references s7ponto.profiles (id) on delete cascade,
+  company_id uuid not null references s7ponto.companies (id) on delete cascade,
+  primary key (user_id, company_id)
+);
+comment on table s7ponto.company_assignments is
+  'Quais empresas cada pessoa pode escolher ao iniciar o turno.';
+
 -- Um turno = da batida de entrada até a de saída.
 create table if not exists s7ponto.shifts (
-  id          uuid        primary key default gen_random_uuid(),
-  user_id     uuid        not null references s7ponto.profiles (id) on delete cascade,
-  started_at  timestamptz not null,
-  ended_at    timestamptz,
-  source      text        not null default 'app'
-                          check (source in ('app', 'import', 'manual')),
-  note        text,
-  created_at  timestamptz not null default now(),
+  id           uuid        primary key default gen_random_uuid(),
+  user_id      uuid        not null references s7ponto.profiles (id) on delete cascade,
+  company_id   uuid        references s7ponto.companies (id) on delete set null,
+  company_name text,
+  period       text        check (period is null or period in ('manha', 'tarde', 'noite')),
+  pay_mode     text        check (pay_mode is null or pay_mode in ('hourly', 'task', 'shift')),
+  flat_amount  numeric(10,2) check (flat_amount is null or flat_amount >= 0),
+  started_at   timestamptz not null,
+  ended_at     timestamptz,
+  source       text        not null default 'app'
+                           check (source in ('app', 'import', 'manual')),
+  note         text,
+  created_at   timestamptz not null default now(),
   constraint shifts_ordem_valida check (ended_at is null or ended_at >= started_at)
 );
+comment on column s7ponto.shifts.company_name is
+  'Foto do nome da empresa no momento do turno. Renomear depois não reescreve o passado.';
+comment on column s7ponto.shifts.flat_amount is
+  'Valor fixo do turno quando pay_mode=shift. Independente das horas.';
 
 -- Um trecho do turno dedicado a uma tarefa. Trocar de tarefa fecha um
 -- trecho e abre o próximo — por isso o valor da hora fica congelado aqui.
@@ -78,6 +111,8 @@ create table if not exists s7ponto.segments (
   task_id      uuid        references s7ponto.tasks (id) on delete set null,
   task_name    text        not null,
   hourly_rate  numeric(10,2) not null default 0 check (hourly_rate >= 0),
+  flat_amount  numeric(10,2) check (flat_amount is null or flat_amount >= 0),
+  period       text        check (period is null or period in ('manha', 'tarde', 'noite')),
   started_at   timestamptz not null,
   ended_at     timestamptz,
   created_at   timestamptz not null default now(),
@@ -85,6 +120,38 @@ create table if not exists s7ponto.segments (
 );
 comment on column s7ponto.segments.hourly_rate is
   'Foto do R$/h no momento em que o trecho começou. Mudar a tarefa depois não reescreve o passado.';
+comment on column s7ponto.segments.flat_amount is
+  'Valor FIXO do trecho quando pay_mode=task. Null = paga por hora.';
+comment on column s7ponto.segments.period is
+  'manha | tarde | noite — escolhido ao iniciar (modo shift) ou opcional.';
+
+-- Overrides por pessoa+tarefa: hourly_rate (modo hourly) ou flat_amount (modo task)
+create table if not exists s7ponto.task_rates (
+  id           uuid primary key default gen_random_uuid(),
+  user_id      uuid not null references s7ponto.profiles (id) on delete cascade,
+  task_id      uuid not null references s7ponto.tasks (id) on delete cascade,
+  hourly_rate  numeric(10,2) check (hourly_rate is null or hourly_rate >= 0),
+  flat_amount  numeric(10,2) check (flat_amount is null or flat_amount >= 0),
+  created_at   timestamptz not null default now(),
+  unique (user_id, task_id)
+);
+comment on table s7ponto.task_rates is
+  'Por pessoa+tarefa: hourly_rate (modo hourly) ou flat_amount (modo task).';
+
+-- Valores fixos por período (modo shift — ex.: Fran)
+create table if not exists s7ponto.shift_rates (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid not null references s7ponto.profiles (id) on delete cascade,
+  period     text not null check (period in ('manha', 'tarde', 'noite')),
+  amount     numeric(10,2) not null default 0 check (amount >= 0),
+  created_at timestamptz not null default now(),
+  unique (user_id, period)
+);
+comment on table s7ponto.shift_rates is
+  'Valor FIXO do turno por manhã/tarde/noite quando pay_mode=shift.';
+
+create index if not exists task_rates_por_pessoa on s7ponto.task_rates (user_id);
+create index if not exists shift_rates_por_pessoa on s7ponto.shift_rates (user_id);
 
 -- Regra de ouro: no máximo UM turno aberto por pessoa,
 -- e no máximo UM trecho aberto por turno. Garantido pelo banco.
@@ -95,6 +162,8 @@ create unique index if not exists segments_um_aberto_por_turno
 
 create index if not exists shifts_por_pessoa_e_data
   on s7ponto.shifts (user_id, started_at desc);
+create index if not exists shifts_por_empresa
+  on s7ponto.shifts (company_id, started_at desc);
 create index if not exists segments_por_turno
   on s7ponto.segments (shift_id, started_at);
 
@@ -150,11 +219,15 @@ $$;
 -- 4. RLS — cada um vê o que é seu; admin vê tudo.
 -- ----------------------------------------------------------------------------
 
-alter table s7ponto.profiles         enable row level security;
-alter table s7ponto.tasks            enable row level security;
-alter table s7ponto.task_assignments enable row level security;
-alter table s7ponto.shifts           enable row level security;
-alter table s7ponto.segments         enable row level security;
+alter table s7ponto.profiles             enable row level security;
+alter table s7ponto.tasks                enable row level security;
+alter table s7ponto.task_assignments     enable row level security;
+alter table s7ponto.companies            enable row level security;
+alter table s7ponto.company_assignments  enable row level security;
+alter table s7ponto.task_rates           enable row level security;
+alter table s7ponto.shift_rates          enable row level security;
+alter table s7ponto.shifts               enable row level security;
+alter table s7ponto.segments             enable row level security;
 
 -- profiles
 drop policy if exists profiles_leitura on s7ponto.profiles;
@@ -181,6 +254,37 @@ create policy atrib_leitura on s7ponto.task_assignments for select to authentica
 
 drop policy if exists atrib_escrita_admin on s7ponto.task_assignments;
 create policy atrib_escrita_admin on s7ponto.task_assignments for all to authenticated
+  using (s7ponto.is_admin()) with check (s7ponto.is_admin());
+
+-- companies: todo mundo autenticado lê; só admin escreve.
+drop policy if exists companies_leitura on s7ponto.companies;
+create policy companies_leitura on s7ponto.companies for select to authenticated using (true);
+
+drop policy if exists companies_escrita_admin on s7ponto.companies;
+create policy companies_escrita_admin on s7ponto.companies for all to authenticated
+  using (s7ponto.is_admin()) with check (s7ponto.is_admin());
+
+drop policy if exists company_atrib_leitura on s7ponto.company_assignments;
+create policy company_atrib_leitura on s7ponto.company_assignments for select to authenticated
+  using (user_id = auth.uid() or s7ponto.is_admin());
+
+drop policy if exists company_atrib_escrita_admin on s7ponto.company_assignments;
+create policy company_atrib_escrita_admin on s7ponto.company_assignments for all to authenticated
+  using (s7ponto.is_admin()) with check (s7ponto.is_admin());
+
+-- pay rates: a pessoa lê os próprios; só admin escreve
+drop policy if exists task_rates_leitura on s7ponto.task_rates;
+create policy task_rates_leitura on s7ponto.task_rates for select to authenticated
+  using (user_id = auth.uid() or s7ponto.is_admin());
+drop policy if exists task_rates_escrita_admin on s7ponto.task_rates;
+create policy task_rates_escrita_admin on s7ponto.task_rates for all to authenticated
+  using (s7ponto.is_admin()) with check (s7ponto.is_admin());
+
+drop policy if exists shift_rates_leitura on s7ponto.shift_rates;
+create policy shift_rates_leitura on s7ponto.shift_rates for select to authenticated
+  using (user_id = auth.uid() or s7ponto.is_admin());
+drop policy if exists shift_rates_escrita_admin on s7ponto.shift_rates;
+create policy shift_rates_escrita_admin on s7ponto.shift_rates for all to authenticated
   using (s7ponto.is_admin()) with check (s7ponto.is_admin());
 
 -- shifts: a pessoa bate o próprio ponto; admin corrige o de qualquer um.
@@ -321,14 +425,14 @@ end $$;
 revoke all on function s7ponto.admin_cria_usuario(text, text, text, text) from public, anon;
 grant execute on function s7ponto.admin_cria_usuario(text, text, text, text) to authenticated;
 
--- Trocar a senha de alguém (admin) ou a própria (qualquer um).
+-- Só a administração define senhas (funcionário não troca a própria).
 create or replace function s7ponto.troca_senha(p_user_id uuid, p_senha text)
 returns void
 language plpgsql security definer
 set search_path = s7ponto, auth, extensions, public as $$
 begin
-  if not (s7ponto.is_admin() or p_user_id = auth.uid()) then
-    raise exception 'Sem permissão para trocar esta senha.';
+  if not s7ponto.is_admin() then
+    raise exception 'Só a administração pode definir senhas.';
   end if;
   if length(coalesce(p_senha, '')) < 4 then
     raise exception 'A senha precisa ter pelo menos 4 caracteres.';
@@ -376,12 +480,65 @@ grant all on all sequences in schema s7ponto to anon, authenticated, service_rol
 
 insert into s7ponto.tasks (name, color, hourly_rate, sort_order)
 select * from (values
-  ('Cozinha',      '#d95926', 20.00, 1),
-  ('Atendimento',  '#199e70', 18.00, 2),
-  ('Produção',     '#3987e5', 22.00, 3),
-  ('Limpeza',      '#c98500', 16.00, 4)
+  ('Atendimento',  '#199e70', 12.00, 1),
+  ('Tarefas',       '#3987e5', 15.00, 2),
+  ('Treinamento',   '#9085e9', 20.00, 3),
+  ('Cozinha',       '#d95926', 20.00, 4),
+  ('Produção',      '#c98500', 22.00, 5),
+  ('Limpeza',       '#d55181', 16.00, 6)
 ) as t(name, color, hourly_rate, sort_order)
 where not exists (select 1 from s7ponto.tasks);
+
+-- Desliga exemplos que não usamos no dia a dia da S7
+update s7ponto.tasks set active = false
+ where lower(name) in ('cozinha', 'produção', 'producao', 'limpeza');
+
+insert into s7ponto.companies (name, color, sort_order)
+select * from (values
+  ('Pessoal',  '#c98500', 1),
+  ('Cineplay', '#3987e5', 2),
+  ('S7',       '#d95926', 3)
+) as t(name, color, sort_order)
+where not exists (select 1 from s7ponto.companies);
+
+create or replace function s7ponto.taxa_hora(p_user uuid, p_task uuid)
+returns numeric language sql stable security definer
+set search_path = s7ponto, public as $$
+  select coalesce(
+    (select tr.hourly_rate from s7ponto.task_rates tr
+      where tr.user_id = p_user and tr.task_id = p_task and tr.hourly_rate is not null),
+    (select t.hourly_rate from s7ponto.tasks t where t.id = p_task),
+    0
+  );
+$$;
+
+create or replace function s7ponto.taxa_tarefa(p_user uuid, p_task uuid)
+returns numeric language sql stable security definer
+set search_path = s7ponto, public as $$
+  select coalesce(
+    (select tr.flat_amount from s7ponto.task_rates tr
+      where tr.user_id = p_user and tr.task_id = p_task and tr.flat_amount is not null),
+    (select t.hourly_rate from s7ponto.tasks t where t.id = p_task),
+    0
+  );
+$$;
+
+create or replace function s7ponto.taxa_turno(p_user uuid, p_period text)
+returns numeric language sql stable security definer
+set search_path = s7ponto, public as $$
+  select coalesce(
+    (select sr.amount from s7ponto.shift_rates sr
+      where sr.user_id = p_user and sr.period = p_period),
+    0
+  );
+$$;
+
+revoke all on function s7ponto.taxa_hora(uuid, uuid) from public, anon;
+revoke all on function s7ponto.taxa_tarefa(uuid, uuid) from public, anon;
+revoke all on function s7ponto.taxa_turno(uuid, text) from public, anon;
+grant execute on function s7ponto.taxa_hora(uuid, uuid) to authenticated;
+grant execute on function s7ponto.taxa_tarefa(uuid, uuid) to authenticated;
+grant execute on function s7ponto.taxa_turno(uuid, text) to authenticated;
 
 
 -- ============================================================================

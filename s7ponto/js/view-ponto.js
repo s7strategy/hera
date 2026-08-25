@@ -1,12 +1,18 @@
 /* ==========================================================================
    S7 PONTO — a tela principal: começar turno, trocar tarefa, fechar turno.
    Tudo aqui é grande, direto e em português de gente.
+
+   3 modos de pagamento (definidos pelo admin na ficha da pessoa):
+     hourly — horas × R$/h da tarefa
+     task   — valor FIXO por tarefa (não multiplica pelas horas)
+     shift  — valor FIXO por período manhã / tarde / noite
    ========================================================================== */
 import { CONFIG } from './config.js';
 import { store } from './store.js';
 import {
   esc, saudacao, dataLonga, hora, cronometro, horas, money, plural, maiuscula,
   paraInputLocal, deInputLocal, somaDias, horasEntre,
+  PERIODOS, nomePeriodo,
 } from './util.js';
 import { $, ICONE, abreFolha, confirma, torrada, comBotaoOcupado, carregando } from './ui.js';
 import { trilhaDoTurno, tirasDaSemana } from './charts.js';
@@ -17,56 +23,96 @@ import {
 
 export async function telaDePonto(raiz, ctx) {
   const { usuario } = ctx;
-  let turno = null;          // turno aberto (com trechos) ou null
-  let tarefas = [];          // tarefas liberadas para esta pessoa
-  let recentes = [];         // turnos dos últimos 30 dias, para hoje/semana
-  let tique = null;          // cronômetro
-  let lembrete = null;       // lembrete de troca de tarefa
+  const modo = () => usuario.pay_mode || 'hourly';
+  let turno = null;
+  let tarefas = [];
+  let empresas = [];
+  let taxasTarefa = [];
+  let taxasTurno = [];
+  let recentes = [];
+  let tique = null;
+  let lembrete = null;
 
   raiz.innerHTML = carregando('Buscando seu ponto…');
 
   async function buscar() {
     const desde = somaDias(new Date(), -35);
-    const [t, tf, rec] = await Promise.all([
+    const [t, tf, emp, rec, tt, tu] = await Promise.all([
       store.turnoAberto(usuario.id),
       store.tarefasDaPessoa(usuario.id),
+      store.empresasDaPessoa(usuario.id),
       store.listaTurnos({ userId: usuario.id, de: desde }),
+      store.listaTaxasTarefa(usuario.id),
+      store.listaTaxasTurno(usuario.id),
     ]);
     tarefas = tf;
+    empresas = emp;
+    taxasTarefa = tt;
+    taxasTurno = tu;
     recentes = pintaTrechos(rec, tf);
     turno = t;
     if (turno) pintaTrechos([turno], tf);
   }
 
-  /* ---------- o trecho que está rolando agora ---------- */
   const trechoAtual = () => turno?.segments?.find((s) => !s.ended_at) || null;
+
+  function precoTarefa(t) {
+    const tr = taxasTarefa.find((r) => r.task_id === t.id);
+    if (modo() === 'task') {
+      const v = tr?.flat_amount != null ? +tr.flat_amount : +t.hourly_rate || 0;
+      return `${money(v)} por tarefa`;
+    }
+    const v = tr?.hourly_rate != null ? +tr.hourly_rate : +t.hourly_rate || 0;
+    return `${money(v)} por hora`;
+  }
+
+  function precoPeriodo(p) {
+    const sr = taxasTurno.find((r) => r.period === p.id);
+    return `${money(+sr?.amount || 0)} o turno`;
+  }
+
+  function rotuloTrechoAtual(atual) {
+    if (!atual) return '';
+    if (atual.flat_amount != null && atual.flat_amount !== '') {
+      return money(+atual.flat_amount);
+    }
+    if (turno?.pay_mode === 'shift' && turno.flat_amount != null) {
+      return money(+turno.flat_amount);
+    }
+    return `${money(atual.hourly_rate || 0)}/h`;
+  }
 
   /* ---------- ações ---------- */
 
-  async function comecar(taskId, botao) {
+  async function comecar({ taskId = null, companyId = null, period = null }, botao) {
     try {
-      await comBotaoOcupado(botao, 'Começando…', () => store.iniciaTurno(usuario.id, taskId));
+      await comBotaoOcupado(botao || null, 'Começando…',
+        () => store.iniciaTurno(usuario.id, { taskId, companyId, period }));
       await buscar();
       desenha();
       const t = tarefas.find((x) => x.id === taskId);
-      torrada(`Turno aberto em ${t?.name || 'tarefa'}. Bom trabalho!`, 'bom');
+      const e = empresas.find((x) => x.id === companyId);
+      const onde = e ? ` em ${e.name}` : '';
+      const oque = modo() === 'shift'
+        ? ` · ${nomePeriodo(period)}`
+        : (t ? ` · ${t.name}` : '');
+      torrada(`Turno aberto${onde}${oque}. Bom trabalho!`, 'bom');
     } catch (e) { torrada(e.message, 'ruim', 6); }
   }
 
-  function escolheTarefa({ titulo, sub, aoEscolher, excluir = null }) {
-    const lista = tarefas.filter((t) => t.id !== excluir);
-    if (!lista.length) {
-      torrada('Não há outra tarefa liberada para você.', 'ruim', 5);
+  function escolheLista({ titulo, sub, itens, rotuloPreco, aoEscolher }) {
+    if (!itens.length) {
+      torrada('Nada liberado para você aqui. Fale com a administração.', 'ruim', 5);
       return;
     }
     abreFolha({
       titulo, sub,
-      corpo: `<div class="escolhas">${lista.map((t) => `
-        <button class="escolha" data-id="${esc(t.id)}">
-          <span class="escolha-cor" style="background:${esc(t.color)}"></span>
+      corpo: `<div class="escolhas">${itens.map((it) => `
+        <button class="escolha" data-id="${esc(it.id)}">
+          <span class="escolha-cor" style="background:${esc(it.color || 'var(--terracota)')}"></span>
           <span class="escolha-texto">
-            <span class="escolha-nome">${esc(t.name)}</span>
-            <span class="escolha-preco">${esc(money(t.hourly_rate))} por hora</span>
+            <span class="escolha-nome">${esc(it.name)}</span>
+            ${rotuloPreco ? `<span class="escolha-preco">${esc(rotuloPreco(it))}</span>` : ''}
           </span>
           <span class="escolha-seta">${ICONE.seta}</span>
         </button>`).join('')}</div>`,
@@ -78,21 +124,71 @@ export async function telaDePonto(raiz, ctx) {
     });
   }
 
+  function escolheTarefa({ titulo, sub, aoEscolher, excluir = null }) {
+    const lista = tarefas.filter((t) => t.id !== excluir);
+    if (!lista.length) {
+      torrada('Não há outra tarefa liberada para você.', 'ruim', 5);
+      return;
+    }
+    escolheLista({
+      titulo, sub, itens: lista,
+      rotuloPreco: precoTarefa,
+      aoEscolher,
+    });
+  }
+
+  function escolhePeriodo({ companyId, botao }) {
+    const itens = PERIODOS.map((p) => ({
+      id: p.id, name: p.nome, color: 'var(--salvia)', dica: p.dica,
+    }));
+    escolheLista({
+      titulo: 'Qual turno?',
+      sub: 'Manhã, tarde ou noite — o valor é fixo, não conta por hora.',
+      itens,
+      rotuloPreco: precoPeriodo,
+      aoEscolher: (id) => comecar({ companyId, period: id }, botao),
+    });
+  }
+
+  function depoisDaEmpresa(companyId, botao) {
+    if (modo() === 'shift') {
+      return escolhePeriodo({ companyId, botao });
+    }
+    if (tarefas.length === 1) {
+      return comecar({ taskId: tarefas[0].id, companyId }, botao);
+    }
+    escolheTarefa({
+      titulo: 'O que você vai fazer agora?',
+      sub: modo() === 'task'
+        ? 'Toque na tarefa — o valor é fixo, não multiplica pelas horas.'
+        : 'Toque na tarefa para começar o turno.',
+      aoEscolher: (id) => comecar({ taskId: id, companyId }),
+    });
+  }
+
   function aoClicarComecar(botao) {
-    if (!tarefas.length) {
+    if (!empresas.length) {
+      torrada('Você ainda não tem empresa liberada. Fale com a administração.', 'ruim', 7);
+      return;
+    }
+    if (modo() !== 'shift' && !tarefas.length) {
       torrada('Você ainda não tem tarefa liberada. Fale com a administração.', 'ruim', 7);
       return;
     }
-    // uma tarefa só? não pergunta nada, só começa.
-    if (tarefas.length === 1) return comecar(tarefas[0].id, botao);
-    escolheTarefa({
-      titulo: 'O que você vai fazer agora?',
-      sub: 'Toque na tarefa para começar o turno.',
-      aoEscolher: (id) => comecar(id),
+    if (empresas.length === 1) return depoisDaEmpresa(empresas[0].id, botao);
+    escolheLista({
+      titulo: 'Para qual empresa?',
+      sub: 'Toque na sede em que você está trabalhando agora.',
+      itens: empresas,
+      aoEscolher: (id) => depoisDaEmpresa(id),
     });
   }
 
   function aoClicarTrocar() {
+    if (modo() === 'shift' || turno?.pay_mode === 'shift') {
+      torrada('Quem recebe por turno não troca de tarefa no meio.', 'ruim', 5);
+      return;
+    }
     const atual = trechoAtual();
     escolheTarefa({
       titulo: 'Para qual tarefa você mudou?',
@@ -147,7 +243,6 @@ export async function telaDePonto(raiz, ctx) {
     });
   }
 
-  /** Turno esquecido aberto: oferece fechar com o horário certo. */
   async function corrigeEsquecido() {
     const abertoHa = horasEntre(turno.started_at, new Date());
     abreFolha({
@@ -185,12 +280,11 @@ export async function telaDePonto(raiz, ctx) {
     });
   }
 
-  /* ---------- lembrete gentil de troca de tarefa ---------- */
-
   function reiniciaLembrete() {
     clearInterval(lembrete);
     lembrete = null;
-    if (!turno || tarefas.length < 2 || !CONFIG.REMINDER_MINUTES) return;
+    if (!turno || modo() === 'shift' || turno.pay_mode === 'shift') return;
+    if (tarefas.length < 2 || !CONFIG.REMINDER_MINUTES) return;
     lembrete = setInterval(() => {
       const atual = trechoAtual();
       if (!atual) return;
@@ -233,22 +327,41 @@ export async function telaDePonto(raiz, ctx) {
   }
 
   function desenhaParado(area, hojeR) {
-    const semTarefa = !tarefas.length;
-    const umaSo = tarefas.length === 1;
+    const semEmpresa = !empresas.length;
+    const precisaTarefa = modo() !== 'shift';
+    const semTarefa = precisaTarefa && !tarefas.length;
+    const bloqueado = semEmpresa || semTarefa;
+    const umaEmpresa = empresas.length === 1;
+    const umaTarefa = tarefas.length === 1;
+    let legenda = 'você escolhe empresa e tarefa';
+    if (modo() === 'shift') {
+      legenda = 'você escolhe empresa e o turno (manhã/tarde/noite)';
+    }
+    if (bloqueado) {
+      legenda = semEmpresa ? 'nenhuma empresa liberada ainda' : 'nenhuma tarefa liberada ainda';
+    } else if (modo() === 'shift' && umaEmpresa) {
+      legenda = `em ${empresas[0].name} — você escolhe manhã, tarde ou noite`;
+    } else if (umaEmpresa && umaTarefa) {
+      legenda = `em ${empresas[0].name} · ${tarefas[0].name}`;
+    } else if (umaEmpresa) {
+      legenda = `em ${empresas[0].name} — você escolhe a tarefa`;
+    } else if (umaTarefa) {
+      legenda = `você escolhe a empresa · ${tarefas[0].name}`;
+    }
+
     area.innerHTML = `
-      <button class="btn-gigante ${semTarefa ? '' : 'pulsa'}" id="btn-comecar" ${semTarefa ? 'disabled' : ''}>
+      <button class="btn-gigante ${bloqueado ? '' : 'pulsa'}" id="btn-comecar" ${bloqueado ? 'disabled' : ''}>
         ${ICONE.play}
         <span>Iniciar turno</span>
-        <span class="btn-legenda">${semTarefa
-          ? 'nenhuma tarefa liberada ainda'
-          : umaSo ? `em ${esc(tarefas[0].name)}` : 'você escolhe a tarefa'}</span>
+        <span class="btn-legenda">${esc(legenda)}</span>
       </button>
 
-      ${semTarefa ? `
+      ${bloqueado ? `
         <div class="recado ruim" style="margin-top:16px">
           <span class="recado-emoji">🔒</span>
-          <span>Você ainda não tem nenhuma tarefa liberada. Peça para a administração liberar
-                no painel — aí o botão acende.</span>
+          <span>${semEmpresa
+            ? 'Você ainda não tem nenhuma empresa liberada. Peça para a administração liberar no painel — aí o botão acende.'
+            : 'Você ainda não tem nenhuma tarefa liberada. Peça para a administração liberar no painel — aí o botão acende.'}</span>
         </div>` : ''}
 
       <div class="grade-metricas" style="margin-top:18px">
@@ -260,25 +373,28 @@ export async function telaDePonto(raiz, ctx) {
       </div>`;
 
     const b = $('#btn-comecar', area);
-    if (b && !semTarefa) b.addEventListener('click', () => aoClicarComecar(b));
+    if (b && !bloqueado) b.addEventListener('click', () => aoClicarComecar(b));
   }
 
   function desenhaEmTurno(area, hojeR) {
     const atual = trechoAtual();
-    const podeTrocar = tarefas.length > 1;
+    const modoTurno = turno.pay_mode || modo();
+    const podeTrocar = modoTurno !== 'shift' && tarefas.length > 1;
     const abertoHa = horasEntre(turno.started_at, new Date());
     const esquecido = abertoHa >= CONFIG.LONG_SHIFT_HOURS;
+    const sede = turno.company_name || null;
+    const periodoTxt = turno.period ? ` · ${nomePeriodo(turno.period)}` : '';
 
     area.innerHTML = `
       <section class="turno-vivo">
         <div class="turno-estado"><span class="pisca"></span> Você está em turno</div>
         <div class="cronometro num" id="cronometro">00:00:00</div>
-        <p class="cronometro-legenda">começou às ${esc(hora(turno.started_at))}</p>
+        <p class="cronometro-legenda">começou às ${esc(hora(turno.started_at))}${sede ? ` · ${esc(sede)}` : ''}${esc(periodoTxt)}</p>
 
         <div class="turno-tarefa">
           <span class="ficha-ponto" style="background:${esc(atual?.cor || 'var(--terracota)')}"></span>
           ${esc(atual?.task_name || 'Sem tarefa')}
-          <span class="apagado num" style="font-size:13px">${esc(money(atual?.hourly_rate || 0))}/h</span>
+          <span class="apagado num" style="font-size:13px">${esc(rotuloTrechoAtual(atual))}</span>
         </div>
 
         <div id="trilha-turno"></div>
@@ -314,7 +430,7 @@ export async function telaDePonto(raiz, ctx) {
         <div class="recado" style="margin-top:16px">
           <span class="recado-emoji">💡</span>
           <span>Mudou de atividade no meio do turno? Toque em <strong>“Troquei de tarefa”</strong>.
-                Cada tarefa tem um valor de hora diferente — assim a conta sai certinha.</span>
+                Cada tarefa pode ter um valor diferente — assim a conta sai certinha.</span>
         </div>` : ''}`;
 
     $('#btn-fechar', area).addEventListener('click', aoClicarFechar);
@@ -326,8 +442,6 @@ export async function telaDePonto(raiz, ctx) {
 
     pulsa();
   }
-
-  /* ---------- cronômetro ---------- */
 
   function pulsa() {
     clearInterval(tique);

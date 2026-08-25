@@ -23,6 +23,7 @@ export const ICONE = {
   lixo:    svg('<path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>'),
   planilha: svg('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h5"/>'),
   gente:   svg('<path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9"/>'),
+  predio:  svg('<path d="M4 21V6a2 2 0 0 1 2-2h5v17"/><path d="M11 21h9V9a2 2 0 0 0-2-2h-7"/><path d="M7 8h1"/><path d="M7 12h1"/><path d="M7 16h1"/><path d="M15 12h1"/><path d="M15 16h1"/>'),
   etiqueta: svg('<path d="M20.6 13.6L12 22l-9-9V4a1 1 0 0 1 1-1h9z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/>'),
   baixar:  svg('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/>'),
   fecha:   svg('<path d="M18 6L6 18"/><path d="M6 6l12 12"/>'),

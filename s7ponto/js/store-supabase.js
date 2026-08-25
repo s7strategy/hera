@@ -94,6 +94,85 @@ export async function criaStoreSupabase() {
       return true;
     },
 
+    /* ---- empresas / sedes ---- */
+    async listaEmpresas(incluirInativas = false) {
+      let q = sb.from('companies').select('*').order('sort_order').order('name');
+      if (!incluirInativas) q = q.eq('active', true);
+      return ok(await q);
+    },
+    async criaEmpresa(c) {
+      exigeAdmin();
+      return ok(await sb.from('companies').insert({
+        name: c.name, color: c.color, active: c.active !== false,
+        sort_order: c.sort_order ?? 0,
+      }).select().single());
+    },
+    async atualizaEmpresa(id, patch) {
+      exigeAdmin();
+      return ok(await sb.from('companies').update(patch).eq('id', id).select().single());
+    },
+    async apagaEmpresa(id) {
+      exigeAdmin();
+      ok(await sb.from('companies').delete().eq('id', id));
+      return true;
+    },
+    async listaAtribuicoesEmpresa() {
+      return ok(await sb.from('company_assignments').select('user_id, company_id'));
+    },
+    async defineEmpresas(userId, companyIds) {
+      exigeAdmin();
+      ok(await sb.from('company_assignments').delete().eq('user_id', userId));
+      if (companyIds.length) {
+        ok(await sb.from('company_assignments')
+          .insert(companyIds.map((company_id) => ({ user_id: userId, company_id }))));
+      }
+      return true;
+    },
+    async empresasDaPessoa(userId) {
+      const links = ok(await sb.from('company_assignments').select('company_id').eq('user_id', userId));
+      const ids = links.map((l) => l.company_id);
+      if (!ids.length) return [];
+      return ok(await sb.from('companies').select('*').in('id', ids).eq('active', true)
+        .order('sort_order').order('name'));
+    },
+
+    /* ---- pagamentos (3 modos) ---- */
+    async listaTaxasTarefa(userId = null) {
+      let q = sb.from('task_rates').select('*');
+      if (userId) q = q.eq('user_id', userId);
+      return ok(await q);
+    },
+    async listaTaxasTurno(userId = null) {
+      let q = sb.from('shift_rates').select('*');
+      if (userId) q = q.eq('user_id', userId);
+      return ok(await q);
+    },
+    /** ratesTarefa: [{ task_id, hourly_rate?, flat_amount? }] · ratesTurno: [{ period, amount }] */
+    async definePagamento(userId, { pay_mode, ratesTarefa = [], ratesTurno = [] }) {
+      exigeAdmin();
+      if (pay_mode) {
+        ok(await sb.from('profiles').update({ pay_mode }).eq('id', userId));
+        if (usuario?.id === userId) usuario = { ...usuario, pay_mode };
+      }
+      ok(await sb.from('task_rates').delete().eq('user_id', userId));
+      ok(await sb.from('shift_rates').delete().eq('user_id', userId));
+      const tarefas = (ratesTarefa || []).filter((r) => r.task_id);
+      if (tarefas.length) {
+        ok(await sb.from('task_rates').insert(tarefas.map((r) => ({
+          user_id: userId, task_id: r.task_id,
+          hourly_rate: r.hourly_rate != null && r.hourly_rate !== '' ? +r.hourly_rate : null,
+          flat_amount: r.flat_amount != null && r.flat_amount !== '' ? +r.flat_amount : null,
+        }))));
+      }
+      const turnos = (ratesTurno || []).filter((r) => r.period);
+      if (turnos.length) {
+        ok(await sb.from('shift_rates').insert(turnos.map((r) => ({
+          user_id: userId, period: r.period, amount: +r.amount || 0,
+        }))));
+      }
+      return true;
+    },
+
     /* ---- equipe ---- */
     async listaPessoas() {
       exigeAdmin();
@@ -156,32 +235,89 @@ export async function criaStoreSupabase() {
       const segs = ok(await sb.from('segments').select('*').eq('shift_id', t.id).order('started_at'));
       return { ...t, segments: segs };
     },
-    async iniciaTurno(userId, taskId, quando = new Date()) {
-      const tarefa = ok(await sb.from('tasks').select('*').eq('id', taskId).single());
+    async iniciaTurno(userId, opts = {}) {
+      const {
+        taskId = null, companyId = null, period = null, quando = new Date(),
+      } = opts;
+
+      const perfil = ok(await sb.from('profiles').select('pay_mode').eq('id', userId).single());
+      const modo = perfil?.pay_mode || 'hourly';
+
+      let empresa = null;
+      if (companyId) {
+        empresa = ok(await sb.from('companies').select('*').eq('id', companyId).single());
+      }
+
       const inicio = new Date(quando).toISOString();
-      const turno = ok(await sb.from('shifts')
-        .insert({ user_id: userId, started_at: inicio, source: 'app' }).select().single());
+      let flatTurno = null;
+      let periodo = period || null;
+      let trecho;
+
+      if (modo === 'shift') {
+        if (!periodo) throw new Error('Escolha o turno: manhã, tarde ou noite.');
+        flatTurno = +ok(await sb.rpc('taxa_turno', { p_user: userId, p_period: periodo })) || 0;
+        const rotulo = { manha: 'Manhã', tarde: 'Tarde', noite: 'Noite' }[periodo] || periodo;
+        trecho = {
+          task_id: null, task_name: `Turno ${rotulo}`,
+          hourly_rate: 0, flat_amount: null, period: periodo, started_at: inicio,
+        };
+      } else {
+        if (!taskId) throw new Error('Escolha uma tarefa para começar.');
+        const tarefa = ok(await sb.from('tasks').select('*').eq('id', taskId).single());
+        if (modo === 'task') {
+          const fixo = +ok(await sb.rpc('taxa_tarefa', { p_user: userId, p_task: taskId })) || 0;
+          trecho = {
+            task_id: tarefa.id, task_name: tarefa.name,
+            hourly_rate: 0, flat_amount: fixo, period: periodo, started_at: inicio,
+          };
+        } else {
+          const taxa = +ok(await sb.rpc('taxa_hora', { p_user: userId, p_task: taskId })) || 0;
+          trecho = {
+            task_id: tarefa.id, task_name: tarefa.name,
+            hourly_rate: taxa, flat_amount: null, period: periodo, started_at: inicio,
+          };
+        }
+      }
+
+      const turno = ok(await sb.from('shifts').insert({
+        user_id: userId, started_at: inicio, source: 'app',
+        company_id: empresa?.id ?? null, company_name: empresa?.name ?? null,
+        period: periodo, pay_mode: modo, flat_amount: flatTurno,
+      }).select().single());
       try {
-        ok(await sb.from('segments').insert({
-          shift_id: turno.id, task_id: tarefa.id, task_name: tarefa.name,
-          hourly_rate: tarefa.hourly_rate, started_at: inicio,
-        }));
+        ok(await sb.from('segments').insert({ ...trecho, shift_id: turno.id }));
       } catch (e) {
-        // não deixa turno órfão sem tarefa nenhuma
         await sb.from('shifts').delete().eq('id', turno.id);
         throw e;
       }
       return turno;
     },
-    async trocaTarefa(shiftId, taskId, quando = new Date()) {
+    async trocaTarefa(shiftId, taskId, period = null, quando = new Date()) {
+      const turno = ok(await sb.from('shifts').select('*').eq('id', shiftId).single());
+      if ((turno.pay_mode || 'hourly') === 'shift') {
+        throw new Error('Quem recebe por turno não troca de tarefa no meio.');
+      }
       const tarefa = ok(await sb.from('tasks').select('*').eq('id', taskId).single());
       const agora = new Date(quando).toISOString();
+      const periodo = period || turno.period || null;
+      const modo = turno.pay_mode || 'hourly';
+      let trecho;
+      if (modo === 'task') {
+        const fixo = +ok(await sb.rpc('taxa_tarefa', { p_user: turno.user_id, p_task: taskId })) || 0;
+        trecho = {
+          shift_id: shiftId, task_id: tarefa.id, task_name: tarefa.name,
+          hourly_rate: 0, flat_amount: fixo, period: periodo, started_at: agora,
+        };
+      } else {
+        const taxa = +ok(await sb.rpc('taxa_hora', { p_user: turno.user_id, p_task: taskId })) || 0;
+        trecho = {
+          shift_id: shiftId, task_id: tarefa.id, task_name: tarefa.name,
+          hourly_rate: taxa, flat_amount: null, period: periodo, started_at: agora,
+        };
+      }
       ok(await sb.from('segments').update({ ended_at: agora })
         .eq('shift_id', shiftId).is('ended_at', null));
-      ok(await sb.from('segments').insert({
-        shift_id: shiftId, task_id: tarefa.id, task_name: tarefa.name,
-        hourly_rate: tarefa.hourly_rate, started_at: agora,
-      }));
+      ok(await sb.from('segments').insert(trecho));
       return true;
     },
     async fechaTurno(shiftId, quando = new Date()) {
@@ -209,9 +345,17 @@ export async function criaStoreSupabase() {
       return turnos.map((t) => ({ ...t, segments: porTurno.get(t.id) || [] }));
     },
 
-    async gravaTurnoManual({ user_id, started_at, ended_at, trechos, source = 'manual', note = null }) {
+    async gravaTurnoManual({ user_id, started_at, ended_at, trechos, source = 'manual', note = null,
+                             company_id = null, company_name = null }) {
+      let empresaNome = company_name;
+      let empresaId = company_id;
+      if (empresaId && !empresaNome) {
+        const c = ok(await sb.from('companies').select('id, name').eq('id', empresaId).maybeSingle());
+        if (c) { empresaNome = c.name; empresaId = c.id; }
+      }
       const turno = ok(await sb.from('shifts').insert({
         user_id, source, note,
+        company_id: empresaId, company_name: empresaNome,
         started_at: new Date(started_at).toISOString(),
         ended_at: ended_at ? new Date(ended_at).toISOString() : null,
       }).select().single());
@@ -226,12 +370,14 @@ export async function criaStoreSupabase() {
       return turno;
     },
 
-    async atualizaTurno(shiftId, { started_at, ended_at, note, trechos }) {
+    async atualizaTurno(shiftId, { started_at, ended_at, note, trechos, company_id, company_name }) {
       exigeAdmin();
       const patch = {};
       if (started_at) patch.started_at = new Date(started_at).toISOString();
       if (ended_at !== undefined) patch.ended_at = ended_at ? new Date(ended_at).toISOString() : null;
       if (note !== undefined) patch.note = note;
+      if (company_id !== undefined) patch.company_id = company_id;
+      if (company_name !== undefined) patch.company_name = company_name;
       const turno = Object.keys(patch).length
         ? ok(await sb.from('shifts').update(patch).eq('id', shiftId).select().single())
         : ok(await sb.from('shifts').select('*').eq('id', shiftId).single());

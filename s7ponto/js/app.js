@@ -4,7 +4,7 @@
 import { CONFIG } from './config.js';
 import { iniciaStore, store, demoForcada } from './store.js';
 import { esc, iniciais } from './util.js';
-import { $, $$, ICONE, el, abreFolha, confirma, torrada, carregando, comBotaoOcupado } from './ui.js';
+import { $, $$, ICONE, el, abreFolha, confirma, torrada, carregando } from './ui.js';
 import { telaDeEntrar } from './view-login.js';
 import { telaDePonto } from './view-ponto.js';
 import { telaDeNumeros } from './view-numeros.js';
@@ -94,13 +94,11 @@ function abreMenuDoPerfil() {
     sub: `@${usuario.username}${usuario.role === 'admin' ? ' · administração' : ''}`,
     corpo: `
       <div style="display:flex;flex-direction:column;gap:10px">
-        <button class="btn btn-medio" data-senha>${ICONE.engrenagem}<span>Trocar minha senha</span></button>
         ${store.modo === 'demo' ? `
           <button class="btn btn-medio btn-fantasma" data-zera>${ICONE.lixo}<span>Zerar a demonstração</span></button>` : ''}
         <button class="btn btn-medio btn-perigo" data-sai>${ICONE.sair}<span>Sair da minha conta</span></button>
       </div>`,
     aoMontar: (caixa, fechar) => {
-      $('[data-senha]', caixa).addEventListener('click', () => { fechar(); trocaMinhaSenha(); });
       $('[data-sai]', caixa).addEventListener('click', async () => {
         fechar();
         if (await confirma({ titulo: 'Sair da conta?', texto: 'Você vai precisar entrar de novo com usuário e senha.', ok: 'Sair', perigo: true })) sai();
@@ -111,34 +109,6 @@ function abreMenuDoPerfil() {
           await store.zeraDemo();
           location.reload();
         }
-      });
-    },
-  });
-}
-
-function trocaMinhaSenha() {
-  abreFolha({
-    titulo: 'Trocar minha senha',
-    sub: 'Use algo que você lembre com facilidade.',
-    corpo: `
-      <label class="campo"><span class="campo-rotulo">Nova senha</span>
-        <input class="entrada" type="password" id="s1" autocomplete="new-password" placeholder="••••••"></label>
-      <label class="campo"><span class="campo-rotulo">Repita a nova senha</span>
-        <input class="entrada" type="password" id="s2" autocomplete="new-password" placeholder="••••••"></label>
-      <p class="campo-erro" id="erro-senha" hidden></p>
-      <button class="btn btn-primario btn-medio btn-largo" id="btn-salva-senha">Salvar nova senha</button>`,
-    aoMontar: (caixa, fechar) => {
-      const erro = $('#erro-senha', caixa);
-      $('#btn-salva-senha', caixa).addEventListener('click', async (ev) => {
-        const a = $('#s1', caixa).value, b = $('#s2', caixa).value;
-        erro.hidden = true;
-        if (a.length < 4) { erro.textContent = 'A senha precisa ter pelo menos 4 caracteres.'; erro.hidden = false; return; }
-        if (a !== b) { erro.textContent = 'As duas senhas não são iguais.'; erro.hidden = false; return; }
-        try {
-          await comBotaoOcupado(ev.currentTarget, 'Salvando…', () => store.trocaSenha(usuario.id, a));
-          fechar();
-          torrada('Senha trocada.', 'bom');
-        } catch (e) { erro.textContent = e.message; erro.hidden = false; }
       });
     },
   });

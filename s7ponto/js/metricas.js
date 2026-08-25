@@ -9,16 +9,23 @@ import {
 } from './util.js';
 import { corDaSerie } from './charts.js';
 
-/** Um trecho vale (horas × R$/h). Trecho aberto conta até "agora". */
+/** Um trecho vale (horas × R$/h) — ou o valor FIXO se flat_amount estiver preenchido. */
 export const horasDoTrecho = (t, agora = new Date()) =>
   horasEntre(t.started_at, t.ended_at || agora);
-export const valorDoTrecho = (t, agora = new Date()) =>
-  horasDoTrecho(t, agora) * (+t.hourly_rate || 0);
+export const valorDoTrecho = (t, agora = new Date()) => {
+  if (t.flat_amount != null && t.flat_amount !== '') return +t.flat_amount || 0;
+  return horasDoTrecho(t, agora) * (+t.hourly_rate || 0);
+};
 
 export const horasDoTurno = (turno, agora = new Date()) =>
   (turno.segments || []).reduce((s, t) => s + horasDoTrecho(t, agora), 0);
-export const valorDoTurno = (turno, agora = new Date()) =>
-  (turno.segments || []).reduce((s, t) => s + valorDoTrecho(t, agora), 0);
+export const valorDoTurno = (turno, agora = new Date()) => {
+  // pago por turno (manhã/tarde/noite): valor fixo do turno inteiro
+  if ((turno.pay_mode === 'shift' || turno.flat_amount != null) && turno.flat_amount != null && turno.flat_amount !== '') {
+    return +turno.flat_amount || 0;
+  }
+  return (turno.segments || []).reduce((s, t) => s + valorDoTrecho(t, agora), 0);
+};
 
 /* ==========================================================================
    Agregação de um conjunto de turnos
@@ -46,16 +53,29 @@ export function agrega(turnos, agora = new Date()) {
 
     for (const trecho of turno.segments || []) {
       const h = horasDoTrecho(trecho, agora);
-      const v = h * (+trecho.hourly_rate || 0);
-      horas += h; valor += v;
+      const v = valorDoTrecho(trecho, agora);
+      // em pay_mode=shift o valor vem do turno, não dos trechos
+      const vConta = (turno.pay_mode === 'shift') ? 0 : v;
+      horas += h; valor += vConta;
 
-      const d = porDia.get(dia); d.horas += h; d.valor += v;
-      const p = porPessoa.get(turno.user_id); p.horas += h; p.valor += v;
+      const d = porDia.get(dia); d.horas += h; d.valor += vConta;
+      const p = porPessoa.get(turno.user_id); p.horas += h; p.valor += vConta;
 
       const nome = trecho.task_name || 'Sem tarefa';
       if (!porTarefa.has(nome)) porTarefa.set(nome, { nome, horas: 0, valor: 0, cor: null });
-      const t = porTarefa.get(nome); t.horas += h; t.valor += v;
+      const t = porTarefa.get(nome); t.horas += h; t.valor += vConta;
       if (!t.cor && trecho.cor) t.cor = trecho.cor;
+    }
+    if (turno.pay_mode === 'shift' && turno.flat_amount != null) {
+      const v = +turno.flat_amount || 0;
+      valor += v;
+      porDia.get(dia).valor += v;
+      porPessoa.get(turno.user_id).valor += v;
+      const nome = turno.period === 'manha' ? 'Turno Manhã'
+        : turno.period === 'tarde' ? 'Turno Tarde'
+        : turno.period === 'noite' ? 'Turno Noite' : 'Turno';
+      if (!porTarefa.has(nome)) porTarefa.set(nome, { nome, horas: 0, valor: 0, cor: null });
+      porTarefa.get(nome).valor += v;
     }
   }
 

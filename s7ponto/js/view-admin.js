@@ -7,7 +7,7 @@ import {
   esc, money, horas, horasCurto, num, iniciais, maiuscula, plural,
   mesAno, nomeMes, dataLonga, dataBR, dataCurta, hora, diaChave,
   inicioDoMes, fimDoMes, somaMeses, paraInputLocal, deInputLocal,
-  baixaArquivo, csvLinha, horasEntre,
+  baixaArquivo, csvLinha, horasEntre, PERIODOS,
 } from './util.js';
 import {
   $, $$, ICONE, el, abreFolha, confirma, torrada, carregando, vazio, comBotaoOcupado,
@@ -17,6 +17,7 @@ import { pintaTrechos, agrega, horasDoTurno, valorDoTurno } from './metricas.js'
 
 const ABAS = [
   { id: 'equipe',     nome: 'Equipe' },
+  { id: 'empresas',   nome: 'Empresas' },
   { id: 'tarefas',    nome: 'Tarefas' },
   { id: 'turnos',     nome: 'Turnos' },
   { id: 'importar',   nome: 'Importar' },
@@ -26,6 +27,7 @@ const ABAS = [
 export async function telaDeAdmin(raiz, ctx) {
   let aba = 'equipe';
   let pessoas = [], tarefas = [], atribuicoes = [];
+  let empresas = [], atribEmpresas = [];
   let mesRef = inicioDoMes(new Date());
   let filtroPessoa = '';
 
@@ -33,14 +35,20 @@ export async function telaDeAdmin(raiz, ctx) {
   await recarregaBase();
 
   async function recarregaBase() {
-    [pessoas, tarefas, atribuicoes] = await Promise.all([
+    [pessoas, tarefas, atribuicoes, empresas, atribEmpresas] = await Promise.all([
       store.listaPessoas(), store.listaTarefas(true), store.listaAtribuicoes(),
+      store.listaEmpresas(true), store.listaAtribuicoesEmpresa(),
     ]);
   }
 
   const tarefasDe = (userId) => atribuicoes
     .filter((a) => a.user_id === userId)
     .map((a) => tarefas.find((t) => t.id === a.task_id))
+    .filter(Boolean);
+
+  const empresasDe = (userId) => atribEmpresas
+    .filter((a) => a.user_id === userId)
+    .map((a) => empresas.find((c) => c.id === a.company_id))
     .filter(Boolean);
 
   /* ======================================================================
@@ -65,7 +73,7 @@ export async function telaDeAdmin(raiz, ctx) {
     });
 
     const alvo = $('#conteudo-aba', raiz);
-    ({ equipe: abaEquipe, tarefas: abaTarefas, turnos: abaTurnos,
+    ({ equipe: abaEquipe, empresas: abaEmpresas, tarefas: abaTarefas, turnos: abaTurnos,
        importar: abaImportar, relatorios: abaRelatorios }[aba])(alvo);
   }
 
@@ -89,6 +97,12 @@ export async function telaDeAdmin(raiz, ctx) {
 
   function cartaoDaPessoa(p) {
     const suas = tarefasDe(p.id);
+    const sedes = empresasDe(p.id);
+    const sedeTxt = sedes.length
+      ? sedes.map((c) => `<span class="ficha-ponto" style="display:inline-block;background:${esc(c.color)};vertical-align:-1px"></span> ${esc(c.name)}`).join(' · ')
+      : '<em>nenhuma empresa</em>';
+    const modoLbl = p.pay_mode === 'shift' ? 'por turno'
+      : p.pay_mode === 'task' ? 'por tarefa' : 'por hora';
     return `
       <button class="item clicavel" data-pessoa="${esc(p.id)}">
         <span class="avatar" style="width:44px;height:44px">${esc(iniciais(p.full_name))}</span>
@@ -97,9 +111,10 @@ export async function telaDeAdmin(raiz, ctx) {
             ${p.role === 'admin' ? '<span class="ficha ficha-viva" style="margin-left:6px;padding:2px 8px;font-size:11px">admin</span>' : ''}
             ${p.active ? '' : '<span class="ficha ficha-baixa" style="margin-left:6px;padding:2px 8px;font-size:11px">desativado</span>'}
           </span>
-          <span class="item-sub">@${esc(p.username)}${suas.length
-            ? ` · ${suas.map((t) => `<span class="ficha-ponto" style="display:inline-block;background:${esc(t.color)};vertical-align:-1px"></span> ${esc(t.name)}`).join(' &nbsp;')}`
-            : ' · <em>nenhuma tarefa liberada</em>'}
+          <span class="item-sub">@${esc(p.username)} · ${esc(modoLbl)} · ${sedeTxt}</span>
+          <span class="item-sub">${suas.length
+            ? suas.map((t) => `<span class="ficha-ponto" style="display:inline-block;background:${esc(t.color)};vertical-align:-1px"></span> ${esc(t.name)}`).join(' &nbsp;')
+            : (p.pay_mode === 'shift' ? '<em>pagamento por turno (manhã/tarde/noite)</em>' : '<em>nenhuma tarefa liberada</em>')}
           </span>
         </span>
         <span class="escolha-seta">${ICONE.seta}</span>
@@ -112,13 +127,17 @@ export async function telaDeAdmin(raiz, ctx) {
       sub: `@${p.username}`,
       corpo: `
         <div style="display:flex;flex-direction:column;gap:10px">
+          <button class="btn btn-medio" data-empresas>${ICONE.predio}<span>Liberar empresas</span></button>
           <button class="btn btn-medio" data-tarefas>${ICONE.etiqueta}<span>Liberar tarefas</span></button>
+          <button class="btn btn-medio" data-pagamento>${ICONE.engrenagem}<span>Como paga</span></button>
           <button class="btn btn-medio" data-edita>${ICONE.lapis}<span>Editar dados</span></button>
           <button class="btn btn-medio" data-senha>${ICONE.engrenagem}<span>Definir nova senha</span></button>
           <button class="btn btn-medio btn-perigo" data-apaga>${ICONE.lixo}<span>Remover do sistema</span></button>
         </div>`,
       aoMontar: (caixa, fechar) => {
+        $('[data-empresas]', caixa).addEventListener('click', () => { fechar(); liberaEmpresas(p); });
         $('[data-tarefas]', caixa).addEventListener('click', () => { fechar(); liberaTarefas(p); });
+        $('[data-pagamento]', caixa).addEventListener('click', () => { fechar(); editaPagamento(p); });
         $('[data-edita]', caixa).addEventListener('click', () => { fechar(); editaPessoa(p); });
         $('[data-senha]', caixa).addEventListener('click', () => { fechar(); defineSenha(p); });
         $('[data-apaga]', caixa).addEventListener('click', async () => {
@@ -139,6 +158,109 @@ export async function telaDeAdmin(raiz, ctx) {
     });
   }
 
+  async function editaPagamento(p) {
+    const [ratesT, ratesS] = await Promise.all([
+      store.listaTaxasTarefa(p.id),
+      store.listaTaxasTurno(p.id),
+    ]);
+    const modoAtual = p.pay_mode || 'hourly';
+    const suas = tarefasDe(p.id);
+
+    function corpoDoModo(modo) {
+      if (modo === 'shift') {
+        return `
+          <p class="campo-dica" style="margin-bottom:12px">Valor FIXO por período — não multiplica pelas horas. Ex.: Fran.</p>
+          ${PERIODOS.map((per) => {
+            const r = ratesS.find((x) => x.period === per.id);
+            return `<label class="campo"><span class="campo-rotulo">${esc(per.nome)} (R$ fixo)</span>
+              <input class="entrada" type="number" min="0" step="0.01" data-periodo="${esc(per.id)}"
+                     value="${esc(r?.amount ?? '')}" placeholder="ex.: 100"></label>`;
+          }).join('')}`;
+      }
+      if (!suas.length) {
+        return `<div class="recado" style="margin-top:8px"><span class="recado-emoji">💡</span>
+          <span>Libere pelo menos uma tarefa nesta pessoa antes de definir valores.</span></div>`;
+      }
+      if (modo === 'task') {
+        return `
+          <p class="campo-dica" style="margin-bottom:12px">Valor FIXO por tarefa — não multiplica pelas horas.</p>
+          ${suas.map((t) => {
+            const r = ratesT.find((x) => x.task_id === t.id);
+            const v = r?.flat_amount != null ? r.flat_amount : t.hourly_rate;
+            return `<label class="campo"><span class="campo-rotulo">${esc(t.name)} (R$ fixo)</span>
+              <input class="entrada" type="number" min="0" step="0.01" data-task="${esc(t.id)}"
+                     value="${esc(v ?? '')}" placeholder="${esc(t.hourly_rate)}"></label>`;
+          }).join('')}`;
+      }
+      return `
+        <p class="campo-dica" style="margin-bottom:12px">R$ por hora de cada tarefa. Em branco = usa o valor padrão da tarefa.</p>
+        ${suas.map((t) => {
+          const r = ratesT.find((x) => x.task_id === t.id);
+          return `<label class="campo"><span class="campo-rotulo">${esc(t.name)} (R$/h)</span>
+            <input class="entrada" type="number" min="0" step="0.01" data-task="${esc(t.id)}"
+                   value="${esc(r?.hourly_rate ?? '')}" placeholder="${esc(t.hourly_rate)} (padrão)"></label>`;
+        }).join('')}`;
+    }
+
+    abreFolha({
+      titulo: `Como paga · ${p.full_name.split(' ')[0]}`,
+      sub: 'Três modos claros: por hora, por tarefa ou por turno.',
+      corpo: `
+        <label class="campo"><span class="campo-rotulo">Modo de pagamento</span>
+          <select class="entrada" id="pg-modo">
+            <option value="hourly" ${modoAtual === 'hourly' ? 'selected' : ''}>Por hora — horas × R$/h da tarefa</option>
+            <option value="task" ${modoAtual === 'task' ? 'selected' : ''}>Por tarefa — valor fixo da tarefa</option>
+            <option value="shift" ${modoAtual === 'shift' ? 'selected' : ''}>Por turno — valor fixo manhã/tarde/noite</option>
+          </select></label>
+        <div id="pg-corpo">${corpoDoModo(modoAtual)}</div>
+        <p class="campo-erro" id="pg-erro" hidden></p>
+        <button class="btn btn-primario btn-medio btn-largo" id="pg-salva">Salvar pagamento</button>`,
+      aoMontar: (caixa, fechar) => {
+        const erro = $('#pg-erro', caixa);
+        const corpo = $('#pg-corpo', caixa);
+        $('#pg-modo', caixa).addEventListener('change', (ev) => {
+          corpo.innerHTML = corpoDoModo(ev.target.value);
+        });
+        $('#pg-salva', caixa).addEventListener('click', async (ev) => {
+          erro.hidden = true;
+          const pay_mode = $('#pg-modo', caixa).value;
+          let ratesTarefa = [];
+          let ratesTurno = [];
+          if (pay_mode === 'shift') {
+            ratesTurno = PERIODOS.map((per) => {
+              const inp = caixa.querySelector(`[data-periodo="${per.id}"]`);
+              return { period: per.id, amount: inp?.value === '' ? 0 : +inp.value };
+            });
+          } else {
+            ratesTarefa = suas.map((t) => {
+              const inp = caixa.querySelector(`[data-task="${t.id}"]`);
+              const raw = inp?.value;
+              if (pay_mode === 'task') {
+                return {
+                  task_id: t.id,
+                  flat_amount: raw === '' || raw == null ? t.hourly_rate : +raw,
+                  hourly_rate: null,
+                };
+              }
+              return {
+                task_id: t.id,
+                hourly_rate: raw === '' || raw == null ? null : +raw,
+                flat_amount: null,
+              };
+            }).filter((r) => pay_mode === 'task' || r.hourly_rate != null);
+          }
+          try {
+            await comBotaoOcupado(ev.currentTarget, 'Salvando…',
+              () => store.definePagamento(p.id, { pay_mode, ratesTarefa, ratesTurno }));
+            fechar();
+            await recarregaBase(); desenha();
+            torrada('Pagamento salvo.', 'bom');
+          } catch (e) { erro.textContent = e.message; erro.hidden = false; }
+        });
+      },
+    });
+  }
+
   function editaPessoa(p) {
     const novo = !p;
     abreFolha({
@@ -154,7 +276,7 @@ export async function telaDeAdmin(raiz, ctx) {
         ${novo ? `
           <label class="campo"><span class="campo-rotulo">Senha inicial</span>
             <input class="entrada" id="f-senha" type="text" placeholder="ex.: 1234">
-            <span class="campo-dica">Ela pode trocar depois, no próprio perfil.</span></label>` : ''}
+            <span class="campo-dica">Só a administração pode trocar a senha depois.</span></label>` : ''}
         <label class="campo"><span class="campo-rotulo">O que ela pode fazer</span>
           <select class="entrada" id="f-papel">
             <option value="employee" ${p?.role === 'admin' ? '' : 'selected'}>Bater ponto e ver os próprios números</option>
@@ -200,7 +322,7 @@ export async function telaDeAdmin(raiz, ctx) {
   function defineSenha(p) {
     abreFolha({
       titulo: `Nova senha de ${p.full_name.split(' ')[0]}`,
-      sub: 'Passe a senha para ela e peça que troque depois, no próprio perfil.',
+      sub: 'Passe a senha para ela. Só a administração define senhas.',
       corpo: `
         <label class="campo"><span class="campo-rotulo">Senha</span>
           <input class="entrada" id="p-senha" type="text" placeholder="ex.: 1234"></label>
@@ -216,6 +338,47 @@ export async function telaDeAdmin(raiz, ctx) {
             fechar();
             torrada('Senha definida.', 'bom');
           } catch (e) { erro.textContent = e.message; erro.hidden = false; }
+        });
+      },
+    });
+  }
+
+  function liberaEmpresas(p) {
+    const jaTem = new Set(empresasDe(p.id).map((c) => c.id));
+    const ativas = empresas.filter((c) => c.active);
+    abreFolha({
+      titulo: `Empresas de ${p.full_name.split(' ')[0]}`,
+      sub: ativas.length
+        ? 'Marque onde essa pessoa pode trabalhar. Com uma só marcada, o turno começa nessa sede sem perguntar.'
+        : 'Cadastre uma empresa primeiro, na aba Empresas.',
+      corpo: `
+        <div class="escolhas">
+          ${ativas.map((c) => `
+            <button class="escolha" data-c="${esc(c.id)}" aria-pressed="${jaTem.has(c.id)}">
+              <span class="escolha-cor" style="background:${esc(c.color)}"></span>
+              <span class="escolha-texto">
+                <span class="escolha-nome">${esc(c.name)}</span>
+              </span>
+              <span class="escolha-seta" data-check>${jaTem.has(c.id) ? ICONE.check : ''}</span>
+            </button>`).join('')}
+        </div>
+        <button class="btn btn-primario btn-medio btn-largo" style="margin-top:18px" id="c-salva">Salvar</button>`,
+      aoMontar: (caixa, fechar) => {
+        $$('.escolha', caixa).forEach((b) => b.addEventListener('click', () => {
+          const marcado = b.getAttribute('aria-pressed') === 'true';
+          b.setAttribute('aria-pressed', String(!marcado));
+          $('[data-check]', b).innerHTML = marcado ? '' : ICONE.check;
+        }));
+        $('#c-salva', caixa).addEventListener('click', async (ev) => {
+          const ids = $$('.escolha[aria-pressed="true"]', caixa).map((b) => b.dataset.c);
+          try {
+            await comBotaoOcupado(ev.currentTarget, 'Salvando…', () => store.defineEmpresas(p.id, ids));
+            fechar();
+            await recarregaBase(); desenha();
+            torrada(ids.length
+              ? `${plural(ids.length, 'empresa liberada', 'empresas liberadas')}.`
+              : 'Nenhuma empresa liberada.', 'bom');
+          } catch (e) { torrada(e.message, 'ruim', 6); }
         });
       },
     });
@@ -255,6 +418,104 @@ export async function telaDeAdmin(raiz, ctx) {
             fechar();
             await recarregaBase(); desenha();
             torrada(ids.length ? `${plural(ids.length, 'tarefa liberada', 'tarefas liberadas')}.` : 'Nenhuma tarefa liberada.', 'bom');
+          } catch (e) { torrada(e.message, 'ruim', 6); }
+        });
+      },
+    });
+  }
+
+  /* ======================================================================
+     ABA: EMPRESAS / SEDES
+     ====================================================================== */
+
+  function abaEmpresas(alvo) {
+    alvo.innerHTML = `
+      <div class="recado info">
+        <span class="recado-emoji">🏢</span>
+        <span>Cadastre as sedes onde a equipe trabalha — Pessoal, Cineplay, S7…
+              Depois liberar na ficha de cada pessoa. Quem tem mais de uma escolhe ao iniciar o turno.</span>
+      </div>
+      <button class="btn btn-primario btn-largo" style="margin-top:16px" id="nova-empresa">
+        ${ICONE.mais}<span>Nova empresa</span>
+      </button>
+      <div class="lista" style="margin-top:16px">
+        ${empresas.length ? empresas.map((c) => `
+          <button class="item clicavel" data-empresa="${esc(c.id)}">
+            <span class="item-faixa" style="background:${esc(c.color)}"></span>
+            <span class="item-corpo">
+              <span class="item-titulo">${esc(c.name)}
+                ${c.active ? '' : '<span class="ficha ficha-baixa" style="margin-left:6px;padding:2px 8px;font-size:11px">inativa</span>'}</span>
+              <span class="item-sub">${esc(plural(
+                atribEmpresas.filter((a) => a.company_id === c.id).length, 'pessoa liberada', 'pessoas liberadas'))}</span>
+            </span>
+            <span class="escolha-seta">${ICONE.seta}</span>
+          </button>`).join('')
+          : vazio({ emoji: '🏢', titulo: 'Nenhuma empresa ainda',
+                    texto: 'Crie a primeira sede para a equipe poder bater o ponto.' })}
+      </div>`;
+
+    $('#nova-empresa', alvo).addEventListener('click', () => editaEmpresa(null));
+    $$('[data-empresa]', alvo).forEach((b) =>
+      b.addEventListener('click', () => editaEmpresa(empresas.find((c) => c.id === b.dataset.empresa))));
+  }
+
+  function editaEmpresa(c) {
+    const novo = !c;
+    abreFolha({
+      titulo: novo ? 'Nova empresa' : 'Editar empresa',
+      sub: 'Ex.: Pessoal, Cineplay, S7…',
+      corpo: `
+        <label class="campo"><span class="campo-rotulo">Nome</span>
+          <input class="entrada" id="e-nome" value="${esc(c?.name || '')}" placeholder="ex.: Cineplay"></label>
+        <label class="campo"><span class="campo-rotulo">Cor</span>
+          <input class="entrada" id="e-cor" type="color" value="${esc(c?.color || '#3987e5')}"
+                 style="padding:4px;height:48px"></label>
+        ${novo ? '' : `
+          <label class="chave" style="margin-bottom:16px">
+            <input type="checkbox" id="e-ativo" ${c.active ? 'checked' : ''}>
+            <span class="chave-pista"></span>
+            <span>Empresa ativa</span>
+          </label>`}
+        <p class="campo-erro" id="e-erro" hidden></p>
+        <div class="linha-botoes">
+          ${novo ? '' : `<button class="btn btn-medio btn-perigo" id="e-apaga">${ICONE.lixo}<span>Apagar</span></button>`}
+          <button class="btn btn-primario btn-medio" id="e-salva" style="flex:1">
+            ${novo ? 'Criar' : 'Salvar'}</button>
+        </div>`,
+      aoMontar: (caixa, fechar) => {
+        const erro = $('#e-erro', caixa);
+        $('#e-salva', caixa).addEventListener('click', async (ev) => {
+          erro.hidden = true;
+          const nome = $('#e-nome', caixa).value.trim();
+          const cor = $('#e-cor', caixa).value;
+          if (!nome) { erro.textContent = 'Escreva o nome da empresa.'; erro.hidden = false; return; }
+          try {
+            if (novo) {
+              await comBotaoOcupado(ev.currentTarget, 'Criando…',
+                () => store.criaEmpresa({ name: nome, color: cor, sort_order: empresas.length + 1 }));
+            } else {
+              await comBotaoOcupado(ev.currentTarget, 'Salvando…',
+                () => store.atualizaEmpresa(c.id, {
+                  name: nome, color: cor, active: $('#e-ativo', caixa).checked,
+                }));
+            }
+            fechar();
+            await recarregaBase(); desenha();
+            torrada(novo ? 'Empresa criada.' : 'Empresa salva.', 'bom');
+          } catch (e) { erro.textContent = e.message; erro.hidden = false; }
+        });
+        $('#e-apaga', caixa)?.addEventListener('click', async () => {
+          const certeza = await confirma({
+            titulo: `Apagar ${c.name}?`,
+            texto: 'Quem tinha só esta empresa vai precisar receber outra. Turnos antigos mantêm o nome guardado.',
+            ok: 'Apagar', perigo: true,
+          });
+          if (!certeza) return;
+          try {
+            await store.apagaEmpresa(c.id);
+            fechar();
+            await recarregaBase(); desenha();
+            torrada('Empresa apagada.', 'bom');
           } catch (e) { torrada(e.message, 'ruim', 6); }
         });
       },
@@ -412,7 +673,7 @@ export async function telaDeAdmin(raiz, ctx) {
                 ${t.ended_at ? '' : '<span class="ficha ficha-alta" style="margin-left:6px;padding:2px 8px;font-size:11px">em turno</span>'}</span>
               <span class="item-sub">${esc(maiuscula(dataLonga(t.started_at)))} ·
                 ${esc(hora(t.started_at))} → ${t.ended_at ? esc(hora(t.ended_at)) : '—'} ·
-                ${esc([...new Set((t.segments || []).map((s) => s.task_name))].join(', ') || 'sem tarefa')}
+                ${t.company_name ? `${esc(t.company_name)} · ` : ''}${esc([...new Set((t.segments || []).map((s) => s.task_name))].join(', ') || 'sem tarefa')}
                 ${t.source === 'import' ? ' · importado' : t.source === 'manual' ? ' · manual' : ''}</span>
             </span>
             <span class="item-fim">
@@ -433,15 +694,17 @@ export async function telaDeAdmin(raiz, ctx) {
   function editaTurno(t) {
     const novo = !t;
     const ativas = tarefas.filter((x) => x.active);
+    const sedesAtivas = empresas.filter((x) => x.active);
     if (novo && !ativas.length) { torrada('Cadastre uma tarefa antes de lançar turnos.', 'ruim', 5); return; }
     if (novo && !pessoas.length) { torrada('Cadastre alguém antes de lançar turnos.', 'ruim', 5); return; }
+    if (novo && !sedesAtivas.length) { torrada('Cadastre uma empresa antes de lançar turnos.', 'ruim', 5); return; }
 
     const ini = novo ? new Date(new Date().setHours(8, 0, 0, 0)) : new Date(t.started_at);
     const fim = novo ? new Date(new Date().setHours(17, 0, 0, 0)) : (t.ended_at ? new Date(t.ended_at) : null);
     const tarefaAtual = novo ? ativas[0].id
       : (tarefas.find((x) => x.id === t.segments?.[0]?.task_id)?.id || ativas[0]?.id || '');
-
-    const trechos = novo ? 1 : (t.segments || []).length;
+    const empresaAtual = novo ? sedesAtivas[0].id
+      : (t.company_id || sedesAtivas[0]?.id || '');
 
     abreFolha({
       titulo: novo ? 'Lançar turno na mão' : 'Corrigir turno',
@@ -451,6 +714,10 @@ export async function telaDeAdmin(raiz, ctx) {
         <label class="campo"><span class="campo-rotulo">De quem é o turno</span>
           <select class="entrada" id="v-pessoa" ${novo ? '' : 'disabled'}>
             ${pessoas.map((p) => `<option value="${esc(p.id)}" ${!novo && p.id === t.user_id ? 'selected' : ''}>${esc(p.full_name)}</option>`).join('')}
+          </select></label>
+        <label class="campo"><span class="campo-rotulo">Empresa / sede</span>
+          <select class="entrada" id="v-empresa">
+            ${sedesAtivas.map((x) => `<option value="${esc(x.id)}" ${x.id === empresaAtual ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}
           </select></label>
         <label class="campo"><span class="campo-rotulo">Tarefa</span>
           <select class="entrada" id="v-tarefa">
@@ -475,9 +742,11 @@ export async function telaDeAdmin(raiz, ctx) {
           const de = deInputLocal($('#v-ini', caixa).value);
           const ate = deInputLocal($('#v-fim', caixa).value);
           const tar = tarefas.find((x) => x.id === $('#v-tarefa', caixa).value);
+          const emp = empresas.find((x) => x.id === $('#v-empresa', caixa).value);
           if (!de) { erro.textContent = 'Informe a hora de entrada.'; erro.hidden = false; return; }
           if (ate && ate < de) { erro.textContent = 'A saída precisa ser depois da entrada.'; erro.hidden = false; return; }
           if (!tar) { erro.textContent = 'Escolha a tarefa.'; erro.hidden = false; return; }
+          if (!emp) { erro.textContent = 'Escolha a empresa.'; erro.hidden = false; return; }
           const trecho = {
             task_id: tar.id, task_name: tar.name, hourly_rate: tar.hourly_rate,
             started_at: de, ended_at: ate,
@@ -486,9 +755,13 @@ export async function telaDeAdmin(raiz, ctx) {
             await comBotaoOcupado(ev.currentTarget, 'Salvando…', () => novo
               ? store.gravaTurnoManual({
                   user_id: $('#v-pessoa', caixa).value,
+                  company_id: emp.id, company_name: emp.name,
                   started_at: de, ended_at: ate, trechos: [trecho], source: 'manual',
                 })
-              : store.atualizaTurno(t.id, { started_at: de, ended_at: ate, trechos: [trecho] }));
+              : store.atualizaTurno(t.id, {
+                  started_at: de, ended_at: ate, trechos: [trecho],
+                  company_id: emp.id, company_name: emp.name,
+                }));
             fechar();
             desenha();
             torrada(novo ? 'Turno lançado.' : 'Turno corrigido.', 'bom');

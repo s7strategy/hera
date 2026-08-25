@@ -153,6 +153,7 @@ export async function telaDeNumeros(raiz, ctx) {
           <div class="item-titulo">${esc(maiuscula(dataLonga(t.started_at)))}</div>
           <div class="item-sub">
             ${esc(hora(t.started_at))} → ${t.ended_at ? esc(hora(t.ended_at)) : '<em>em aberto</em>'}
+            ${t.company_name ? ` · ${esc(t.company_name)}` : ''}
             · ${esc(nomes.join(', ') || 'sem tarefa')}
             ${t.source === 'import' ? ' · importado' : t.source === 'manual' ? ' · lançado pelo admin' : ''}
           </div>
@@ -166,13 +167,13 @@ export async function telaDeNumeros(raiz, ctx) {
 
   function exporta(lista, r) {
     if (!lista.length) { torrada('Não há turnos neste mês para baixar.', 'ruim'); return; }
-    const linhas = [csvLinha(['Data', 'Entrada', 'Saída', 'Tarefa', 'Horas', 'R$/h', 'Valor'])];
+    const linhas = [csvLinha(['Data', 'Entrada', 'Saída', 'Empresa', 'Tarefa', 'Horas', 'R$/h', 'Valor'])];
     for (const t of lista) {
       for (const s of t.segments || []) {
         const h = (new Date(s.ended_at || new Date()) - new Date(s.started_at)) / 3600000;
         linhas.push(csvLinha([
           dataBR(s.started_at), hora(s.started_at), s.ended_at ? hora(s.ended_at) : '',
-          s.task_name, num(h, 2), num(+s.hourly_rate, 2), num(h * (+s.hourly_rate || 0), 2),
+          t.company_name || '', s.task_name, num(h, 2), num(+s.hourly_rate, 2), num(h * (+s.hourly_rate || 0), 2),
         ]));
       }
     }
