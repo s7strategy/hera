@@ -33,7 +33,7 @@ function desenhaCasca() {
     <div class="app">
       <header class="topo">
         <div class="marca">
-          <div class="marca-selo">S7</div>
+          <img class="marca-logo" src="assets/logo-s7.svg" alt="S7" width="40" height="40">
           <div>
             <div class="marca-nome">${esc(CONFIG.BRAND.name)}</div>
             <div class="marca-sub" id="casca-sub"></div>

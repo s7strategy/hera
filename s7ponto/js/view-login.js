@@ -13,7 +13,7 @@ export function telaDeEntrar(raiz, aoEntrar) {
   raiz.innerHTML = `
     <div class="entrar">
       <div class="entrar-caixa">
-        <div class="entrar-selo">S7</div>
+        <img class="entrar-logo" src="assets/logo-s7.svg" alt="S7" width="96" height="96">
         <h1 class="entrar-titulo">${esc(CONFIG.BRAND.name)}</h1>
         <p class="entrar-sub">Bata seu ponto em dois toques.</p>
 

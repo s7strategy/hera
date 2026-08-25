@@ -1,45 +1,51 @@
 /* ==========================================================================
    S7 PONTO — folha de estilo única.
-   Escuro por escolha, contraste alto, alvo de toque grande.
-   Paleta de séries validada para daltonismo sobre a superfície #1c1e18.
+   Escuro premium (marca S7), tipografia fluida, micro-interações.
+   Referência 2026: densidade útil + glass sutil + type como herói.
    ========================================================================== */
 
 :root {
   /* superfícies */
-  --fundo:        #14160f;
-  --superficie:   #1c1e18;   /* superfície dos gráficos */
-  --cartao:       #23261e;
-  --cartao-alto:  #2b2e24;
-  --borda:        #363a2d;
-  --borda-forte:  #4a4f3d;
+  --fundo:        #0c0d0a;
+  --superficie:   #15170f;
+  --cartao:       #1a1d14;
+  --cartao-alto:  #23271c;
+  --borda:        rgba(242,239,232,.08);
+  --borda-forte:  rgba(242,239,232,.14);
 
   /* tinta */
-  --tinta:        #F2EFE8;   /* 14.9:1 */
-  --tinta-2:      #c9c5b6;   /*  9.4:1 */
-  --tinta-3:      #9a9689;   /*  5.3:1 */
+  --tinta:        #F7F4EC;
+  --tinta-2:      #c8c3b4;
+  --tinta-3:      #8f8a7c;
 
-  /* ação e estado */
+  /* ação e estado — terracotta da marca S7 */
   --terracota:    #d95926;
   --terracota-alt:#eb6a36;
   --terracota-esc:#8a2920;
-  --salvia:       #199e70;
+  --salvia:       #1aa876;
   --salvia-alt:   #2fbb89;
   --areia:        #c98500;
   --alerta:       #e66767;
 
-  /* séries dos gráficos (ordem fixa, nunca ciclada) */
-  --serie-1: #d95926;  --serie-2: #199e70;  --serie-3: #3987e5;  --serie-4: #c98500;
+  /* séries dos gráficos */
+  --serie-1: #d95926;  --serie-2: #1aa876;  --serie-3: #4a90e2;  --serie-4: #c98500;
   --serie-5: #d55181;  --serie-6: #7d9c2f;  --serie-7: #9085e9;  --serie-8: #e66767;
 
   /* medidas */
-  --r-sm: 10px; --r-md: 16px; --r-lg: 22px; --r-xl: 30px;
-  --sombra: 0 18px 44px rgba(0,0,0,.42);
-  --sombra-sm: 0 6px 18px rgba(0,0,0,.28);
+  --r-sm: 12px; --r-md: 16px; --r-lg: 22px; --r-xl: 28px;
+  --sombra: 0 24px 56px rgba(0,0,0,.55);
+  --sombra-sm: 0 8px 24px rgba(0,0,0,.35);
   --largura: 760px;
 
-  --fonte-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --fonte-tit: 'Cormorant Garamond', Georgia, serif;
-  --fonte-num: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  /* Manrope UI · Syne títulos · JetBrains números (sem Inter) */
+  --fonte-ui: 'Manrope', system-ui, -apple-system, sans-serif;
+  --fonte-tit: 'Syne', 'Manrope', sans-serif;
+  --fonte-num: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+
+  /* tipografia fluida */
+  --fs-hero: clamp(2rem, 5.5vw, 2.75rem);
+  --fs-titulo: clamp(1.35rem, 3.2vw, 1.7rem);
+  --fs-corpo: clamp(0.95rem, 2.2vw, 1.05rem);
 
   color-scheme: dark;
 }
@@ -51,20 +57,39 @@ body {
   font-family: var(--fonte-ui);
   background: var(--fundo);
   color: var(--tinta);
-  font-size: 16px;
+  font-size: var(--fs-corpo);
   line-height: 1.55;
-  font-weight: 400;
+  font-weight: 500;
   min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
 
-/* fundo vivo, discreto */
+/* fundo vivo — mesh + drift lento */
 body::before {
-  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  content: ''; position: fixed; inset: 0; z-index: -2; pointer-events: none;
   background:
-    radial-gradient(ellipse 70% 50% at 50% -10%, rgba(217,89,38,.13), transparent 60%),
-    radial-gradient(ellipse 60% 50% at 100% 100%, rgba(25,158,112,.09), transparent 55%);
+    radial-gradient(ellipse 80% 55% at 15% -5%, rgba(217,89,38,.22), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 95% 15%, rgba(26,168,118,.14), transparent 50%),
+    radial-gradient(ellipse 60% 45% at 50% 110%, rgba(201,133,0,.1), transparent 55%),
+    linear-gradient(180deg, #0c0d0a 0%, #10120c 50%, #0c0d0a 100%);
+}
+body::after {
+  content: ''; position: fixed; inset: -20% -10%; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(217,89,38,.07), transparent 28%),
+    radial-gradient(circle at 70% 60%, rgba(26,168,118,.06), transparent 30%);
+  animation: meshDrift 22s ease-in-out infinite alternate;
+  opacity: .9;
+}
+@keyframes meshDrift {
+  from { transform: translate3d(-2%, -1%, 0) scale(1); }
+  to   { transform: translate3d(2%, 2%, 0) scale(1.06); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::after { animation: none; }
+  .btn-gigante.pulsa::before, .entrar-logo, .cartao { animation: none !important; }
 }
 
 button, input, select, textarea { font: inherit; color: inherit; }
@@ -72,25 +97,30 @@ button { cursor: pointer; background: none; border: none; }
 a { color: var(--terracota-alt); }
 
 :focus-visible {
-  outline: 3px solid var(--terracota-alt);
+  outline: 2px solid var(--terracota-alt);
   outline-offset: 3px;
-  border-radius: 6px;
+  border-radius: 8px;
 }
 
-::selection { background: rgba(217,89,38,.35); }
+::selection { background: rgba(217,89,38,.4); }
 
-/* barras de rolagem discretas */
-* { scrollbar-width: thin; scrollbar-color: var(--borda-forte) transparent; }
+* { scrollbar-width: thin; scrollbar-color: rgba(242,239,232,.18) transparent; }
 *::-webkit-scrollbar { height: 8px; width: 8px; }
-*::-webkit-scrollbar-thumb { background: var(--borda-forte); border-radius: 8px; }
+*::-webkit-scrollbar-thumb { background: rgba(242,239,232,.16); border-radius: 8px; }
 
 /* ==========================================================================
-   Tipografia auxiliar
+   Tipografia
    ========================================================================== */
 
-.titulo   { font-family: var(--fonte-tit); font-weight: 500; line-height: 1.12; letter-spacing: -.01em; }
-.num      { font-family: var(--fonte-num); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
-.rotulo   { font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--tinta-3); }
+.titulo {
+  font-family: var(--fonte-tit); font-weight: 700; line-height: 1.08;
+  letter-spacing: -.03em; font-size: var(--fs-hero);
+}
+.num { font-family: var(--fonte-num); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.rotulo {
+  font-size: 11px; font-weight: 700; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--tinta-3);
+}
 .apagado  { color: var(--tinta-3); }
 .secundario { color: var(--tinta-2); }
 .centro   { text-align: center; }
@@ -109,80 +139,115 @@ a { color: var(--terracota-alt); }
   position: sticky; top: 0; z-index: 60;
   display: flex; align-items: center; gap: 14px;
   padding: 12px max(16px, env(safe-area-inset-left)) 12px max(16px, env(safe-area-inset-right));
-  background: rgba(20,22,15,.82);
-  backdrop-filter: blur(14px) saturate(1.2);
+  background: rgba(12,13,10,.72);
+  backdrop-filter: blur(18px) saturate(1.35);
+  -webkit-backdrop-filter: blur(18px) saturate(1.35);
   border-bottom: 1px solid var(--borda);
 }
-.marca { display: flex; align-items: center; gap: 10px; margin-right: auto; min-width: 0; }
+.marca { display: flex; align-items: center; gap: 12px; margin-right: auto; min-width: 0; }
+.marca-logo {
+  width: 40px; height: 40px; flex: none; object-fit: contain;
+  filter: drop-shadow(0 4px 14px rgba(217,89,38,.25));
+  transition: transform .25s cubic-bezier(.22,1,.36,1);
+}
+.marca:hover .marca-logo { transform: scale(1.06) rotate(-2deg); }
 .marca-selo {
   width: 34px; height: 34px; border-radius: 10px; flex: none;
   display: grid; place-items: center;
   background: linear-gradient(150deg, var(--terracota), var(--terracota-esc));
   font-family: var(--fonte-num); font-size: 13px; font-weight: 700; color: #fff;
-  box-shadow: 0 4px 14px rgba(217,89,38,.35);
 }
-.marca-nome { font-weight: 600; letter-spacing: .18em; font-size: 13px; text-transform: uppercase; }
+.marca-nome {
+  font-family: var(--fonte-tit); font-weight: 700; letter-spacing: .04em;
+  font-size: 14px; text-transform: uppercase;
+}
 .marca-sub {
-  font-size: 11px; color: var(--tinta-3); letter-spacing: .04em;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 32vw;
+  font-size: 12px; color: var(--tinta-3); letter-spacing: .02em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 36vw;
 }
 
 .avatar {
-  width: 40px; height: 40px; border-radius: 50%; flex: none;
+  width: 42px; height: 42px; border-radius: 14px; flex: none;
   display: grid; place-items: center;
   background: var(--cartao-alto); border: 1px solid var(--borda-forte);
-  font-size: 13px; font-weight: 600; letter-spacing: .04em;
-  transition: border-color .18s, transform .18s;
+  font-size: 13px; font-weight: 700; letter-spacing: .04em;
+  transition: border-color .18s, transform .18s, box-shadow .18s;
 }
-.avatar:hover { border-color: var(--terracota); transform: translateY(-1px); }
+.avatar:hover {
+  border-color: rgba(217,89,38,.55); transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(217,89,38,.2);
+}
 
 .pagina {
   flex: 1; width: 100%; max-width: var(--largura);
   margin-inline: auto;
   padding: 22px max(16px, env(safe-area-inset-left)) 132px max(16px, env(safe-area-inset-right));
+  animation: paginaEntra .45s cubic-bezier(.22,1,.36,1);
+}
+@keyframes paginaEntra {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
 }
 .pagina.larga { max-width: 1120px; }
 
-/* navegação de baixo — polegar alcança, ícone grande, rótulo sempre visível */
 .nav {
   position: fixed; z-index: 70; left: 0; right: 0; bottom: 0;
   display: flex; gap: 6px; justify-content: center;
   padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
-  background: rgba(20,22,15,.9);
-  backdrop-filter: blur(16px) saturate(1.2);
+  background: rgba(12,13,10,.82);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
   border-top: 1px solid var(--borda);
 }
 .nav-item {
   flex: 1; max-width: 160px; min-height: 58px; border-radius: var(--r-md);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
-  color: var(--tinta-3); font-size: 11.5px; font-weight: 600; letter-spacing: .04em;
-  transition: color .18s, background .18s;
+  color: var(--tinta-3); font-size: 11.5px; font-weight: 700; letter-spacing: .04em;
+  transition: color .18s, background .18s, transform .15s;
 }
 .nav-item svg { width: 23px; height: 23px; stroke-width: 1.9; }
 .nav-item:hover { color: var(--tinta-2); background: rgba(255,255,255,.04); }
-.nav-item[aria-current='page'] { color: var(--terracota-alt); background: rgba(217,89,38,.12); }
+.nav-item[aria-current='page'] {
+  color: var(--terracota-alt);
+  background: rgba(217,89,38,.14);
+  box-shadow: inset 0 0 0 1px rgba(217,89,38,.25);
+}
+.nav-item:active { transform: scale(.97); }
 
 /* ==========================================================================
    Cartões
    ========================================================================== */
 
 .cartao {
-  background: linear-gradient(180deg, var(--cartao), #1f2219);
+  background:
+    linear-gradient(165deg, rgba(255,255,255,.04), transparent 40%),
+    linear-gradient(180deg, var(--cartao), #14160f);
   border: 1px solid var(--borda);
   border-radius: var(--r-lg);
   padding: 20px;
   box-shadow: var(--sombra-sm);
+  animation: cartaoEntra .5s cubic-bezier(.22,1,.36,1) both;
+}
+.cartao:nth-child(2) { animation-delay: .04s; }
+.cartao:nth-child(3) { animation-delay: .08s; }
+.cartao:nth-child(4) { animation-delay: .12s; }
+@keyframes cartaoEntra {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
 }
 .cartao + .cartao, .bloco + .bloco { margin-top: 16px; }
 .cartao-topo {
   display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
   margin-bottom: 16px;
 }
-.cartao-titulo { font-family: var(--fonte-tit); font-size: 25px; font-weight: 500; margin-right: auto; }
+.cartao-titulo {
+  font-family: var(--fonte-tit); font-size: var(--fs-titulo); font-weight: 700;
+  margin-right: auto; letter-spacing: -.02em;
+}
 
 .secao-titulo {
-  font-family: var(--fonte-tit); font-size: 30px; font-weight: 500;
-  margin: 28px 0 14px; letter-spacing: -.01em;
+  font-family: var(--fonte-tit); font-size: clamp(1.6rem, 4vw, 2rem); font-weight: 700;
+  margin: 28px 0 14px; letter-spacing: -.03em;
 }
 .secao-titulo:first-child { margin-top: 4px; }
 
@@ -206,9 +271,12 @@ a { color: var(--terracota-alt); }
 .btn-primario {
   background: linear-gradient(160deg, var(--terracota-alt), var(--terracota));
   border-color: transparent; color: #fff;
-  box-shadow: 0 8px 22px rgba(217,89,38,.3);
+  box-shadow: 0 10px 28px rgba(217,89,38,.38), inset 0 1px 0 rgba(255,255,255,.2);
 }
-.btn-primario:hover:not(:disabled) { background: linear-gradient(160deg, #f2733f, var(--terracota-alt)); }
+.btn-primario:hover:not(:disabled) {
+  background: linear-gradient(160deg, #f2733f, var(--terracota-alt));
+  box-shadow: 0 14px 34px rgba(217,89,38,.45);
+}
 
 .btn-verde {
   background: linear-gradient(160deg, var(--salvia-alt), var(--salvia));
@@ -228,12 +296,13 @@ a { color: var(--terracota-alt); }
   width: 100%; min-height: 128px;
   flex-direction: column; gap: 8px;
   border-radius: var(--r-xl);
-  font-family: var(--fonte-tit); font-size: 34px; font-weight: 600;
-  letter-spacing: .01em; text-transform: uppercase;
+  font-family: var(--fonte-tit); font-size: clamp(1.6rem, 5vw, 2.1rem); font-weight: 700;
+  letter-spacing: -.01em; text-transform: uppercase;
   border: none; color: #fff;
   background: linear-gradient(155deg, var(--salvia-alt), #128058);
-  box-shadow: 0 16px 40px rgba(25,158,112,.32), inset 0 1px 0 rgba(255,255,255,.18);
+  box-shadow: 0 18px 44px rgba(26,168,118,.38), inset 0 1px 0 rgba(255,255,255,.2);
   position: relative; overflow: hidden;
+  transition: transform .2s cubic-bezier(.22,1,.36,1), box-shadow .2s;
 }
 .btn-gigante .btn-legenda {
   font-family: var(--fonte-ui); font-size: 13px; font-weight: 500;
@@ -345,25 +414,33 @@ textarea.entrada { min-height: 88px; resize: vertical; line-height: 1.5; }
    Números em destaque
    ========================================================================== */
 
-.heroi { text-align: center; padding: 6px 0 4px; }
-.heroi-rotulo { font-size: 13px; color: var(--tinta-2); margin-bottom: 6px; }
+.heroi { text-align: center; padding: 8px 0 6px; }
+.heroi-rotulo { font-size: 13px; color: var(--tinta-2); margin-bottom: 8px; font-weight: 600; }
 .heroi-valor {
-  font-family: var(--fonte-num); font-weight: 500;
-  font-size: clamp(42px, 12.5vw, 62px); line-height: 1.05; letter-spacing: -.03em;
+  font-family: var(--fonte-num); font-weight: 600;
+  font-size: clamp(42px, 12.5vw, 64px); line-height: 1.05; letter-spacing: -.04em;
+  background: linear-gradient(180deg, #fff 20%, var(--salvia-alt));
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
 }
-.heroi-nota { margin-top: 10px; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.heroi-nota { margin-top: 12px; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
 
 .grade-metricas {
   display: grid; gap: 12px;
   grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
 }
 .metrica {
-  background: var(--cartao); border: 1px solid var(--borda);
+  background:
+    linear-gradient(160deg, rgba(255,255,255,.03), transparent 50%),
+    var(--cartao);
+  border: 1px solid var(--borda);
   border-radius: var(--r-md); padding: 15px 16px;
+  transition: border-color .18s, transform .18s;
 }
-.metrica-rotulo { font-size: 12px; color: var(--tinta-3); margin-bottom: 5px; line-height: 1.35; }
+.metrica:hover { border-color: var(--borda-forte); transform: translateY(-1px); }
+.metrica-rotulo { font-size: 12px; color: var(--tinta-3); margin-bottom: 5px; line-height: 1.35; font-weight: 600; }
 .metrica-valor {
-  font-family: var(--fonte-num); font-size: 26px; font-weight: 500;
+  font-family: var(--fonte-num); font-size: 26px; font-weight: 600;
   letter-spacing: -.02em; line-height: 1.15;
 }
 .metrica-nota { font-size: 12px; color: var(--tinta-3); margin-top: 3px; }
@@ -393,7 +470,7 @@ textarea.entrada { min-height: 88px; resize: vertical; line-height: 1.5; }
   border: 1px dashed var(--borda-forte); border-radius: var(--r-lg);
 }
 .vazio-emoji { font-size: 38px; display: block; margin-bottom: 10px; }
-.vazio-titulo { font-family: var(--fonte-tit); font-size: 22px; color: var(--tinta-2); margin-bottom: 5px; }
+.vazio-titulo { font-family: var(--fonte-tit); font-size: 22px; color: var(--tinta-2); margin-bottom: 5px; font-weight: 700; }
 
 /* ==========================================================================
    Tabelas — rolam dentro da própria caixa, nunca empurram a página
@@ -458,7 +535,7 @@ td.n, th.n { text-align: right; font-family: var(--fonte-num); font-variant-nume
   width: 44px; height: 4px; border-radius: 3px; background: var(--borda-forte);
   margin: 4px auto 16px;
 }
-.folha-titulo { font-family: var(--fonte-tit); font-size: 27px; font-weight: 500; margin-bottom: 4px; }
+.folha-titulo { font-family: var(--fonte-tit); font-size: clamp(1.4rem, 4vw, 1.7rem); font-weight: 700; margin-bottom: 4px; letter-spacing: -.02em; }
 .folha-sub { color: var(--tinta-3); font-size: 14px; margin-bottom: 20px; }
 @media (min-width: 620px) {
   .folha-fundo { align-items: center; }
@@ -528,8 +605,22 @@ button.recado:hover { filter: brightness(1.12); }
   min-height: 100dvh; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   padding: 32px 20px calc(32px + env(safe-area-inset-bottom));
+  position: relative;
 }
-.entrar-caixa { width: 100%; max-width: 400px; }
+.entrar-caixa {
+  width: 100%; max-width: 400px;
+  animation: paginaEntra .55s cubic-bezier(.22,1,.36,1);
+}
+.entrar-logo {
+  display: block; width: 96px; height: 96px; margin: 0 auto 18px;
+  object-fit: contain;
+  filter: drop-shadow(0 16px 36px rgba(217,89,38,.35));
+  animation: logoFloat 4.5s ease-in-out infinite;
+}
+@keyframes logoFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
 .entrar-selo {
   width: 78px; height: 78px; border-radius: 24px; margin: 0 auto 22px;
   display: grid; place-items: center;
@@ -539,18 +630,24 @@ button.recado:hover { filter: brightness(1.12); }
   letter-spacing: -.02em;
 }
 .entrar-titulo {
-  font-family: var(--fonte-tit); font-size: 44px; font-weight: 500;
-  text-align: center; letter-spacing: .01em; line-height: 1.05;
+  font-family: var(--fonte-tit); font-size: clamp(2.2rem, 8vw, 2.85rem); font-weight: 800;
+  text-align: center; letter-spacing: -.03em; line-height: 1.02;
 }
-.entrar-sub { text-align: center; color: var(--tinta-3); margin: 8px 0 30px; font-size: 15px; }
+.entrar-sub {
+  text-align: center; color: var(--tinta-3); margin: 10px 0 28px; font-size: 15px;
+  font-weight: 500;
+}
 .entrar-dicas { margin-top: 26px; }
 .entrar-dica {
   display: flex; align-items: center; gap: 10px; width: 100%;
-  padding: 10px 13px; border-radius: 11px; margin-top: 7px;
-  background: rgba(255,255,255,.035); border: 1px solid var(--borda);
-  font-size: 13.5px; text-align: left; transition: border-color .18s;
+  padding: 12px 14px; border-radius: 14px; margin-top: 7px;
+  background: rgba(255,255,255,.04); border: 1px solid var(--borda);
+  font-size: 13.5px; text-align: left; transition: border-color .18s, background .18s, transform .15s;
 }
-.entrar-dica:hover { border-color: var(--terracota); }
+.entrar-dica:hover {
+  border-color: rgba(217,89,38,.5); background: rgba(217,89,38,.08);
+  transform: translateY(-1px);
+}
 .entrar-dica .num { color: var(--terracota-alt); font-size: 13px; }
 .entrar-dica-papel { margin-left: auto; color: var(--tinta-3); font-size: 12px; }
 
@@ -660,8 +757,8 @@ button.recado:hover { filter: brightness(1.12); }
 .mes-nav-btn:disabled { opacity: .3; cursor: not-allowed; }
 .mes-nav-btn svg { width: 21px; height: 21px; stroke-width: 2.2; }
 .mes-nav-titulo {
-  font-family: var(--fonte-tit); font-size: 27px; font-weight: 500;
-  min-width: 208px; text-align: center;
+  font-family: var(--fonte-tit); font-size: clamp(1.25rem, 3.5vw, 1.55rem); font-weight: 700;
+  min-width: 208px; text-align: center; letter-spacing: -.02em;
 }
 
 /* ==========================================================================
@@ -675,7 +772,7 @@ button.recado:hover { filter: brightness(1.12); }
 }
 .solta:hover, .solta.sobre { border-color: var(--terracota); background: rgba(217,89,38,.07); }
 .solta-emoji { font-size: 42px; display: block; margin-bottom: 12px; }
-.solta-titulo { font-family: var(--fonte-tit); font-size: 24px; margin-bottom: 6px; }
+.solta-titulo { font-family: var(--fonte-tit); font-size: 24px; margin-bottom: 6px; font-weight: 700; letter-spacing: -.02em; }
 
 .mapa-coluna {
   display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; align-items: center;
