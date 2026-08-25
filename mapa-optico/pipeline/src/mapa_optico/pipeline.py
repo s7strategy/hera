@@ -181,7 +181,11 @@ def montar_base(
 
     # ------------------------------------------------ 3. populacao e renda
     try:
-        pop = ing_ibge.populacao_por_idade(ufs, refresh=refresh)
+        # Passar os codigos faz a busca ir em lotes explicitos. Sem isso o
+        # SIDRA trunca a resposta calado.
+        pop = ing_ibge.populacao_por_idade(
+            ufs, codigos=base["codigo_ibge"].dropna().astype(str).tolist(), refresh=refresh
+        )
         base = base.merge(pop, on="codigo_ibge", how="left")
         prov.ok("populacao", "sidra", linhas=len(pop))
     except FonteIndisponivel as exc:

@@ -153,3 +153,41 @@ def test_municipio_sem_microrregiao_aninhada_nao_some(monkeypatch):
     df = ibge.municipios(["SC"])
     assert sorted(df["nome"]) == ["Abdon Batista", "Agrolândia"]
     assert set(df["uf"]) == {"SC"}
+
+
+def test_populacao_vai_ao_sidra_em_lotes_de_codigo(monkeypatch):
+    """Regressão: pedir 'todos os municípios da UF' devolve resposta truncada.
+
+    Em SC vieram 171 dos 295 e o SIDRA não avisou. Os 124 que faltaram entraram
+    no ranking com população nula e escaparam do filtro de faixa populacional —
+    o ranking saiu pela metade parecendo completo.
+    """
+    pedidos: list[str] = []
+
+    def _falso(fonte, chave, buscar, refresh=False):
+        return buscar()
+
+    def _json(fonte, url):
+        pedidos.append(url)
+        # Devolve uma linha "Total" para cada código que o lote pediu.
+        codigos_do_lote = url.split("/n6/", 1)[1].split("/", 1)[0].split(",")
+        return [
+            {"D1C": "Município (Código)", "V": "Valor", "D2N": "Grupo de idade"},
+            *({"D1C": c, "V": "2500", "D2N": "Total"} for c in codigos_do_lote),
+        ]
+
+    monkeypatch.setattr(ibge, "get_or_set", _falso)
+    monkeypatch.setattr(ibge, "get_json", _json)
+    monkeypatch.setattr(ibge, "MUNICIPIOS_POR_LOTE", 2)
+    # A descoberta da classificação de idade é outra história; aqui ela sai do
+    # caminho para o teste falar só sobre o lote.
+    monkeypatch.setattr(ibge, "_classificacao_de_idade", lambda *a, **k: "c287")
+
+    codigos = ["4200051", "4200200", "4200309", "4200408", "4200507"]
+    ibge.populacao_por_idade(["SC"], codigos=codigos)
+
+    assert len(pedidos) == 3, "5 municípios em lotes de 2 são 3 chamadas"
+    assert all("in n3" not in url for url in pedidos), "nenhum lote pode pedir a UF inteira"
+    pedidos_juntos = " ".join(pedidos)
+    for codigo in codigos:
+        assert codigo in pedidos_juntos, f"{codigo} ficou de fora dos lotes"

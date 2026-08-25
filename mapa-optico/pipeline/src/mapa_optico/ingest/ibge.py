@@ -23,8 +23,25 @@ from ..transform.normalize import para_codigo7, uf_do_codigo
 from .fontes import carregar
 
 FONTE = "ibge"
+# Quanto da resposta do SIDRA precisa virar numero para a populacao valer.
+# Abaixo disso o ranking sairia pela metade parecendo completo.
+COBERTURA_MINIMA = 0.9
 
 _VALOR_AUSENTE = {"-", "..", "...", "X", "..X", None, ""}
+
+
+# Quantos municipios por chamada ao SIDRA. Pedir "todos do estado" de uma vez
+# devolve uma resposta truncada sem dizer que truncou: em SC vieram 171 dos 295,
+# e os que faltaram sumiram do ranking parecendo que nao existiam. Lotes
+# explicitos de codigo tornam a resposta determinstica e conferivel.
+MUNICIPIOS_POR_LOTE = 60
+
+
+def _lotes(codigos: list[str], tamanho: int | None = None) -> list[list[str]]:
+    # Lido na chamada, nao no default: um default congela o valor na definicao
+    # do modulo e o torna impossivel de ajustar.
+    n = tamanho or MUNICIPIOS_POR_LOTE
+    return [codigos[i : i + n] for i in range(0, len(codigos), n)]
 
 
 def _filtro_n6(ufs: list[str] | None) -> str:
@@ -138,21 +155,93 @@ def _uf_por_regiao_imediata(m: dict[str, Any]) -> str | None:
     return ((intermediaria.get("UF") or {}).get("sigla"))
 
 
-def populacao_por_idade(ufs: list[str] | None = None, *, refresh: bool = False) -> pd.DataFrame:
+def _classificacao_de_idade(tabela: str, *, refresh: bool = False) -> str | None:
+    """`c<id>` da classificacao de faixa etaria da tabela, lida dos metadados.
+
+    O codigo estava fixo em c287 e a tabela nao respondia por ele: vinha so a
+    linha "Total" e a populacao 40+ saia zerada em todos os municipios, sem
+    erro. Perguntar aos metadados custa uma chamada cacheada e sobrevive a
+    renumeracao.
+    """
+    cfg = carregar()["ibge"]
+    url = cfg.get("metadados_url", "").format(tabela=tabela)
+    if not url:
+        return None
+    try:
+        meta = get_or_set(
+            FONTE, f"metadados-{tabela}", lambda: get_json(FONTE, url), refresh=refresh
+        )
+    except FonteIndisponivel as exc:
+        aviso("metadados da tabela indisponiveis", tabela=tabela, erro=str(exc)[:120])
+        return None
+    for classificacao in meta.get("classificacoes") or []:
+        if "idade" in str(classificacao.get("nome", "")).lower():
+            log("classificacao de idade descoberta", tabela=tabela, id=classificacao.get("id"))
+            return f"c{classificacao['id']}"
+    aviso("tabela sem classificacao de idade", tabela=tabela)
+    return None
+
+
+def _buscar_em_lotes(
+    cfg: dict[str, Any], ufs: list[str] | None, codigos: list[str] | None, *, refresh: bool
+) -> list[dict[str, Any]]:
+    """Uma chamada por lote de municipios; devolve cabecalho + linhas de todos.
+
+    Sem a lista de codigos cai no filtro por UF, que e o comportamento antigo —
+    util para uma consulta exploratoria, arriscado para producao.
+    """
+    idade = _classificacao_de_idade(str(cfg["tabela"]), refresh=refresh) or cfg.get("classificacao_idade")
+    classificacao = f"{idade}/all" if idade else ""
+    base_chave = f"populacao-{cfg['tabela']}-{cfg['periodo']}-{idade}-"
+    if not codigos:
+        url = cfg["sidra_url"].format(
+            tabela=cfg["tabela"],
+            variavel=cfg["variavel"],
+            periodo=cfg["periodo"],
+            n6=_filtro_n6(ufs),
+            classificacao=classificacao,
+        )
+        chave = base_chave + (",".join(sorted(ufs)) if ufs else "BR")
+        return get_or_set(FONTE, chave, lambda: get_json(FONTE, url), refresh=refresh)
+
+    cabecalho: dict[str, Any] | None = None
+    linhas: list[dict[str, Any]] = []
+    lotes = _lotes(sorted(set(codigos)))
+    for i, lote in enumerate(lotes, start=1):
+        url = cfg["sidra_url"].format(
+            tabela=cfg["tabela"],
+            variavel=cfg["variavel"],
+            periodo=cfg["periodo"],
+            n6="n6/" + ",".join(lote),
+            classificacao=classificacao,
+        )
+        chave = f"{base_chave}lote-{lote[0]}-{lote[-1]}"
+        parte = get_or_set(FONTE, chave, lambda u=url: get_json(FONTE, u), refresh=refresh)
+        if not parte or len(parte) < 2:
+            aviso("lote de populacao veio vazio", lote=i, de=lote[0], ate=lote[-1])
+            continue
+        cabecalho = cabecalho or parte[0]
+        linhas.extend(parte[1:])
+    log("populacao buscada em lotes", lotes=len(lotes), municipios=len(set(codigos)), linhas=len(linhas))
+    return [cabecalho, *linhas] if cabecalho else []
+
+
+def populacao_por_idade(
+    ufs: list[str] | None = None,
+    *,
+    codigos: list[str] | None = None,
+    refresh: bool = False,
+) -> pd.DataFrame:
     """Populacao total e populacao 40+ por municipio (Censo, via SIDRA).
 
     A populacao 40+ e o proxy de presbiopia — o publico que efetivamente compra
     oculos de leitura. Sem ela o modelo perde o fator de mercado enderecavel.
     """
     cfg = carregar()["ibge"]["populacao"]
-    url = cfg["sidra_url"].format(
-        tabela=cfg["tabela"], variavel=cfg["variavel"], periodo=cfg["periodo"], n6=_filtro_n6(ufs)
-    )
-    chave = f"populacao-{cfg['tabela']}-{cfg['periodo']}-" + (",".join(sorted(ufs)) if ufs else "BR")
     idade_min = int(cfg.get("idade_minima", 40))
 
     with etapa("ingest.ibge.populacao") as c:
-        bruto = get_or_set(FONTE, chave, lambda: get_json(FONTE, url), refresh=refresh)
+        bruto = _buscar_em_lotes(cfg, ufs, codigos, refresh=refresh)
         if not bruto or len(bruto) < 2:
             raise FonteIndisponivel(FONTE, "SIDRA devolveu resposta vazia para populacao")
         colunas = _mapa_colunas(bruto[0])
@@ -162,13 +251,18 @@ def populacao_por_idade(ufs: list[str] | None = None, *, refresh: bool = False) 
         c.entrada = len(bruto) - 1
 
         acumulado: dict[str, dict[str, float | None]] = {}
+        rotulos_vistos: set[str] = set()
+        amostra_sem_valor: list[dict[str, Any]] = []
         for linha in bruto[1:]:
             codigo = para_codigo7(linha.get(colunas["codigo"]))
             if not codigo:
                 c.descartar("codigo invalido")
                 continue
             rotulo = str(linha.get(colunas["idade"], ""))
+            rotulos_vistos.add(rotulo.strip())
             valor = _num(linha.get(colunas["valor"]))
+            if valor is None and len(amostra_sem_valor) < 3:
+                amostra_sem_valor.append(linha)
             reg = acumulado.setdefault(codigo, {"populacao_total": None, "populacao_40mais": None})
             inicio = idade_inicial(rotulo)
             if rotulo.strip().lower().startswith("total"):
@@ -187,11 +281,23 @@ def populacao_por_idade(ufs: list[str] | None = None, *, refresh: bool = False) 
         # modo de falha mais perigoso: sem esta guarda o pipeline segue feliz e
         # o ranking inteiro sai nulo sem ninguem ser avisado. Uma vez ja saiu.
         uteis = int(df["populacao_total"].notna().sum()) if not df.empty else 0
-        if uteis == 0:
+        # Medir contra o universo PEDIDO, nao contra o que a resposta trouxe:
+        # uma resposta truncada e 100% coerente consigo mesma e mesmo assim
+        # deixou 124 municipios de fora do ranking.
+        vistos = len(set(codigos)) if codigos else len(acumulado)
+        cobertura = uteis / vistos if vistos else 0.0
+        if cobertura < COBERTURA_MINIMA:
+            # Cobertura parcial e mais perigosa que zero: o ranking sai pela
+            # metade e parece completo. Quem ficou de fora nao e aleatorio — sao
+            # os municipios de um recorte inteiro da resposta —, entao isto e
+            # falha, nao aviso.
             raise FonteIndisponivel(
                 FONTE,
-                f"SIDRA respondeu {len(bruto) - 1} linhas para populacao e nenhuma virou numero. "
-                f"Cabecalho: {bruto[0]}. Primeira linha: {bruto[1] if len(bruto) > 1 else '—'}",
+                f"SIDRA cobriu {uteis} de {vistos} municipios ({cobertura:.0%}) para populacao — "
+                f"abaixo do minimo de {COBERTURA_MINIMA:.0%}. "
+                f"Cabecalho: {bruto[0]}. "
+                f"Rotulos de idade vistos: {sorted(rotulos_vistos)[:12]}. "
+                f"Linhas sem valor: {amostra_sem_valor}",
             )
         sem_40 = int(df["populacao_40mais"].isna().sum()) if not df.empty else 0
         if sem_40:

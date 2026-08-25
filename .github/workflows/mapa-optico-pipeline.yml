@@ -88,6 +88,16 @@ jobs:
         continue-on-error: true
         run: uv pip install -e ".[cnes]"
 
+      # Antes da Fase 0 de proposito: a base do CNES leva ~10 minutos vindo do
+      # FTP do DATASUS, e com o cache restaurado depois dela o mesmo arquivo
+      # seria baixado duas vezes na mesma execucao.
+      - name: Cache das fontes externas
+        uses: actions/cache@v4
+        with:
+          path: mapa-optico/pipeline/data/cache
+          key: mapa-optico-cache-${{ github.run_id }}
+          restore-keys: mapa-optico-cache-
+
       - name: Diagnóstico das fontes externas
         continue-on-error: true
         run: mapa-optico checar-fontes --uf SC
@@ -96,13 +106,6 @@ jobs:
         id: fase0
         continue-on-error: true
         run: mapa-optico fase0 --uf SC
-
-      - name: Cache das fontes externas
-        uses: actions/cache@v4
-        with:
-          path: mapa-optico/pipeline/data/cache
-          key: mapa-optico-cache-${{ github.run_id }}
-          restore-keys: mapa-optico-cache-
 
       - name: Rodar pipeline
         run: |

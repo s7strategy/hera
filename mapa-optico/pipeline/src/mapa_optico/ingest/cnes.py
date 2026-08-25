@@ -23,6 +23,7 @@ Armadilhas tratadas aqui, todas citadas no briefing:
 from __future__ import annotations
 
 import ftplib
+import re
 import zipfile
 from collections.abc import Iterable
 from pathlib import Path
@@ -142,10 +143,12 @@ def agregar_por_municipio(vinculos: pd.DataFrame, competencia: str) -> pd.DataFr
 # O 443 desse host NAO responde: doze tentativas de HTTPS deram ConnectTimeout
 # no runner do GitHub. O servico vive no 80 e no 21. Por isso cada arquivo tem
 # uma lista de transportes, tentados em ordem, e nao uma URL unica.
-CAMINHO_DBC = "/dissemin/publicos/CNES/200801_/Dados/PF/PF{uf}{aamm}.dbc"
-CAMINHO_BASE_ZIP = "/cnes/BASE_DE_DADOS_CNES_{competencia}.ZIP"
+DIR_DBC = "/dissemin/publicos/CNES/200801_/Dados/PF"
+DIR_BASE_ZIP = "/cnes"
 HOST_DATASUS = "ftp.datasus.gov.br"
-TRANSPORTES = ("http", "ftp", "https")
+TRANSPORTES = ("ftp", "http", "https")
+# Transferir a base completa leva minutos; o socket nao pode desistir no meio.
+TIMEOUT_FTP_S = 900
 # Generoso porque a base completa passa de 200 MB, mas nao infinito: uma
 # competencia que nao existe nao pode segurar o pipeline por meia hora.
 _TIMEOUT_DOWNLOAD = httpx.Timeout(connect=15.0, read=120.0, write=60.0, pool=15.0)
@@ -154,15 +157,27 @@ _TIMEOUT_DOWNLOAD = httpx.Timeout(connect=15.0, read=120.0, write=60.0, pool=15.
 COMPETENCIAS_PARA_TENTAR = 6
 
 
-def _competencias_candidatas(competencia: str | None) -> list[tuple[int, int]]:
-    """Da competencia pedida (ou de hoje) para tras, mes a mes."""
-    if competencia:
-        return [(int(competencia[:4]), int(competencia[4:6]))]
-    hoje = pd.Timestamp.utcnow()
-    return [
-        ((hoje - pd.DateOffset(months=n)).year, (hoje - pd.DateOffset(months=n)).month)
-        for n in range(1, COMPETENCIAS_PARA_TENTAR + 1)
-    ]
+def _listar(diretorio: str) -> list[str]:
+    """Nomes de arquivo do diretorio, via FTP.
+
+    Adivinhar o nome do arquivo custou seis competencias x tres transportes de
+    tentativa para descobrir que a convencao era outra. Listar responde de uma
+    vez, e continua respondendo quando o DATASUS mudar o padrao de nome.
+    """
+    ftp = _conectar_ftp()
+    try:
+        return [n.rsplit("/", 1)[-1] for n in ftp.nlst(diretorio)]
+    finally:
+        _fechar(ftp)
+
+
+def _mais_recente(nomes: list[str], padrao: re.Pattern[str]) -> tuple[str, str] | None:
+    """(nome, competencia) do arquivo mais novo que casa com o padrao."""
+    casados = [(m.group("comp"), n) for n in nomes if (m := padrao.match(n))]
+    if not casados:
+        return None
+    comp, nome = max(casados)
+    return nome, comp
 
 
 class HostInalcancavel(FonteIndisponivel):
@@ -191,7 +206,7 @@ def _baixar(caminho: str, destino: Path) -> Path:
         parcial = destino.with_suffix(destino.suffix + ".parcial")
         try:
             if transporte == "ftp":
-                _baixar_ftp(caminho, parcial)
+                _baixar_ftp(caminho, parcial, destino.name)
             else:
                 _baixar_http(f"{transporte}://{HOST_DATASUS}{caminho}", parcial, destino.name)
         except FileNotFoundError as exc:
@@ -232,25 +247,47 @@ def _baixar_http(url: str, parcial: Path, nome: str) -> None:
                     proximo_aviso = baixado + (64 << 20)
 
 
-def _baixar_ftp(caminho: str, parcial: Path) -> None:
-    """FTP anonimo — o protocolo nativo deste servidor, e o que o pysus usa."""
-    # Servidor publico do Ministerio da Saude; nao ha credencial nem dado sensivel.
-    ftp = ftplib.FTP(HOST_DATASUS, timeout=60)
+def _conectar_ftp() -> ftplib.FTP:
+    """FTP anonimo — o unico transporte que este servidor realmente atende.
+
+    O 443 nao responde e o 80 tambem nao; so a 21. Servidor publico do
+    Ministerio da Saude, sem credencial e sem dado sensivel.
+    """
+    ftp = ftplib.FTP(HOST_DATASUS, timeout=TIMEOUT_FTP_S)
+    ftp.login()
+    ftp.set_pasv(True)
+    return ftp
+
+
+def _fechar(ftp: ftplib.FTP) -> None:
     try:
-        ftp.login()
-        ftp.set_pasv(True)
+        ftp.quit()
+    except Exception:  # noqa: BLE001 - fechar conexao nao pode mascarar o erro real
+        ftp.close()
+
+
+def _baixar_ftp(caminho: str, parcial: Path, nome: str) -> None:
+    ftp = _conectar_ftp()
+    baixado = proximo_aviso = 0
+
+    def escrever(bloco: bytes, saida) -> None:
+        nonlocal baixado, proximo_aviso
+        saida.write(bloco)
+        baixado += len(bloco)
+        if baixado >= proximo_aviso:
+            log("baixando", arquivo=nome, mb=baixado >> 20, via="ftp")
+            proximo_aviso = baixado + (64 << 20)
+
+    try:
         with parcial.open("wb") as saida:
-            ftp.retrbinary(f"RETR {caminho}", saida.write, blocksize=1 << 20)
+            ftp.retrbinary(f"RETR {caminho}", lambda b: escrever(b, saida), blocksize=1 << 20)
     except ftplib.error_perm as exc:
         # 550 e "arquivo nao existe"; o resto e problema de servidor.
         if str(exc).startswith("550"):
             raise FileNotFoundError(f"FTP 550 em {caminho}") from exc
         raise OSError(str(exc)) from exc
     finally:
-        try:
-            ftp.quit()
-        except Exception:  # noqa: BLE001 - fechar conexao nao pode mascarar o erro real
-            ftp.close()
+        _fechar(ftp)
 
 
 def _decodificar_dbc(origem: Path) -> pd.DataFrame:
@@ -287,24 +324,24 @@ def _decodificar_dbc(origem: Path) -> pd.DataFrame:
 
 def _via_dbc(uf: str, competencia: str | None) -> tuple[pd.DataFrame, str, str]:
     """Arquivo PF por UF: o caminho mais barato quando o decodificador existe."""
-    erros: list[str] = []
-    for ano, mes in _competencias_candidatas(competencia):
-        aamm = f"{ano % 100:02d}{mes:02d}"
-        try:
-            arquivo = _baixar(
-                CAMINHO_DBC.format(uf=uf.upper(), aamm=aamm),
-                CACHE_DIR / "cnes" / f"PF{uf.upper()}{aamm}.dbc",
-            )
-        except HostInalcancavel as exc:
-            raise CnesIndisponivel(f"DATASUS mudo, nao adianta tentar outras competencias: {exc}") from exc
-        except FonteIndisponivel as exc:
-            erros.append(str(exc))
-            continue
-        df = _decodificar_dbc(arquivo)
-        if len(df):
-            return df, f"{ano}{mes:02d}", f"dbc:PF{uf.upper()}{aamm}"
-        erros.append(f"PF{uf.upper()}{aamm}: arquivo vazio")
-    raise CnesIndisponivel("nenhuma competencia .dbc respondeu:\n  - " + "\n  - ".join(erros[:6]))
+    padrao = re.compile(rf"^PF{uf.upper()}(?P<comp>\d{{4}})\.dbc$", re.IGNORECASE)
+    nomes = _listar(DIR_DBC)
+    if competencia:
+        alvo = f"PF{uf.upper()}{competencia[2:6]}.dbc"
+        escolha = (alvo, competencia[2:6]) if alvo in nomes else None
+    else:
+        escolha = _mais_recente(nomes, padrao)
+    if not escolha:
+        raise CnesIndisponivel(
+            f"nenhum PF{uf.upper()}AAMM.dbc em {DIR_DBC} ({len(nomes)} arquivos listados)"
+        )
+    nome, comp = escolha
+    arquivo = _baixar(f"{DIR_DBC}/{nome}", CACHE_DIR / "cnes" / nome)
+    df = _decodificar_dbc(arquivo)
+    if not len(df):
+        raise CnesIndisponivel(f"{nome} veio vazio")
+    # AAMM -> AAAAMM. O CNES so publica de 2008 em diante, entao 20xx resolve.
+    return df, f"20{comp[:2]}{comp[2:]}", f"dbc:{nome}"
 
 
 def _via_base_csv(uf: str, competencia: str | None) -> tuple[pd.DataFrame, str, str]:
@@ -312,72 +349,81 @@ def _via_base_csv(uf: str, competencia: str | None) -> tuple[pd.DataFrame, str, 
 
     Pesa centenas de MB e por isso nao e o primeiro caminho — mas nao depende de
     dependencia compilada nenhuma, o que faz dele o que sobra quando o resto
-    falha. Junta carga horaria (vinculo) com estabelecimento (municipio).
+    falha. Junta carga horaria (o vinculo) com estabelecimento (o municipio).
     """
-    erros: list[str] = []
-    prefixo_uf = CODIGO_POR_UF.get(uf.upper())
     cfg = carregar()["cnes"]
     cbos = {str(c).strip() for c in [*cfg["cbo_oftalmologista"], *(cfg.get("cbo_correlatos") or [])]}
-    for ano, mes in _competencias_candidatas(competencia):
-        comp = f"{ano}{mes:02d}"
-        try:
-            arquivo = _baixar(
-                CAMINHO_BASE_ZIP.format(competencia=comp), CACHE_DIR / "cnes" / f"CNES{comp}.zip"
-            )
-        except HostInalcancavel as exc:
-            raise CnesIndisponivel(f"DATASUS mudo: {exc}") from exc
-        except FonteIndisponivel as exc:
-            erros.append(str(exc))
-            continue
-        try:
-            with zipfile.ZipFile(arquivo) as z:
-                nomes = z.namelist()
-                carga = _achar(nomes, "tbCargaHorariaSus")
-                estab = _achar(nomes, "tbEstabelecimento")
-                if not (carga and estab):
-                    erros.append(f"{comp}: ZIP sem tbCargaHorariaSus/tbEstabelecimento ({nomes[:5]})")
-                    continue
-                with z.open(carga) as f:
-                    # A tabela de vinculos e do Brasil inteiro: dezenas de
-                    # milhoes de linhas. Ler inteira, mesmo so com as colunas
-                    # uteis, engasga o runner. Em blocos, filtrando CBO na
-                    # entrada, o que fica na memoria e so oftalmologista.
-                    pedacos = [
-                        bloco[
-                            bloco[_col(bloco, "CO_CBO")]
-                            .astype(str).str.strip().str.replace(r"\D", "", regex=True)
-                            .isin(cbos)
-                        ]
-                        for bloco in pd.read_csv(
-                            f, sep=";", dtype=str, encoding="latin-1",
-                            usecols=lambda c: c.strip().upper() in _COLUNAS_CARGA,
-                            chunksize=500_000,
-                        )
-                    ]
-                    vinculos = (
-                        pd.concat(pedacos, ignore_index=True) if pedacos else pd.DataFrame()
-                    )
-                if vinculos.empty:
-                    erros.append(f"{comp}: nenhum vinculo de oftalmologista na base")
-                    continue
-                with z.open(estab) as f:
-                    unidades = pd.read_csv(
-                        f, sep=";", dtype=str, encoding="latin-1", low_memory=False,
-                        usecols=lambda c: c.strip().upper() in {"CO_UNIDADE", "CO_MUNICIPIO_GESTOR"},
-                    )
-        except (zipfile.BadZipFile, ValueError) as exc:
-            erros.append(f"{comp}: {type(exc).__name__}: {exc}")
-            continue
+    prefixo_uf = CODIGO_POR_UF.get(uf.upper())
 
-        vinculos.columns = [c.strip() for c in vinculos.columns]
-        unidades.columns = [c.strip() for c in unidades.columns]
-        df = vinculos.merge(unidades, on="CO_UNIDADE", how="left")
-        if prefixo_uf:
-            # A base e do Brasil inteiro; corta pela UF antes de qualquer conta.
-            df = df[df["CO_MUNICIPIO_GESTOR"].astype(str).str.startswith(prefixo_uf)]
-        log("CNES lido da base completa", competencia=comp, linhas=len(df))
-        return df, comp, f"base_csv:{comp}"
-    raise CnesIndisponivel("base completa do CNES indisponivel:\n  - " + "\n  - ".join(erros[:6]))
+    padrao = re.compile(r"^BASE_DE_DADOS_CNES_(?P<comp>\d{6})\.ZIP$", re.IGNORECASE)
+    disponiveis = _listar(DIR_BASE_ZIP)
+    if competencia:
+        alvo = f"BASE_DE_DADOS_CNES_{competencia}.ZIP"
+        escolha = (alvo, competencia) if alvo in disponiveis else None
+    else:
+        escolha = _mais_recente(disponiveis, padrao)
+    if not escolha:
+        raise CnesIndisponivel(
+            f"nenhum BASE_DE_DADOS_CNES_AAAAMM.ZIP em {DIR_BASE_ZIP} "
+            f"({len(disponiveis)} arquivos listados)"
+        )
+
+    nome, comp = escolha
+    arquivo = _baixar(f"{DIR_BASE_ZIP}/{nome}", CACHE_DIR / "cnes" / nome)
+    try:
+        with zipfile.ZipFile(arquivo) as z:
+            conteudo = z.namelist()
+            carga = _achar(conteudo, "tbCargaHorariaSus")
+            estab = _achar(conteudo, "tbEstabelecimento")
+            if not (carga and estab):
+                raise CnesIndisponivel(
+                    f"{nome} sem tbCargaHorariaSus/tbEstabelecimento ({conteudo[:5]})"
+                )
+            with z.open(carga) as f:
+                vinculos = _ler_carga_horaria(f, cbos)
+            with z.open(estab) as f:
+                unidades = pd.read_csv(
+                    f, sep=";", dtype=str, encoding="latin-1", low_memory=False,
+                    usecols=lambda c: c.strip().upper() in {"CO_UNIDADE", "CO_MUNICIPIO_GESTOR"},
+                )
+    except zipfile.BadZipFile as exc:
+        # Download truncado deixa um ZIP invalido em cache; apagar evita que a
+        # proxima execucao repita o erro achando que ja tem o arquivo.
+        arquivo.unlink(missing_ok=True)
+        raise CnesIndisponivel(f"{nome} nao abriu como ZIP: {exc}") from exc
+
+    if vinculos.empty:
+        raise CnesIndisponivel(f"{nome}: nenhum vinculo com CBO de oftalmologista")
+
+    vinculos.columns = [c.strip() for c in vinculos.columns]
+    unidades.columns = [c.strip() for c in unidades.columns]
+    df = vinculos.merge(unidades, on="CO_UNIDADE", how="left")
+    if prefixo_uf:
+        # A base e do Brasil inteiro; corta pela UF antes de qualquer conta.
+        df = df[df["CO_MUNICIPIO_GESTOR"].astype(str).str.startswith(prefixo_uf)]
+    log("CNES lido da base completa", arquivo=nome, competencia=comp, linhas=len(df))
+    return df, comp, f"base_csv:{nome}"
+
+
+def _ler_carga_horaria(arquivo: Any, cbos: set[str]) -> pd.DataFrame:
+    """Vinculos de oftalmologista, lidos em blocos.
+
+    A tabela e do Brasil inteiro: dezenas de milhoes de linhas. Ler inteira,
+    mesmo so com as colunas uteis, engasga o runner. Filtrando o CBO na entrada
+    de cada bloco, o que fica na memoria e so quem interessa.
+    """
+    pedacos = []
+    for bloco in pd.read_csv(
+        arquivo, sep=";", dtype=str, encoding="latin-1",
+        usecols=lambda c: c.strip().upper() in _COLUNAS_CARGA,
+        chunksize=500_000,
+    ):
+        cbo = (
+            bloco[_col(bloco, "CO_CBO")]
+            .astype(str).str.strip().str.replace(r"\D", "", regex=True)
+        )
+        pedacos.append(bloco[cbo.isin(cbos)])
+    return pd.concat(pedacos, ignore_index=True) if pedacos else pd.DataFrame()
 
 
 _COLUNAS_CARGA = {

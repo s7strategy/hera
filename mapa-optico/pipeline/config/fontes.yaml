@@ -11,6 +11,9 @@ cnes:
   ufs: ["SC"]
 
 ibge:
+  # Metadados de um agregado: e daqui que sai o codigo da classificacao de
+  # faixa etaria, em vez de ficar fixo no codigo e envelhecer calado.
+  metadados_url: "https://servicodados.ibge.gov.br/api/v3/agregados/{tabela}/metadados"
   localidades_url: "https://servicodados.ibge.gov.br/api/v1/localidades/municipios"
   malha_uf_url: "https://servicodados.ibge.gov.br/api/v3/malhas/estados/{uf}?formato=application/vnd.geo+json&intrarregiao=municipio&qualidade=minima"
   malha_municipio_url: "https://servicodados.ibge.gov.br/api/v3/malhas/municipios/{codigo}?formato=application/vnd.geo+json"
@@ -19,11 +22,14 @@ ibge:
     # Censo 2022, populacao residente por idade. As faixas etarias NAO sao
     # filtradas por codigo: pedimos todas (c287/all) e somamos as faixas cujo
     # rotulo comeca em 40+. Assim uma mudanca de codigo nao quebra o pipeline.
-    sidra_url: "https://apisidra.ibge.gov.br/values/t/{tabela}/{n6}/v/{variavel}/p/{periodo}/c287/all"
+    sidra_url: "https://apisidra.ibge.gov.br/values/t/{tabela}/{n6}/v/{variavel}/p/{periodo}/{classificacao}"
     tabela: "9514"
     variavel: "93"
     periodo: "2022"
     idade_minima: 40
+    # Usado so se os metadados nao responderem. Ja esteve errado: a resposta
+    # vinha so com a linha "Total" e a populacao 40+ saia zerada, sem erro.
+    classificacao_idade: "c287"
 
   renda:
     # Rendimento nominal mensal domiciliar per capita.
