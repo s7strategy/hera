@@ -56,7 +56,10 @@ function ligaDica(caixa, svgEl, achaAlvo, montaHtml) {
     dica.style.left = `${x}px`;
     dica.style.top = `${Math.max(30, (ev.touches?.[0]?.clientY ?? ev.clientY) - cr.top - 4)}px`;
     dica.classList.add('on');
-    svgEl.querySelectorAll('.barra').forEach((b) => b.classList.toggle('ativa', b.dataset.k === String(alvo.chave)));
+    svgEl.querySelectorAll('.barra').forEach((b) => {
+      const k = b.dataset.k ?? b.dataset.mes;
+      b.classList.toggle('ativa', k === String(alvo.chave));
+    });
   };
   const esconde = () => {
     ativo = null;
@@ -131,38 +134,66 @@ export function graficoDias(caixa, dados, { cor = PALETA[0] } = {}) {
 }
 
 /* ==========================================================================
-   2. Ganhos por mês — uma série, últimos N meses.
-   dados: [{ rotulo, valor, horas, atual:Boolean }]
+   2. Ganhos por mês — barras empilhadas (trabalho + bônus), últimos N meses.
+   dados: [{ rotulo, rotuloLongo, valor, total, horas, atual, partes:[{nome,valor,cor}] }]
    ========================================================================== */
 
 export function graficoMeses(caixa, dados, { cor = PALETA[0] } = {}) {
   caixa.innerHTML = '';
   if (!dados.length) return;
 
-  const L = 6, R = 6, T = 26, B = 24, A = 156;
+  const L = 6, R = 6, T = 26, B = 28, A = 168;
   const W = 320;
   const alturaPlot = A - T - B;
-  const teto = tetoBonito(Math.max(...dados.map((d) => d.valor), 1));
+  const totais = dados.map((d) => d.total ?? d.valor ?? 0);
+  const teto = tetoBonito(Math.max(...totais, 1));
   const larguraBarra = (W - L - R) / dados.length;
   const w = Math.min(38, larguraBarra - 10);
   const y = (v) => T + alturaPlot - (v / teto) * alturaPlot;
+
+  const seriesMap = new Map();
+  dados.forEach((d) => {
+    const blocos = d.partes?.length ? d.partes : [{ nome: 'Trabalho', valor: d.valor, cor }];
+    blocos.forEach((p) => { if (p.valor > 0.004 && !seriesMap.has(p.nome)) seriesMap.set(p.nome, p.cor); });
+  });
 
   const partes = [`<svg viewBox="0 0 ${W} ${A}" preserveAspectRatio="none" role="img" aria-label="Ganhos por mês">`];
   partes.push(`<line class="grade-base" x1="${L}" x2="${W - R}" y1="${y(0)}" y2="${y(0)}"/>`);
   dados.forEach((d, i) => {
     const cx = L + larguraBarra * (i + 0.5);
     const x = cx - w / 2;
-    const h = Math.max(d.valor > 0 ? 2 : 0, alturaPlot - (y(d.valor) - T));
-    const opac = d.atual ? 1 : 0.62;
-    partes.push(`<path class="barra" data-k="${i}" d="${barraTopoRedondo(x, y(d.valor), w, h)}" fill="${cor}" opacity="${opac}"/>`);
-    if (d.atual && d.valor > 0) {
-      // rótulo direto só no mês em foco — nunca um número em cada barra
-      partes.push(`<text class="eixo-texto" x="${cx}" y="${y(d.valor) - 8}" text-anchor="middle" style="fill:var(--tinta);font-size:11px;font-weight:600">${esc(num(d.valor, 0))}</text>`);
+    const blocos = (d.partes?.length ? d.partes : [{ nome: 'Trabalho', valor: d.valor, cor }])
+      .filter((p) => p.valor > 0.004);
+    const opac = d.atual ? 1 : 0.8;
+    if (!blocos.length) {
+      partes.push(`<rect class="barra" data-mes="${i}" x="${x}" y="${y(0) - 2}" width="${w}" height="2" rx="1" fill="${borda()}" opacity="${opac}"/>`);
+    } else {
+      let acc = 0;
+      blocos.forEach((p, j) => {
+        const base = acc;
+        acc += p.valor;
+        const top = y(acc);
+        const h = Math.max(1.6, y(base) - top);
+        const isTop = j === blocos.length - 1;
+        if (isTop) {
+          partes.push(`<path class="barra" data-mes="${i}" d="${barraTopoRedondo(x, top, w, h)}" fill="${p.cor}" opacity="${opac}"/>`);
+        } else {
+          partes.push(`<rect class="barra" data-mes="${i}" x="${x}" y="${top}" width="${w}" height="${h}" fill="${p.cor}" opacity="${opac}"/>`);
+        }
+      });
     }
-    partes.push(`<text class="eixo-texto" x="${cx}" y="${A - 8}" text-anchor="middle"${d.atual ? ' style="fill:#F2EFE8"' : ''}>${esc(d.rotulo)}</text>`);
+    const total = d.total ?? d.valor ?? 0;
+    if (d.atual && total > 0) {
+      partes.push(`<text class="eixo-texto" x="${cx}" y="${y(total) - 8}" text-anchor="middle" style="fill:var(--tinta);font-size:11px;font-weight:600">${esc(num(total, 0))}</text>`);
+    }
+    partes.push(`<text class="eixo-texto" x="${cx}" y="${A - 8}" text-anchor="middle"${d.atual ? ' style="fill:var(--tinta)"' : ''}>${esc(d.rotulo)}</text>`);
   });
   partes.push('</svg>');
-  caixa.innerHTML = partes.join('');
+
+  caixa.innerHTML = partes.join('') + (seriesMap.size > 1 ? `
+    <div class="legenda">${[...seriesMap.entries()].map(([nome, c]) => `
+      <span class="legenda-item"><span class="legenda-cor" style="background:${c}"></span>${esc(nome)}</span>
+    `).join('')}</div>` : '');
 
   const svgEl = caixa.querySelector('svg');
   ligaDica(caixa, svgEl,
@@ -171,9 +202,14 @@ export function graficoMeses(caixa, dados, { cor = PALETA[0] } = {}) {
       if (i < 0 || i >= dados.length) return null;
       return { chave: i, dado: dados[i], centro: (L + larguraBarra * (i + 0.5)) / W };
     },
-    (d) => `<div class="dica-titulo">${esc(d.rotuloLongo || d.rotulo)}</div>`
-      + `<div class="dica-linha"><span class="dica-ponto" style="background:${cor}"></span>${esc(money(d.valor))}</div>`
-      + `<div class="dica-linha" style="color:var(--tinta-3)">${esc(horas(d.horas))}</div>`);
+    (d) => {
+      const total = d.total ?? d.valor ?? 0;
+      const blocos = (d.partes || []).filter((p) => p.valor > 0.004);
+      return `<div class="dica-titulo">${esc(d.rotuloLongo || d.rotulo)}</div>`
+        + `<div class="dica-linha"><strong>Total ${esc(money(total))}</strong></div>`
+        + blocos.map((p) => `<div class="dica-linha"><span class="dica-ponto" style="background:${p.cor}"></span>${esc(p.nome)} · ${esc(money(p.valor))}</div>`).join('')
+        + (d.horas ? `<div class="dica-linha" style="color:var(--tinta-3)">${esc(horas(d.horas))}</div>` : '');
+    });
 }
 
 /* ==========================================================================

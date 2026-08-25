@@ -271,7 +271,11 @@ export async function criaStoreSupabase() {
       return true;
     },
 
-    /* ---- pagamentos / recebimentos ---- */
+    async listaBonusPessoa(userId) {
+      if (!userId) return [];
+      return ok(await sb.from('bonus_entries').select('*').eq('user_id', userId)
+        .order('bonus_on', { ascending: true }).order('created_at'));
+    },
     async listaPagamentos({ userId = null, yearMonth = null } = {}) {
       let q = sb.from('payments').select('*').order('paid_on', { ascending: false });
       if (userId) q = q.eq('user_id', userId);
@@ -514,7 +518,8 @@ export async function criaStoreSupabase() {
     },
 
     async gravaTurnoManual({ user_id, started_at, ended_at, trechos, source = 'manual', note = null,
-                             company_id = null, company_name = null }) {
+                             company_id = null, company_name = null,
+                             pay_mode = null, period = null, flat_amount = null }) {
       let empresaNome = company_name;
       let empresaId = company_id;
       if (empresaId && !empresaNome) {
@@ -526,11 +531,16 @@ export async function criaStoreSupabase() {
         company_id: empresaId, company_name: empresaNome,
         started_at: new Date(started_at).toISOString(),
         ended_at: ended_at ? new Date(ended_at).toISOString() : null,
+        pay_mode: pay_mode || null,
+        period: period || null,
+        flat_amount: flat_amount != null && flat_amount !== '' ? +flat_amount : null,
       }).select().single());
       if (trechos?.length) {
         ok(await sb.from('segments').insert(trechos.map((tr) => ({
           shift_id: turno.id, task_id: tr.task_id ?? null, task_name: tr.task_name,
           hourly_rate: +tr.hourly_rate || 0,
+          flat_amount: tr.flat_amount != null && tr.flat_amount !== '' ? +tr.flat_amount : null,
+          period: tr.period || null,
           started_at: new Date(tr.started_at).toISOString(),
           ended_at: tr.ended_at ? new Date(tr.ended_at).toISOString() : null,
         }))));
@@ -538,7 +548,8 @@ export async function criaStoreSupabase() {
       return turno;
     },
 
-    async atualizaTurno(shiftId, { started_at, ended_at, note, trechos, company_id, company_name }) {
+    async atualizaTurno(shiftId, { started_at, ended_at, note, trechos, company_id, company_name,
+                                   pay_mode, period, flat_amount }) {
       exigeAdmin();
       const patch = {};
       if (started_at) patch.started_at = new Date(started_at).toISOString();
@@ -546,6 +557,11 @@ export async function criaStoreSupabase() {
       if (note !== undefined) patch.note = note;
       if (company_id !== undefined) patch.company_id = company_id;
       if (company_name !== undefined) patch.company_name = company_name;
+      if (pay_mode !== undefined) patch.pay_mode = pay_mode || null;
+      if (period !== undefined) patch.period = period || null;
+      if (flat_amount !== undefined) {
+        patch.flat_amount = flat_amount != null && flat_amount !== '' ? +flat_amount : null;
+      }
       const turno = Object.keys(patch).length
         ? ok(await sb.from('shifts').update(patch).eq('id', shiftId).select().single())
         : ok(await sb.from('shifts').select('*').eq('id', shiftId).single());
@@ -555,6 +571,8 @@ export async function criaStoreSupabase() {
           ok(await sb.from('segments').insert(trechos.map((tr) => ({
             shift_id: shiftId, task_id: tr.task_id ?? null, task_name: tr.task_name,
             hourly_rate: +tr.hourly_rate || 0,
+            flat_amount: tr.flat_amount != null && tr.flat_amount !== '' ? +tr.flat_amount : null,
+            period: tr.period || null,
             started_at: new Date(tr.started_at).toISOString(),
             ended_at: tr.ended_at ? new Date(tr.ended_at).toISOString() : null,
           }))));

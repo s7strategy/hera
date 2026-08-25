@@ -415,6 +415,11 @@ export function criaStoreDemo() {
       return espera(true);
     },
 
+    async listaBonusPessoa(userId) {
+      carrega();
+      const lista = (db.bonusEntries || []).filter((e) => e.user_id === userId);
+      return espera(lista.map((e) => ({ ...e })));
+    },
     async listaPagamentos({ userId = null, yearMonth = null } = {}) {
       carrega();
       if (!db.payments) db.payments = [];
@@ -680,7 +685,8 @@ export function criaStoreDemo() {
     },
 
     async gravaTurnoManual({ user_id, started_at, ended_at, trechos, source = 'manual', note = null,
-                             company_id = null, company_name = null }) {
+                             company_id = null, company_name = null,
+                             pay_mode = null, period = null, flat_amount = null }) {
       carrega();
       if (!ehAdmin() && user_id !== usuario?.id) throw new Error('Sem permissão.');
       const emp = company_id ? db.companies.find((c) => c.id === company_id) : null;
@@ -689,11 +695,16 @@ export function criaStoreDemo() {
         ended_at: ended_at ? new Date(ended_at).toISOString() : null, source, note,
         company_id: emp?.id ?? company_id ?? null,
         company_name: emp?.name ?? company_name ?? null,
+        pay_mode: pay_mode || null,
+        period: period || null,
+        flat_amount: flat_amount != null && flat_amount !== '' ? +flat_amount : null,
       };
       db.shifts.push(turno);
       (trechos || []).forEach((tr) => db.segments.push({
         id: uid(), shift_id: turno.id, task_id: tr.task_id ?? null, task_name: tr.task_name,
         hourly_rate: +tr.hourly_rate || 0,
+        flat_amount: tr.flat_amount != null && tr.flat_amount !== '' ? +tr.flat_amount : null,
+        period: tr.period || null,
         started_at: new Date(tr.started_at).toISOString(),
         ended_at: tr.ended_at ? new Date(tr.ended_at).toISOString() : null,
       }));
@@ -701,13 +712,19 @@ export function criaStoreDemo() {
       return espera(turno);
     },
 
-    async atualizaTurno(shiftId, { started_at, ended_at, note, trechos, company_id, company_name }) {
+    async atualizaTurno(shiftId, { started_at, ended_at, note, trechos, company_id, company_name,
+                                   pay_mode, period, flat_amount }) {
       exigeAdmin(); carrega();
       const s = db.shifts.find((x) => x.id === shiftId);
       if (!s) throw new Error('Turno não encontrado.');
       if (started_at) s.started_at = new Date(started_at).toISOString();
       if (ended_at !== undefined) s.ended_at = ended_at ? new Date(ended_at).toISOString() : null;
       if (note !== undefined) s.note = note;
+      if (pay_mode !== undefined) s.pay_mode = pay_mode || null;
+      if (period !== undefined) s.period = period || null;
+      if (flat_amount !== undefined) {
+        s.flat_amount = flat_amount != null && flat_amount !== '' ? +flat_amount : null;
+      }
       if (company_id !== undefined) {
         const emp = company_id ? db.companies.find((c) => c.id === company_id) : null;
         s.company_id = emp?.id ?? company_id ?? null;
@@ -720,6 +737,8 @@ export function criaStoreDemo() {
         trechos.forEach((tr) => db.segments.push({
           id: uid(), shift_id: shiftId, task_id: tr.task_id ?? null, task_name: tr.task_name,
           hourly_rate: +tr.hourly_rate || 0,
+          flat_amount: tr.flat_amount != null && tr.flat_amount !== '' ? +tr.flat_amount : null,
+          period: tr.period || null,
           started_at: new Date(tr.started_at).toISOString(),
           ended_at: tr.ended_at ? new Date(tr.ended_at).toISOString() : null,
         }));

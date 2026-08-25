@@ -237,8 +237,29 @@ export const PERIODOS = [
   { id: 'noite', nome: 'Noite',  dica: 'a partir das 18:00' },
 ];
 
+/** Horários padrão ao lançar um período na mão (o valor em si é fixo). */
+export const HORARIOS_PERIODO = {
+  manha: { ini: '08:00', fim: '12:00' },
+  tarde: { ini: '13:00', fim: '18:00' },
+  noite: { ini: '18:00', fim: '22:00' },
+};
+
 export const nomePeriodo = (id) =>
   PERIODOS.find((p) => p.id === id)?.nome || id || '—';
+
+/** `2026-08-25` → Date local, sem fuso atrapalhando. */
+export const deDiaChave = (k) => {
+  const [y, m, d] = String(k).split('-').map(Number);
+  return new Date(y, (m || 1) - 1, d || 1);
+};
+
+/** Junta um dia com `08:00` no fuso do aparelho. */
+export function juntaDiaHora(dia, hhmm) {
+  const d = new Date(dia);
+  const [h, min] = String(hhmm || '00:00').split(':').map((x) => parseInt(x, 10) || 0);
+  d.setHours(h, min, 0, 0);
+  return d;
+}
 
 /** Sugere o período a partir do horário atual (ou de uma data). */
 export function sugerePeriodo(quando = new Date()) {
