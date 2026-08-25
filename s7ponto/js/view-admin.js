@@ -329,7 +329,7 @@ export async function telaDeAdmin(raiz, ctx) {
           <div class="item" style="gap:10px">
             <span class="item-corpo" style="min-width:0;flex:1">
               <span class="item-titulo">${esc(e.title)}</span>
-              <span class="item-sub">${esc(money(e.amount))} · ${e.source === 'auto' ? 'auto' : 'manual'}${e.note ? ` · ${esc(e.note)}` : ''}</span>
+              <span class="item-sub">${e.bonus_on ? `${esc(dataBR(e.bonus_on))} · ` : ''}${esc(money(e.amount))} · ${e.source === 'auto' ? 'auto' : e.source === 'import' ? 'importado' : 'manual'}${e.note ? ` · ${esc(e.note)}` : ''}</span>
             </span>
             <button class="btn btn-pequeno btn-fantasma" data-ed-ent="${esc(e.id)}">Editar</button>
             <button class="btn btn-pequeno btn-fantasma" data-rm-ent="${esc(e.id)}">${ICONE.lixo}</button>
@@ -342,7 +342,18 @@ export async function telaDeAdmin(raiz, ctx) {
         <button class="btn btn-primario btn-medio btn-largo" data-novo-ent>${ICONE.mais}<span>Lançar bônus neste mês</span></button>`;
     }
 
-    function formBonus({ tituloFolha, sub, title = '', amount = '', note = '', mostraNota = false, active = null, aoSalvar }) {
+    function formBonus({ tituloFolha, sub, title = '', amount = '', note = '', mostraNota = false, active = null, datas = null, bonusOn = null, aoSalvar }) {
+      const usaDatas = datas !== null || !!bonusOn;
+      const datasIni = Array.isArray(datas) && datas.length
+        ? datas.slice()
+        : (bonusOn ? [String(bonusOn).slice(0, 10)] : [chaveMes(mesRef) + '-01']);
+      // min/max do mês do painel
+      const ymin = chaveMes(mesRef) + '-01';
+      const ymax = (() => {
+        const fim = fimDoMes(mesRef);
+        return `${fim.getFullYear()}-${String(fim.getMonth() + 1).padStart(2, '0')}-${String(fim.getDate()).padStart(2, '0')}`;
+      })();
+
       abreFolha({
         titulo: tituloFolha,
         sub,
@@ -351,6 +362,21 @@ export async function telaDeAdmin(raiz, ctx) {
             <input class="entrada" id="b-titulo" value="${esc(title)}" placeholder="ex.: Comissão, Bônus noite"></label>
           <label class="campo"><span class="campo-rotulo">Valor (R$)</span>
             <input class="entrada" type="number" min="0" step="0.01" id="b-valor" value="${esc(amount)}" placeholder="ex.: 200"></label>
+          ${usaDatas ? `
+            <div class="campo">
+              <span class="campo-rotulo">Datas em ${esc(nomeMes(mesRef))}</span>
+              <span class="campo-dica">Mesmo título e valor em cada data. Toque em + para duplicar.</span>
+              <div id="b-datas" style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+                ${datasIni.map((d, i) => `
+                  <div style="display:flex;gap:8px;align-items:center" data-linha-data>
+                    <input class="entrada" type="date" data-data value="${esc(d)}" min="${esc(ymin)}" max="${esc(ymax)}" style="flex:1">
+                    ${i === 0 ? '' : `<button type="button" class="btn btn-pequeno btn-fantasma" data-rm-data>${ICONE.lixo}</button>`}
+                  </div>`).join('')}
+              </div>
+              <button type="button" class="btn btn-medio btn-largo" id="b-mais-data" style="margin-top:10px">
+                ${ICONE.mais}<span>Mais uma data</span>
+              </button>
+            </div>` : ''}
           ${mostraNota ? `
             <label class="campo"><span class="campo-rotulo">Nota (opcional)</span>
               <input class="entrada" id="b-nota" value="${esc(note || '')}" placeholder="ex.: meta batida"></label>` : ''}
@@ -364,17 +390,46 @@ export async function telaDeAdmin(raiz, ctx) {
           <button class="btn btn-primario btn-medio btn-largo" id="b-salva">Salvar</button>`,
         aoMontar: (caixa, fechar) => {
           const erro = $('#b-erro', caixa);
+          const caixaDatas = $('#b-datas', caixa);
+
+          function ligaRemover() {
+            caixaDatas?.querySelectorAll('[data-rm-data]').forEach((b) => {
+              b.onclick = () => { b.closest('[data-linha-data]')?.remove(); };
+            });
+          }
+          ligaRemover();
+
+          $('#b-mais-data', caixa)?.addEventListener('click', () => {
+            if (!caixaDatas) return;
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'display:flex;gap:8px;align-items:center';
+            wrap.setAttribute('data-linha-data', '');
+            wrap.innerHTML = `
+              <input class="entrada" type="date" data-data value="${esc(ymin)}" min="${esc(ymin)}" max="${esc(ymax)}" style="flex:1">
+              <button type="button" class="btn btn-pequeno btn-fantasma" data-rm-data>${ICONE.lixo}</button>`;
+            caixaDatas.appendChild(wrap);
+            ligaRemover();
+          });
+
           $('#b-salva', caixa).addEventListener('click', async (ev) => {
             erro.hidden = true;
             const tit = $('#b-titulo', caixa).value.trim();
             const val = $('#b-valor', caixa).value;
             if (!tit) { erro.textContent = 'Escreva o título.'; erro.hidden = false; return; }
+            const dates = usaDatas
+              ? [...caixa.querySelectorAll('[data-data]')].map((inp) => inp.value).filter(Boolean)
+              : undefined;
+            if (usaDatas && !dates.length) {
+              erro.textContent = 'Escolha pelo menos uma data.'; erro.hidden = false; return;
+            }
             try {
               await comBotaoOcupado(ev.currentTarget, 'Salvando…', () => aoSalvar({
                 title: tit,
                 amount: val === '' ? 0 : +val,
                 note: mostraNota ? ($('#b-nota', caixa)?.value || null) : undefined,
                 active: active !== null ? !!$('#b-ativo', caixa)?.checked : undefined,
+                dates,
+                bonus_on: dates?.length === 1 ? dates[0] : undefined,
               }));
               fechar();
             } catch (e) { erro.textContent = e.message; erro.hidden = false; }
@@ -448,13 +503,15 @@ export async function telaDeAdmin(raiz, ctx) {
           $('[data-novo-ent]', corpo)?.addEventListener('click', () => {
             formBonus({
               tituloFolha: 'Lançar bônus neste mês',
-              sub: `Só em ${nomeMes(mesRef)}.`,
+              sub: `Escolha as datas em ${nomeMes(mesRef)}. Mesmo título e valor — use + para repetir.`,
               mostraNota: true,
-              aoSalvar: async ({ title, amount, note }) => {
-                await store.lancaBonus({
-                  user_id: p.id, year_month: ym, title, amount, note,
+              datas: [chaveMes(mesRef) + '-01'],
+              aoSalvar: async ({ title, amount, note, dates }) => {
+                const criados = await store.lancaBonus({
+                  user_id: p.id, title, amount, note, dates,
                 });
-                torrada('Bônus lançado.', 'bom');
+                const n = Array.isArray(criados) ? criados.length : 1;
+                torrada(n > 1 ? `${n} bônus lançados.` : 'Bônus lançado.', 'bom');
                 await redesenha();
               },
             });
@@ -466,10 +523,18 @@ export async function telaDeAdmin(raiz, ctx) {
               if (!e) return;
               formBonus({
                 tituloFolha: 'Editar lançamento',
-                sub: e.source === 'auto' ? 'Veio do automático — ajuste só neste mês.' : 'Lançamento manual.',
+                sub: e.source === 'auto' ? 'Veio do automático — ajuste só este lançamento.' : 'Altere título, valor ou data.',
                 title: e.title, amount: e.amount, note: e.note, mostraNota: true,
-                aoSalvar: async ({ title, amount, note }) => {
-                  await store.atualizaBonus(e.id, { title, amount, note });
+                bonusOn: e.bonus_on || `${e.year_month}-01`,
+                aoSalvar: async ({ title, amount, note, dates, bonus_on }) => {
+                  const dia = (dates && dates[0]) || bonus_on || e.bonus_on;
+                  await store.atualizaBonus(e.id, { title, amount, note, bonus_on: dia });
+                  // se o usuário colocou mais de uma data no editar, lança as extras
+                  if (dates && dates.length > 1) {
+                    await store.lancaBonus({
+                      user_id: p.id, title, amount, note, dates: dates.slice(1),
+                    });
+                  }
                   torrada('Lançamento atualizado.', 'bom');
                   await redesenha();
                 },
@@ -1099,7 +1164,7 @@ export async function telaDeAdmin(raiz, ctx) {
             <div class="item">
               <div class="item-corpo">
                 <div class="item-titulo">${esc(e.title)}</div>
-                <div class="item-sub">${e.source}${e.note ? ` · ${esc(e.note)}` : ''}</div>
+                <div class="item-sub">${e.bonus_on ? `${esc(dataBR(e.bonus_on))} · ` : ''}${e.source}${e.note ? ` · ${esc(e.note)}` : ''}</div>
               </div>
               <div class="num" style="font-weight:600;color:var(--salvia-alt)">${esc(money(e.amount))}</div>
             </div>`).join('')}</div>

@@ -218,27 +218,51 @@ export async function criaStoreSupabase() {
         }
       }
       let q = sb.from('bonus_entries').select('*').eq('year_month', yearMonth)
-        .order('created_at');
+        .order('bonus_on', { ascending: true }).order('created_at');
       if (userId) q = q.eq('user_id', userId);
       return ok(await q);
     },
-    async lancaBonus({ user_id, year_month, title, amount, note = null }) {
+    /**
+     * Lança um ou vários bônus (mesmo título/valor em datas diferentes).
+     * @param {{ user_id, year_month?, title, amount, note?, dates?: string[], bonus_on?: string }}
+     */
+    async lancaBonus({ user_id, year_month = null, title, amount, note = null, dates = null, bonus_on = null }) {
       exigeAdmin();
       const titulo = String(title || '').trim();
       if (!titulo) throw new Error('Dê um título ao bônus.');
-      if (!year_month || !/^\d{4}-\d{2}$/.test(year_month)) {
-        throw new Error('Mês inválido: use AAAA-MM.');
+      const dias = [];
+      if (Array.isArray(dates) && dates.length) {
+        dates.forEach((d) => { if (d) dias.push(String(d).slice(0, 10)); });
+      } else if (bonus_on) {
+        dias.push(String(bonus_on).slice(0, 10));
+      } else if (year_month && /^\d{4}-\d{2}$/.test(year_month)) {
+        dias.push(`${year_month}-01`);
+      } else {
+        throw new Error('Escolha pelo menos uma data para o bônus.');
       }
-      return ok(await sb.from('bonus_entries').insert({
-        user_id, year_month, title: titulo, amount: +amount || 0,
-        source: 'manual', note: note || null,
-      }).select().single());
+      const uniq = [...new Set(dias)].filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d));
+      if (!uniq.length) throw new Error('Escolha pelo menos uma data válida.');
+      const rows = uniq.map((dia) => ({
+        user_id,
+        year_month: dia.slice(0, 7),
+        bonus_on: dia,
+        title: titulo,
+        amount: +amount || 0,
+        source: 'manual',
+        note: note || null,
+      }));
+      const inserted = ok(await sb.from('bonus_entries').insert(rows).select());
+      return Array.isArray(inserted) ? inserted : [inserted];
     },
     async atualizaBonus(id, patch) {
       exigeAdmin();
       const p = { ...patch };
       if (p.title != null) p.title = String(p.title).trim();
       if (p.amount != null) p.amount = +p.amount || 0;
+      if (p.bonus_on) {
+        p.bonus_on = String(p.bonus_on).slice(0, 10);
+        p.year_month = p.bonus_on.slice(0, 7);
+      }
       return ok(await sb.from('bonus_entries').update(p).eq('id', id).select().single());
     },
     async apagaBonus(id) {

@@ -173,10 +173,11 @@ create table if not exists s7ponto.bonus_entries (
                check (source in ('auto', 'manual', 'import')),
   template_id  uuid references s7ponto.bonus_templates (id) on delete set null,
   note         text,
+  bonus_on     date,
   created_at   timestamptz not null default now()
 );
 comment on table s7ponto.bonus_entries is
-  'Lançamento concreto de bônus no mês (YYYY-MM). source=auto veio de template.';
+  'Lançamento concreto de bônus no mês (YYYY-MM). bonus_on = dia; pode haver vários no mês.';
 
 create unique index if not exists bonus_entries_template_mes
   on s7ponto.bonus_entries (user_id, year_month, template_id)
@@ -658,8 +659,9 @@ begin
     raise exception 'Sem permissão para gerar bônus deste mês.';
   end if;
 
-  insert into s7ponto.bonus_entries (user_id, year_month, title, amount, source, template_id)
-  select t.user_id, p_year_month, t.title, t.amount, 'auto', t.id
+  insert into s7ponto.bonus_entries (user_id, year_month, title, amount, source, template_id, bonus_on)
+  select t.user_id, p_year_month, t.title, t.amount, 'auto', t.id,
+         (p_year_month || '-01')::date
     from s7ponto.bonus_templates t
    where t.user_id = p_user and t.active
      and not exists (

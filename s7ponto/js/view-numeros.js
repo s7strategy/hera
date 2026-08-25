@@ -105,6 +105,7 @@ export async function telaDeNumeros(raiz, ctx) {
               <div class="item-corpo">
                 <div class="item-titulo">${esc(e.title)}</div>
                 ${e.note ? `<div class="item-sub">${esc(e.note)}</div>` : ''}
+                ${e.bonus_on ? `<div class="item-sub">${esc(dataBR(e.bonus_on))}</div>` : ''}
               </div>
               <div class="item-fim">
                 <div class="num" style="font-weight:600;color:var(--salvia-alt)">${esc(money(e.amount))}</div>

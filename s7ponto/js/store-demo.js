@@ -343,6 +343,7 @@ export function criaStoreDemo() {
           if (!ja) {
             db.bonusEntries.push({
               id: uid(), user_id: uidP, year_month: yearMonth,
+              bonus_on: `${yearMonth}-01`,
               title: t.title, amount: +t.amount || 0, source: 'auto',
               template_id: t.id, note: null, created_at: new Date().toISOString(),
             });
@@ -354,22 +355,34 @@ export function criaStoreDemo() {
       if (userId) lista = lista.filter((e) => e.user_id === userId);
       return espera(lista.map((e) => ({ ...e })));
     },
-    async lancaBonus({ user_id, year_month, title, amount, note = null }) {
+    async lancaBonus({ user_id, year_month = null, title, amount, note = null, dates = null, bonus_on = null }) {
       exigeAdmin(); carrega();
       const titulo = String(title || '').trim();
       if (!titulo) throw new Error('Dê um título ao bônus.');
-      if (!year_month || !/^\d{4}-\d{2}$/.test(year_month)) {
-        throw new Error('Mês inválido: use AAAA-MM.');
-      }
       if (!db.bonusEntries) db.bonusEntries = [];
-      const novo = {
-        id: uid(), user_id, year_month, title: titulo, amount: +amount || 0,
-        source: 'manual', template_id: null, note: note || null,
-        created_at: new Date().toISOString(),
-      };
-      db.bonusEntries.push(novo);
+      const dias = [];
+      if (Array.isArray(dates) && dates.length) {
+        dates.forEach((d) => { if (d) dias.push(String(d).slice(0, 10)); });
+      } else if (bonus_on) {
+        dias.push(String(bonus_on).slice(0, 10));
+      } else if (year_month && /^\d{4}-\d{2}$/.test(year_month)) {
+        dias.push(`${year_month}-01`);
+      } else {
+        throw new Error('Escolha pelo menos uma data para o bônus.');
+      }
+      const uniq = [...new Set(dias)].filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d));
+      if (!uniq.length) throw new Error('Escolha pelo menos uma data válida.');
+      const criados = uniq.map((dia) => {
+        const novo = {
+          id: uid(), user_id, year_month: dia.slice(0, 7), bonus_on: dia,
+          title: titulo, amount: +amount || 0, source: 'manual',
+          template_id: null, note: note || null, created_at: new Date().toISOString(),
+        };
+        db.bonusEntries.push(novo);
+        return { ...novo };
+      });
       salva();
-      return espera({ ...novo });
+      return espera(criados);
     },
     async atualizaBonus(id, patch) {
       exigeAdmin(); carrega();
@@ -378,6 +391,10 @@ export function criaStoreDemo() {
       if (patch.title != null) e.title = String(patch.title).trim();
       if (patch.amount != null) e.amount = +patch.amount || 0;
       if (patch.note != null) e.note = patch.note;
+      if (patch.bonus_on) {
+        e.bonus_on = String(patch.bonus_on).slice(0, 10);
+        e.year_month = e.bonus_on.slice(0, 7);
+      }
       salva();
       return espera({ ...e });
     },
