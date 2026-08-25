@@ -15,8 +15,8 @@
 import { diaChave, horas, esc, plural, chaveMes } from './util.js';
 import { horasDoTurno } from './metricas.js';
 
-/** Abaixo disso o dia não parece uma jornada (saiu rápido, esqueceu, etc.). */
-export const MINIMO_JORNADA = 2.5;
+/** Abaixo disso não é jornada — teste, esqueceu o ponto, saiu em minutos. */
+export const MINIMO_JORNADA = 40 / 60;
 
 /** Janela em minutos para “é esta jornada” (22 min ≈ 7:10 ainda é 7h). */
 export const JANELA_MIN = 22;
@@ -75,11 +75,10 @@ export function extraDoPeriodo(turnos, agora = new Date()) {
   let previsto = 0;
   let diasContados = 0;
   for (const d of dias) {
+    if (d.ignorado) continue;
     trabalhado += d.horas;
-    if (!d.ignorado) {
-      previsto += d.previsto;
-      diasContados += 1;
-    }
+    previsto += d.previsto;
+    diasContados += 1;
   }
   const extra = trabalhado - previsto;
   return {
