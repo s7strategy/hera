@@ -22,6 +22,7 @@ Armadilhas tratadas aqui, todas citadas no briefing:
 
 from __future__ import annotations
 
+import ftplib
 import zipfile
 from collections.abc import Iterable
 from pathlib import Path
@@ -137,8 +138,14 @@ def agregar_por_municipio(vinculos: pd.DataFrame, competencia: str) -> pd.DataFr
 
 # O DATASUS serve o mesmo FTP por HTTPS. Nomes conferidos contra o layout de
 # disseminacao publica; a competencia entra como AAMM (dois digitos de ano).
-URL_DBC = "https://ftp.datasus.gov.br/dissemin/publicos/CNES/200801_/Dados/PF/PF{uf}{aamm}.dbc"
-URL_BASE_ZIP = "https://ftp.datasus.gov.br/cnes/BASE_DE_DADOS_CNES_{competencia}.ZIP"
+#
+# O 443 desse host NAO responde: doze tentativas de HTTPS deram ConnectTimeout
+# no runner do GitHub. O servico vive no 80 e no 21. Por isso cada arquivo tem
+# uma lista de transportes, tentados em ordem, e nao uma URL unica.
+CAMINHO_DBC = "/dissemin/publicos/CNES/200801_/Dados/PF/PF{uf}{aamm}.dbc"
+CAMINHO_BASE_ZIP = "/cnes/BASE_DE_DADOS_CNES_{competencia}.ZIP"
+HOST_DATASUS = "ftp.datasus.gov.br"
+TRANSPORTES = ("http", "ftp", "https")
 # Generoso porque a base completa passa de 200 MB, mas nao infinito: uma
 # competencia que nao existe nao pode segurar o pipeline por meia hora.
 _TIMEOUT_DOWNLOAD = httpx.Timeout(connect=15.0, read=120.0, write=60.0, pool=15.0)
@@ -158,36 +165,92 @@ def _competencias_candidatas(competencia: str | None) -> list[tuple[int, int]]:
     ]
 
 
-def _baixar(url: str, destino: Path) -> Path:
-    """Baixa em streaming: estes arquivos nao cabem confortavelmente em memoria."""
+class HostInalcancavel(FonteIndisponivel):
+    """O host nao atendeu — distinto de "o arquivo nao existe".
+
+    A diferenca importa: arquivo ausente significa tentar a competencia
+    anterior; host mudo significa desistir do caminho inteiro agora, em vez de
+    gastar seis timeouts de conexao para descobrir a mesma coisa seis vezes.
+    """
+
+
+def _baixar(caminho: str, destino: Path) -> Path:
+    """Baixa `caminho` do DATASUS tentando cada transporte, em streaming.
+
+    Streaming porque a base completa passa de 200 MB e nao cabe
+    confortavelmente na memoria do runner.
+    """
     destino.parent.mkdir(parents=True, exist_ok=True)
     if destino.exists() and destino.stat().st_size > 0:
         log("arquivo ja em cache", arquivo=destino.name, bytes=destino.stat().st_size)
         return destino
-    parcial = destino.with_suffix(destino.suffix + ".parcial")
+
+    erros: list[str] = []
+    ausente = False
+    for transporte in TRANSPORTES:
+        parcial = destino.with_suffix(destino.suffix + ".parcial")
+        try:
+            if transporte == "ftp":
+                _baixar_ftp(caminho, parcial)
+            else:
+                _baixar_http(f"{transporte}://{HOST_DATASUS}{caminho}", parcial, destino.name)
+        except FileNotFoundError as exc:
+            # O host atendeu e disse que o arquivo nao existe. Trocar de
+            # transporte nao muda isso; trocar de competencia muda.
+            parcial.unlink(missing_ok=True)
+            ausente = True
+            erros.append(f"{transporte}: {exc}")
+            continue
+        except (OSError, httpx.HTTPError) as exc:
+            parcial.unlink(missing_ok=True)
+            erros.append(f"{transporte}: {type(exc).__name__}: {exc}")
+            continue
+        parcial.rename(destino)
+        log("arquivo baixado", arquivo=destino.name, bytes=destino.stat().st_size, via=transporte)
+        return destino
+
+    detalhe = f"{caminho} nao veio por nenhum transporte:\n  - " + "\n  - ".join(erros)
+    raise FonteIndisponivel(FONTE, detalhe) if ausente else HostInalcancavel(FONTE, detalhe)
+
+
+def _baixar_http(url: str, parcial: Path, nome: str) -> None:
+    with cliente().stream("GET", url, timeout=_TIMEOUT_DOWNLOAD) as resp:
+        if resp.status_code == 404:
+            raise FileNotFoundError(f"HTTP 404 em {url}")
+        if resp.status_code != 200:
+            raise httpx.HTTPError(f"HTTP {resp.status_code} em {url}")
+        total = int(resp.headers.get("content-length") or 0)
+        baixado = proximo_aviso = 0
+        with parcial.open("wb") as saida:
+            for bloco in resp.iter_bytes(chunk_size=1 << 20):
+                saida.write(bloco)
+                baixado += len(bloco)
+                # Sem isto um download de centenas de MB fica minutos mudo no
+                # log e nao da para distinguir travado de lento.
+                if baixado >= proximo_aviso:
+                    log("baixando", arquivo=nome, mb=baixado >> 20, total_mb=total >> 20)
+                    proximo_aviso = baixado + (64 << 20)
+
+
+def _baixar_ftp(caminho: str, parcial: Path) -> None:
+    """FTP anonimo — o protocolo nativo deste servidor, e o que o pysus usa."""
+    # Servidor publico do Ministerio da Saude; nao ha credencial nem dado sensivel.
+    ftp = ftplib.FTP(HOST_DATASUS, timeout=60)
     try:
-        with cliente().stream("GET", url, timeout=_TIMEOUT_DOWNLOAD) as resp:
-            if resp.status_code != 200:
-                raise FonteIndisponivel(FONTE, f"HTTP {resp.status_code} em {url}")
-            total = int(resp.headers.get("content-length") or 0)
-            baixado = proximo_aviso = 0
-            with parcial.open("wb") as saida:
-                for bloco in resp.iter_bytes(chunk_size=1 << 20):
-                    saida.write(bloco)
-                    baixado += len(bloco)
-                    # Sem isto um download de centenas de MB fica 10 minutos
-                    # mudo no log e e impossivel saber se travou ou se anda.
-                    if baixado >= proximo_aviso:
-                        log("baixando", arquivo=destino.name, mb=baixado >> 20, total_mb=total >> 20)
-                        proximo_aviso = baixado + (64 << 20)
-    except httpx.HTTPError as exc:
-        # Rede caindo no meio nao pode virar excecao solta: o chamador precisa
-        # poder tentar a proxima competencia ou o proximo caminho.
-        parcial.unlink(missing_ok=True)
-        raise FonteIndisponivel(FONTE, f"{type(exc).__name__} em {url}: {exc}") from exc
-    parcial.rename(destino)
-    log("arquivo baixado", arquivo=destino.name, bytes=destino.stat().st_size, url=url)
-    return destino
+        ftp.login()
+        ftp.set_pasv(True)
+        with parcial.open("wb") as saida:
+            ftp.retrbinary(f"RETR {caminho}", saida.write, blocksize=1 << 20)
+    except ftplib.error_perm as exc:
+        # 550 e "arquivo nao existe"; o resto e problema de servidor.
+        if str(exc).startswith("550"):
+            raise FileNotFoundError(f"FTP 550 em {caminho}") from exc
+        raise OSError(str(exc)) from exc
+    finally:
+        try:
+            ftp.quit()
+        except Exception:  # noqa: BLE001 - fechar conexao nao pode mascarar o erro real
+            ftp.close()
 
 
 def _decodificar_dbc(origem: Path) -> pd.DataFrame:
@@ -227,9 +290,13 @@ def _via_dbc(uf: str, competencia: str | None) -> tuple[pd.DataFrame, str, str]:
     erros: list[str] = []
     for ano, mes in _competencias_candidatas(competencia):
         aamm = f"{ano % 100:02d}{mes:02d}"
-        url = URL_DBC.format(uf=uf.upper(), aamm=aamm)
         try:
-            arquivo = _baixar(url, CACHE_DIR / "cnes" / f"PF{uf.upper()}{aamm}.dbc")
+            arquivo = _baixar(
+                CAMINHO_DBC.format(uf=uf.upper(), aamm=aamm),
+                CACHE_DIR / "cnes" / f"PF{uf.upper()}{aamm}.dbc",
+            )
+        except HostInalcancavel as exc:
+            raise CnesIndisponivel(f"DATASUS mudo, nao adianta tentar outras competencias: {exc}") from exc
         except FonteIndisponivel as exc:
             erros.append(str(exc))
             continue
@@ -254,7 +321,11 @@ def _via_base_csv(uf: str, competencia: str | None) -> tuple[pd.DataFrame, str, 
     for ano, mes in _competencias_candidatas(competencia):
         comp = f"{ano}{mes:02d}"
         try:
-            arquivo = _baixar(URL_BASE_ZIP.format(competencia=comp), CACHE_DIR / "cnes" / f"CNES{comp}.zip")
+            arquivo = _baixar(
+                CAMINHO_BASE_ZIP.format(competencia=comp), CACHE_DIR / "cnes" / f"CNES{comp}.zip"
+            )
+        except HostInalcancavel as exc:
+            raise CnesIndisponivel(f"DATASUS mudo: {exc}") from exc
         except FonteIndisponivel as exc:
             erros.append(str(exc))
             continue

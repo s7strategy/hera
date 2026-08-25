@@ -48,6 +48,11 @@ class Proveniencia:
         self.fontes: dict[str, str] = {}
         self.avisos: list[str] = []
         self.detalhes: dict[str, dict[str, Any]] = {}
+        # Quantos municipios têm cada campo, no fim da montagem. Um merge que
+        # erra a chave nao levanta excecao — devolve tudo nulo e o pipeline
+        # segue. Isto viaja junto do snapshot para que a diferenca entre "a
+        # fonte falhou" e "a juncao falhou" seja visivel de fora.
+        self.preenchimento: dict[str, int] = {}
 
     def ok(self, bloco: str, origem: str, **extra: Any) -> None:
         self.fontes[bloco] = origem
@@ -70,7 +75,12 @@ class Proveniencia:
         aviso("fonte indisponivel — campos ficarao NULOS", bloco=bloco, motivo=motivo)
 
     def como_dict(self) -> dict[str, Any]:
-        return {"fontes": self.fontes, "avisos": self.avisos, "detalhes": self.detalhes}
+        return {
+            "fontes": self.fontes,
+            "avisos": self.avisos,
+            "detalhes": self.detalhes,
+            "preenchimento": self.preenchimento,
+        }
 
 
 def caminho_base(ufs: list[str]) -> Path:
@@ -251,11 +261,11 @@ def montar_base(
     # levanta excecao — ele devolve tudo nulo e o pipeline segue. Este log e o
     # que separa "a fonte falhou" de "a juncao falhou", e ja pegou uma vez os
     # 295 municipios virando 124 sem ninguem notar.
-    preenchimento = {
+    prov.preenchimento = {"_municipios": len(base)} | {
         col: int(base[col].notna().sum()) for col in COLUNAS_BASE if col != "codigo_ibge"
     }
-    log("preenchimento da base", municipios=len(base), **preenchimento)
-    vazias = [col for col, n in preenchimento.items() if n == 0]
+    log("preenchimento da base", **prov.preenchimento)
+    vazias = [col for col, n in prov.preenchimento.items() if n == 0]
     if vazias:
         aviso("colunas inteiramente nulas na base", colunas=",".join(vazias))
     salvar_base(base, ufs, prov, oticas)

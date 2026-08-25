@@ -37,18 +37,24 @@ ibge:
     # Se TODAS falharem o campo fica NULO — nunca estimado. O modelo imputa a
     # mediana da UF e cobra a diferenca na confianca do municipio.
     sidra_url: "https://apisidra.ibge.gov.br/values/t/{tabela}/{n6}/v/{variavel}/p/{periodo}"
+    # `variavel: all` + `preferir_variavel` e de proposito: fixar o codigo da
+    # variavel ja falhou duas vezes ("codigo 10267 inexistente na tabela"),
+    # porque o IBGE renumera variavel entre tabelas. O rotulo sobrevive.
     candidatas:
       - tabela: "10296"
-        variavel: "10267"
+        variavel: "all"
         periodo: "2022"
+        preferir_variavel: ["mediano", "médio", "medio"]
         rotulo: "Censo 2022 — rendimento nominal mensal domiciliar per capita"
       - tabela: "9542"
-        variavel: "10267"
+        variavel: "all"
         periodo: "2022"
+        preferir_variavel: ["mediano", "médio", "medio"]
         rotulo: "Censo 2022 — tabela alternativa"
       - tabela: "3563"
-        variavel: "1301"
+        variavel: "all"
         periodo: "2010"
+        preferir_variavel: ["mediano", "médio", "medio"]
         rotulo: "Censo 2010 — rendimento per capita (defasado, melhor que nada)"
 
 places:

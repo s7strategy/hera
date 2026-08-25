@@ -51,6 +51,11 @@ def _mapa_colunas(cabecalho: dict[str, str]) -> dict[str, str]:
             mapa["valor"] = chave
         elif "idade" in r and not e_codigo:
             mapa["idade"] = chave
+        elif "variável" in r or "variavel" in r:
+            # Com v/all o SIDRA devolve varias variaveis por municipio; sem
+            # saber o rotulo de cada linha nao da para escolher a certa.
+            (mapa.__setitem__("variavel_codigo", chave) if e_codigo
+             else mapa.setdefault("variavel", chave))
     return mapa
 
 
@@ -244,13 +249,23 @@ def _renda_de(
         if "codigo" not in colunas or "valor" not in colunas:
             raise FonteIndisponivel(FONTE, f"cabecalho SIDRA inesperado para renda: {bruto[0]}")
         c.entrada = len(bruto) - 1
+        preferencia = [p.lower() for p in (candidata.get("preferir_variavel") or [])]
+        col_var = colunas.get("variavel")
         linhas = []
         for linha in bruto[1:]:
             codigo = para_codigo7(linha.get(colunas["codigo"]))
-            valor = _num(linha.get(colunas["valor"]))
             if not codigo:
                 c.descartar("codigo invalido")
                 continue
+            if preferencia and col_var:
+                # Pedir v/all e escolher pelo rotulo e mais robusto do que
+                # fixar um codigo de variavel: o IBGE renumera variavel entre
+                # tabelas, e o rotulo ("mediano", "medio") sobrevive melhor.
+                rotulo = str(linha.get(col_var, "")).lower()
+                if not any(termo in rotulo for termo in preferencia):
+                    c.descartar("variavel diferente da pedida")
+                    continue
+            valor = _num(linha.get(colunas["valor"]))
             linhas.append({"codigo_ibge": codigo, "renda_mediana": valor})
         df = pd.DataFrame(linhas).drop_duplicates(subset=["codigo_ibge"])
         c.saida = len(df)

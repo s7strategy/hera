@@ -27,6 +27,28 @@ mapa-optico/
 
 ---
 
+## O jeito mais curto: não rodar nada
+
+O ambiente de desenvolvimento deste projeto não alcança IBGE, DATASUS nem OSRM — o proxy nega a
+conexão. O runner do GitHub Actions alcança. Por isso a ingestão de verdade acontece **lá**, e o
+resultado volta commitado no repositório:
+
+| O quê | Onde | Quando roda |
+| --- | --- | --- |
+| Ingestão + score | `.github/workflows/mapa-optico-pipeline.yml` | dia 5 de cada mês, a cada push no pipeline, ou no botão **Run workflow** |
+| Publicação do dashboard | `.github/workflows/mapa-optico-publicar.yml` | depois da ingestão, e a cada push na interface |
+
+O workflow de ingestão commita `web/public/data/snapshot.json` de volta na branch. Quem abre o
+dashboard lê esse arquivo — sem Supabase, sem servidor, sem chave nenhuma.
+
+**Para o dashboard ganhar uma URL pública**, o GitHub Pages precisa ser ligado uma vez:
+*Settings → Pages → Build and deployment → Source: **GitHub Actions***. O token do Actions não tem
+permissão para ligar isso sozinho. Enquanto não estiver ligado, cada execução ainda anexa o app
+pronto como artefato `dashboard`: baixe, descompacte e abra o `mapa-optico.html` — é o app inteiro
+num arquivo só, funciona offline, com dois cliques.
+
+---
+
 ## Começando do zero
 
 ### 1. Pipeline
@@ -48,14 +70,23 @@ uv run mapa-optico checar-fontes
 Esse é o maior risco técnico do projeto e por isso é o primeiro passo:
 
 ```bash
-uv pip install -e ".[cnes]"        # traz o pysus, que descompacta o .DBC
+uv pip install -e ".[cnes]"        # decodificador de .DBC + leitor de .DBF
 uv run mapa-optico fase0 --uf SC
 ```
+
+Quatro caminhos são tentados em ordem, e o pipeline registra qual funcionou:
+
+1. **`.dbc` por UF** do DATASUS (~5 MB) — rápido, mas o `.DBC` é um DBF comprimido com algoritmo
+   proprietário e precisa de um decodificador nativo, que nem sempre tem wheel para a plataforma.
+2. **Base mensal completa em CSV** (`BASE_DE_DADOS_CNES_AAAAMM.ZIP`) — pesa centenas de MB, mas não
+   depende de nada compilado. Lida em blocos, filtrando o CBO na entrada.
+3. **`pysus`** — conveniência, não alicerce: a API dela já mudou de nome duas vezes.
+4. **CSV manual** — a extração baixada à mão do portal.
 
 Critério de saída: a tabela impressa mostra municípios de SC com contagem de oftalmologistas, e
 **Florianópolis e Joinville batem com a realidade** (dezenas, não 2 e não 500).
 
-Se o `pysus` falhar, o comando cai sozinho para o CSV manual: baixe a extração de profissionais da
+Se todos falharem, o comando **para** em vez de improvisar: baixe a extração de profissionais da
 UF em <https://cnes.datasus.gov.br/pages/profissionais/extracao.jsp> (selecione a UF e **não**
 selecione município), salve em `pipeline/data/manual/` e rode de novo. Se os dois caminhos
 falharem, o comando **para e reporta** em vez de improvisar um terceiro — decisão explícita do
