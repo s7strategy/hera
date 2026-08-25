@@ -18,7 +18,7 @@ import pandas as pd
 from ..cache import get_or_set
 from ..geo import UF_CODIGO, area_km2, centroide
 from ..http import FonteIndisponivel, get_json
-from ..logs import aviso, etapa
+from ..logs import aviso, etapa, log
 from ..transform.normalize import para_codigo7, uf_do_codigo
 from .fontes import carregar
 
@@ -195,12 +195,46 @@ def populacao_por_idade(ufs: list[str] | None = None, *, refresh: bool = False) 
 
 
 def renda(ufs: list[str] | None = None, *, refresh: bool = False) -> pd.DataFrame:
-    """Renda domiciliar per capita por municipio. Falha aqui NAO derruba o pipeline."""
+    """Renda domiciliar per capita por municipio. Falha aqui NAO derruba o pipeline.
+
+    Tenta as candidatas do fontes.yaml em ordem. Uma tabela fixa aqui ja quebrou
+    a execucao inteira: a 7113 e da PNAD continua e nao existe em nivel de
+    municipio, o que so aparece como HTTP 400 no meio da ingestao.
+    """
     cfg = carregar()["ibge"]["renda"]
+    candidatas = cfg.get("candidatas") or [
+        {"tabela": cfg.get("tabela"), "variavel": cfg.get("variavel"), "periodo": cfg.get("periodo")}
+    ]
+    erros: list[str] = []
+    for candidata in candidatas:
+        try:
+            df = _renda_de(candidata, cfg, ufs, refresh=refresh)
+        except FonteIndisponivel as exc:
+            erros.append(f"t/{candidata.get('tabela')}: {exc}")
+            aviso("candidata de renda falhou", tabela=str(candidata.get("tabela")), erro=str(exc)[:160])
+            continue
+        log(
+            "renda obtida",
+            tabela=str(candidata.get("tabela")),
+            rotulo=str(candidata.get("rotulo", "")),
+            municipios=len(df),
+        )
+        return df
+    raise FonteIndisponivel(FONTE, "nenhuma tabela de renda respondeu:\n  - " + "\n  - ".join(erros))
+
+
+def _renda_de(
+    candidata: dict[str, Any], cfg: dict[str, Any], ufs: list[str] | None, *, refresh: bool
+) -> pd.DataFrame:
     url = cfg["sidra_url"].format(
-        tabela=cfg["tabela"], variavel=cfg["variavel"], periodo=cfg["periodo"], n6=_filtro_n6(ufs)
+        tabela=candidata["tabela"],
+        variavel=candidata["variavel"],
+        periodo=candidata["periodo"],
+        n6=_filtro_n6(ufs),
     )
-    chave = f"renda-{cfg['tabela']}-{cfg['periodo']}-" + (",".join(sorted(ufs)) if ufs else "BR")
+    chave = f"renda-{candidata['tabela']}-{candidata['periodo']}-" + (
+        ",".join(sorted(ufs)) if ufs else "BR"
+    )
 
     with etapa("ingest.ibge.renda") as c:
         bruto = get_or_set(FONTE, chave, lambda: get_json(FONTE, url), refresh=refresh)
@@ -220,6 +254,12 @@ def renda(ufs: list[str] | None = None, *, refresh: bool = False) -> pd.DataFram
             linhas.append({"codigo_ibge": codigo, "renda_mediana": valor})
         df = pd.DataFrame(linhas).drop_duplicates(subset=["codigo_ibge"])
         c.saida = len(df)
+        # Mesma guarda da populacao: respondeu 200 mas nada virou numero e
+        # falha, nao "coluna vazia". Aqui a candidata seguinte ganha a vez.
+        if df.empty or int(df["renda_mediana"].notna().sum()) == 0:
+            raise FonteIndisponivel(
+                FONTE, f"tabela {candidata['tabela']} respondeu sem nenhum valor aproveitavel"
+            )
     return df
 
 

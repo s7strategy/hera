@@ -26,13 +26,30 @@ ibge:
     idade_minima: 40
 
   renda:
-    # Rendimento nominal mensal domiciliar per capita (mediana ou media).
-    # ATENCAO: confirmar tabela/variavel no SIDRA — varia entre Censo e PNAD.
-    # Se a consulta falhar, o campo fica NULO e a confianca do municipio cai.
+    # Rendimento nominal mensal domiciliar per capita.
+    #
+    # Candidatas tentadas em ORDEM; a primeira que devolver numero vence, e o
+    # pipeline registra qual foi. O IBGE aposenta e renumera tabela entre
+    # censos, e uma tabela fixa aqui ja quebrou uma vez: a 7113 e da PNAD
+    # continua e nao existe no nivel de municipio (N6), o que so aparece como
+    # HTTP 400 no meio da execucao.
+    #
+    # Se TODAS falharem o campo fica NULO — nunca estimado. O modelo imputa a
+    # mediana da UF e cobra a diferenca na confianca do municipio.
     sidra_url: "https://apisidra.ibge.gov.br/values/t/{tabela}/{n6}/v/{variavel}/p/{periodo}"
-    tabela: "7113"
-    variavel: "10267"
-    periodo: "2022"
+    candidatas:
+      - tabela: "10296"
+        variavel: "10267"
+        periodo: "2022"
+        rotulo: "Censo 2022 — rendimento nominal mensal domiciliar per capita"
+      - tabela: "9542"
+        variavel: "10267"
+        periodo: "2022"
+        rotulo: "Censo 2022 — tabela alternativa"
+      - tabela: "3563"
+        variavel: "1301"
+        periodo: "2010"
+        rotulo: "Censo 2010 — rendimento per capita (defasado, melhor que nada)"
 
 places:
   # Places API (New) — Text Search. Unica fonte que custa dinheiro.

@@ -41,7 +41,9 @@ on:
 # Duas ingestoes simultaneas commitariam o mesmo arquivo e uma perderia.
 concurrency:
   group: mapa-optico-pipeline-${{ github.ref }}
-  cancel-in-progress: false
+  # Um push novo supera a ingestao antiga: ela so commita no fim, entao nao ha
+  # trabalho a perder, e uma execucao travada nao pode bloquear a fila.
+  cancel-in-progress: true
 
 permissions:
   contents: write
@@ -77,13 +79,14 @@ jobs:
       - name: Testes
         run: pytest -q
 
-      # O extra `cnes` puxa pysus, que compila coisa e as vezes quebra. Se
-      # quebrar, o pipeline ainda tem o caminho do CSV manual — entao instalar
-      # nao pode derrubar o job, so registrar.
-      - name: Instalar leitor do CNES (pysus)
-        id: pysus
+      # O extra `cnes` traz o decodificador de .DBC, que e wheel nativa e as
+      # vezes nao existe para a plataforma do runner. Se nao instalar, o
+      # pipeline ainda tem o caminho da base completa em CSV, que nao depende
+      # de nada compilado — entao isto nao pode derrubar o job, so registrar.
+      - name: Instalar leitores do CNES
+        id: leitores_cnes
         continue-on-error: true
-        run: uv pip install "pysus>=0.12"
+        run: uv pip install -e ".[cnes]"
 
       - name: Diagnóstico das fontes externas
         continue-on-error: true

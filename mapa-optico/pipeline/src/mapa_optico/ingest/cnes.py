@@ -27,6 +27,7 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
+import httpx
 import pandas as pd
 
 from ..http import FonteIndisponivel, cliente
@@ -138,6 +139,9 @@ def agregar_por_municipio(vinculos: pd.DataFrame, competencia: str) -> pd.DataFr
 # disseminacao publica; a competencia entra como AAMM (dois digitos de ano).
 URL_DBC = "https://ftp.datasus.gov.br/dissemin/publicos/CNES/200801_/Dados/PF/PF{uf}{aamm}.dbc"
 URL_BASE_ZIP = "https://ftp.datasus.gov.br/cnes/BASE_DE_DADOS_CNES_{competencia}.ZIP"
+# Generoso porque a base completa passa de 200 MB, mas nao infinito: uma
+# competencia que nao existe nao pode segurar o pipeline por meia hora.
+_TIMEOUT_DOWNLOAD = httpx.Timeout(connect=15.0, read=120.0, write=60.0, pool=15.0)
 # Quantas competencias voltar procurando a ultima publicada. O CNES publica com
 # um a dois meses de atraso, e as vezes atrasa mais.
 COMPETENCIAS_PARA_TENTAR = 6
@@ -161,12 +165,26 @@ def _baixar(url: str, destino: Path) -> Path:
         log("arquivo ja em cache", arquivo=destino.name, bytes=destino.stat().st_size)
         return destino
     parcial = destino.with_suffix(destino.suffix + ".parcial")
-    with cliente().stream("GET", url, timeout=600.0) as resp:
-        if resp.status_code != 200:
-            raise FonteIndisponivel(FONTE, f"HTTP {resp.status_code} em {url}")
-        with parcial.open("wb") as saida:
-            for bloco in resp.iter_bytes(chunk_size=1 << 20):
-                saida.write(bloco)
+    try:
+        with cliente().stream("GET", url, timeout=_TIMEOUT_DOWNLOAD) as resp:
+            if resp.status_code != 200:
+                raise FonteIndisponivel(FONTE, f"HTTP {resp.status_code} em {url}")
+            total = int(resp.headers.get("content-length") or 0)
+            baixado = proximo_aviso = 0
+            with parcial.open("wb") as saida:
+                for bloco in resp.iter_bytes(chunk_size=1 << 20):
+                    saida.write(bloco)
+                    baixado += len(bloco)
+                    # Sem isto um download de centenas de MB fica 10 minutos
+                    # mudo no log e e impossivel saber se travou ou se anda.
+                    if baixado >= proximo_aviso:
+                        log("baixando", arquivo=destino.name, mb=baixado >> 20, total_mb=total >> 20)
+                        proximo_aviso = baixado + (64 << 20)
+    except httpx.HTTPError as exc:
+        # Rede caindo no meio nao pode virar excecao solta: o chamador precisa
+        # poder tentar a proxima competencia ou o proximo caminho.
+        parcial.unlink(missing_ok=True)
+        raise FonteIndisponivel(FONTE, f"{type(exc).__name__} em {url}: {exc}") from exc
     parcial.rename(destino)
     log("arquivo baixado", arquivo=destino.name, bytes=destino.stat().st_size, url=url)
     return destino
@@ -231,6 +249,8 @@ def _via_base_csv(uf: str, competencia: str | None) -> tuple[pd.DataFrame, str, 
     """
     erros: list[str] = []
     prefixo_uf = CODIGO_POR_UF.get(uf.upper())
+    cfg = carregar()["cnes"]
+    cbos = {str(c).strip() for c in [*cfg["cbo_oftalmologista"], *(cfg.get("cbo_correlatos") or [])]}
     for ano, mes in _competencias_candidatas(competencia):
         comp = f"{ano}{mes:02d}"
         try:
@@ -247,7 +267,28 @@ def _via_base_csv(uf: str, competencia: str | None) -> tuple[pd.DataFrame, str, 
                     erros.append(f"{comp}: ZIP sem tbCargaHorariaSus/tbEstabelecimento ({nomes[:5]})")
                     continue
                 with z.open(carga) as f:
-                    vinculos = pd.read_csv(f, sep=";", dtype=str, encoding="latin-1", low_memory=False)
+                    # A tabela de vinculos e do Brasil inteiro: dezenas de
+                    # milhoes de linhas. Ler inteira, mesmo so com as colunas
+                    # uteis, engasga o runner. Em blocos, filtrando CBO na
+                    # entrada, o que fica na memoria e so oftalmologista.
+                    pedacos = [
+                        bloco[
+                            bloco[_col(bloco, "CO_CBO")]
+                            .astype(str).str.strip().str.replace(r"\D", "", regex=True)
+                            .isin(cbos)
+                        ]
+                        for bloco in pd.read_csv(
+                            f, sep=";", dtype=str, encoding="latin-1",
+                            usecols=lambda c: c.strip().upper() in _COLUNAS_CARGA,
+                            chunksize=500_000,
+                        )
+                    ]
+                    vinculos = (
+                        pd.concat(pedacos, ignore_index=True) if pedacos else pd.DataFrame()
+                    )
+                if vinculos.empty:
+                    erros.append(f"{comp}: nenhum vinculo de oftalmologista na base")
+                    continue
                 with z.open(estab) as f:
                     unidades = pd.read_csv(
                         f, sep=";", dtype=str, encoding="latin-1", low_memory=False,
@@ -266,6 +307,23 @@ def _via_base_csv(uf: str, competencia: str | None) -> tuple[pd.DataFrame, str, 
         log("CNES lido da base completa", competencia=comp, linhas=len(df))
         return df, comp, f"base_csv:{comp}"
     raise CnesIndisponivel("base completa do CNES indisponivel:\n  - " + "\n  - ".join(erros[:6]))
+
+
+_COLUNAS_CARGA = {
+    "CO_UNIDADE",
+    "CO_PROFISSIONAL_SUS",
+    "CO_CBO",
+    "QT_CARGA_HOR_AMBULATORIAL",
+    "QT_CARGA_HORARIA_AMBULATORIAL",
+}
+
+
+def _col(df: pd.DataFrame, nome: str) -> str:
+    """Coluna pelo nome, tolerante a espaco e caixa."""
+    for c in df.columns:
+        if str(c).strip().upper() == nome:
+            return str(c)
+    raise CnesIndisponivel(f"coluna {nome} ausente; vieram {list(df.columns)[:10]}")
 
 
 def _achar(nomes: list[str], prefixo: str) -> str | None:
