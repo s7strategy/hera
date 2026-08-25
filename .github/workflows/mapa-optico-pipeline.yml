@@ -1,9 +1,9 @@
 # Reprocessa o ranking e commita o snapshot que o dashboard le.
 #
 # POR QUE ESTE WORKFLOW EXISTE E NAO E SO CONVENIENCIA: o ambiente de
-# desenvolvimento nao alcanca IBGE, DATASUS nem OSRM (proxy corporativo bloqueia
-# o CONNECT). O runner do GitHub alcanca. Entao a ingestao real acontece aqui, e
-# o resultado volta commitado para o repositorio.
+# desenvolvimento nao alcanca IBGE, DATASUS nem OSRM (o proxy nega o CONNECT).
+# O runner do GitHub alcanca. Entao a ingestao real acontece aqui, e o
+# resultado volta commitado para o repositorio.
 #
 # O CNES publica uma competencia por mes, entao rodar mais que isso so gasta
 # quota. O Places NAO roda aqui por padrao: e a unica fonte que custa dinheiro e
@@ -53,6 +53,12 @@ jobs:
     defaults:
       run:
         working-directory: mapa-optico/pipeline
+    # No nivel do job para que o `if` do passo do Supabase enxergue: o contexto
+    # `secrets` nao existe dentro de `if`, mas `env` existe.
+    env:
+      GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
     steps:
       - uses: actions/checkout@v4
 
@@ -60,8 +66,13 @@ jobs:
         with:
           enable-cache: true
 
+      # O Python do runner e o do Debian, que recusa instalacao direta
+      # (PEP 668). Um venv proprio resolve e ainda fixa a versao.
       - name: Instalar dependências
-        run: uv pip install --system -e ".[dev]"
+        run: |
+          uv venv --python 3.12
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+          uv pip install -e ".[dev]"
 
       - name: Testes
         run: pytest -q
@@ -72,7 +83,7 @@ jobs:
       - name: Instalar leitor do CNES (pysus)
         id: pysus
         continue-on-error: true
-        run: uv pip install --system "pysus>=0.12"
+        run: uv pip install "pysus>=0.12"
 
       - name: Diagnóstico das fontes externas
         continue-on-error: true
@@ -91,10 +102,6 @@ jobs:
           restore-keys: mapa-optico-cache-
 
       - name: Rodar pipeline
-        env:
-          GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
           UFS="${{ inputs.ufs || 'SC' }}"
           FLAGS=""
@@ -108,10 +115,7 @@ jobs:
 
       - name: Carregar no Supabase
         if: ${{ env.SUPABASE_URL != '' }}
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-        run: uv pip install --system -e ".[supabase]" && mapa-optico carregar --uf "${{ inputs.ufs || 'SC' }}"
+        run: uv pip install -e ".[supabase]" && mapa-optico carregar --uf "${{ inputs.ufs || 'SC' }}"
 
       - name: Publicar planilhas do ranking
         if: always()
@@ -135,3 +139,15 @@ jobs:
             git pull --rebase origin "${{ github.ref_name }}"
             git push origin "HEAD:${{ github.ref_name }}"
           fi
+
+  # O snapshot acabou de mudar: republica o app com o dado novo. Como o push do
+  # passo acima usa o GITHUB_TOKEN, ele NAO dispara workflows sozinho — por isso
+  # a publicacao e chamada aqui explicitamente.
+  publicar:
+    needs: pipeline
+    if: ${{ always() && needs.pipeline.result == 'success' }}
+    uses: ./.github/workflows/mapa-optico-publicar.yml
+    permissions:
+      contents: read
+      pages: write
+      id-token: write

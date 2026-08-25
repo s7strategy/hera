@@ -1,0 +1,79 @@
+# Publica o dashboard no GitHub Pages.
+#
+# Por que Pages e nao Vercel: o projeto da Vercel deste repositorio (o site de
+# apresentacao da HERA) nao esta conectado ao Git — nenhum commit recebe status
+# de deploy. Pages sai do proprio Actions, sem conta nova e sem CLI.
+name: Mapa Óptico — publicar
+
+on:
+  push:
+    branches:
+      - main
+      - claude/app-development-p8hrwg
+    paths:
+      - "mapa-optico/web/**"
+      - ".github/workflows/mapa-optico-publicar.yml"
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Um deploy de Pages por vez; o mais novo vence.
+concurrency:
+  group: mapa-optico-pages
+  cancel-in-progress: true
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      # ref_name e nao github.sha: quando o pipeline de dados chama este
+      # workflow, o snapshot novo esta na ponta da branch, nao no commit que
+      # disparou a execucao.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mapa-optico/web/package-lock.json
+
+      - name: Instalar dependências
+        working-directory: mapa-optico/web
+        run: npm ci
+
+      - name: Conferir tipos
+        working-directory: mapa-optico/web
+        run: npm run typecheck
+
+      - name: Build
+        working-directory: mapa-optico/web
+        env:
+          # Pages serve em /<repo>/, entao os assets precisam desse prefixo.
+          APP_BASE: /hera/
+        run: npm run build
+
+      # 404.html identico ao index: o app nao tem rotas, mas link errado
+      # devolvendo a tela em vez do 404 do GitHub e mais gentil.
+      - name: Rede de segurança para URL errada
+        working-directory: mapa-optico/web
+        run: cp dist/index.html dist/404.html
+
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: mapa-optico/web/dist
+
+      - id: deploy
+        uses: actions/deploy-pages@v4
