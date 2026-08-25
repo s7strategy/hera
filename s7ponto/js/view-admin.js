@@ -1,6 +1,6 @@
 /* ==========================================================================
    S7 PONTO — painel do super admin.
-   Equipe · Empresas · Tarefas · Turnos · Conferência · Importar · Relatórios
+   Equipe · Empresas · Tarefas · Turnos · Pagamentos · Conferência · Importar · Relatórios
    ========================================================================== */
 import { store } from './store.js';
 import {
@@ -18,6 +18,7 @@ import { PALETA, graficoDias, graficoPizza, tabelaDeApoio } from './charts.js';
 import {
   pintaTrechos, agrega, horasDoTurno, valorDoTurno, somaBonus, totalComBonus,
   somaPagamentos, resumoDoMes, serieDoMes, agrupaBonus,
+  saldosPorPessoa, repartePagamento, rotuloMesDevido, roundMoney,
 } from './metricas.js';
 import {
   htmlRecibo, htmlReciboPessoa, htmlPizzas, pintaPizzas, htmlDetalheBonus, fatiasPorPessoa,
@@ -31,6 +32,7 @@ const ABAS = [
   { id: 'empresas',    nome: 'Empresas' },
   { id: 'tarefas',     nome: 'Tarefas' },
   { id: 'turnos',      nome: 'Turnos' },
+  { id: 'pagamentos',  nome: 'Pagamentos' },
   { id: 'conferencia', nome: 'Conferência' },
   { id: 'importar',    nome: 'Importar' },
   { id: 'relatorios',  nome: 'Relatórios' },
@@ -127,6 +129,7 @@ export async function telaDeAdmin(raiz, ctx) {
     const alvo = $('#conteudo-aba', raiz);
     ({
       equipe: abaEquipe, empresas: abaEmpresas, tarefas: abaTarefas, turnos: abaTurnos,
+      pagamentos: abaPagamentos,
       conferencia: abaConferencia, importar: abaImportar, relatorios: abaRelatorios,
     }[aba])(alvo);
   }
@@ -214,7 +217,9 @@ export async function telaDeAdmin(raiz, ctx) {
         </div>`,
       aoMontar: (caixa, fechar) => {
         $('[data-visao]', caixa).addEventListener('click', () => {
-          fechar(); pessoaFoco = p; aba = 'visao'; desenha();
+          fechar(); pessoaFoco = p; aba = 'visao';
+          mesRef = inicioDoMes(new Date());
+          desenha();
         });
         $('[data-empresas]', caixa).addEventListener('click', () => { fechar(); liberaEmpresas(p); });
         $('[data-tarefas]', caixa).addEventListener('click', () => { fechar(); liberaTarefas(p); });
@@ -1084,8 +1089,9 @@ export async function telaDeAdmin(raiz, ctx) {
     return lancaVarios(opts);
   }
 
-  async function aposSalvarTurno(fechar) {
+  async function aposSalvarTurno(fechar, { userId } = {}) {
     fechar();
+    if (userId) filtroPessoa = userId;
     if (aba === 'visao' && pessoaFoco) {
       await abaVisaoPessoa($('#conteudo-aba', raiz), pessoaFoco);
     } else {
@@ -1411,7 +1417,7 @@ export async function telaDeAdmin(raiz, ctx) {
                 }
               }
             });
-            await aposSalvarTurno(fechar);
+            await aposSalvarTurno(fechar, { userId });
             torrada(payloads.length > 1
               ? `${payloads.length} horários lançados.`
               : 'Horário lançado.', 'bom');
@@ -1539,7 +1545,7 @@ export async function telaDeAdmin(raiz, ctx) {
           }
           try {
             await comBotaoOcupado(ev.currentTarget, 'Salvando…', () => store.atualizaTurno(t.id, patch));
-            await aposSalvarTurno(fechar);
+            await aposSalvarTurno(fechar, { userId: t.user_id });
             torrada('Turno corrigido.', 'bom');
           } catch (e) { erro.textContent = e.message; erro.hidden = false; }
         });
@@ -1548,7 +1554,7 @@ export async function telaDeAdmin(raiz, ctx) {
           if (!await confirma({ titulo: 'Apagar este turno?', texto: 'As horas somem do relatório. Não dá para desfazer.', ok: 'Apagar', perigo: true })) return;
           try {
             await store.apagaTurno(t.id);
-            await aposSalvarTurno(fechar);
+            await aposSalvarTurno(fechar, { userId: t.user_id });
             torrada('Turno apagado.', 'bom');
           } catch (e) { torrada(e.message, 'ruim', 6); }
         });
@@ -1581,26 +1587,62 @@ export async function telaDeAdmin(raiz, ctx) {
     const planilha = (await store.listaTotaisPlanilha({ userId: p.id, yearMonth: ym }))[0];
     const esperado = planilha ? +planilha.expected_total : null;
     const diff = esperado != null ? total - esperado : null;
-    const taxaGeral = r.horas > 0.001 ? total / r.horas : 0;
+
+    const ultimoTurno = turnos[0];
+    const dicaOutroMes = !noMes.length && ultimoTurno
+      ? `<div class="recado info" style="margin-top:14px">
+          <span class="recado-emoji">📅</span>
+          <span>Nenhum turno em <strong>${esc(nomeMes(mesRef))}</strong>.
+                O mais recente é ${esc(dataLonga(ultimoTurno.started_at))} —
+                mude o mês acima para ver.</span>
+        </div>`
+      : '';
+
+    const htmlTurnosMes = `
+      <section class="cartao" style="margin-top:16px">
+        <div class="cartao-topo"><h2 class="cartao-titulo">Turnos do mês</h2>
+          <span class="apagado">${esc(plural(noMes.length, 'turno', 'turnos'))}</span></div>
+        <div class="grafico" id="vp-dias"></div>
+        <div id="vp-tabela"></div>
+        ${noMes.length ? `<div class="lista" style="margin-top:12px">${noMes.map((t) => `
+          <button class="item clicavel" data-turno="${esc(t.id)}">
+            <span class="item-faixa" style="background:${esc(t.segments?.[0]?.cor || PALETA[0])}"></span>
+            <span class="item-corpo">
+              <span class="item-titulo">${esc(maiuscula(dataLonga(t.started_at)))}</span>
+              <span class="item-sub">${esc(hora(t.started_at))} → ${t.ended_at ? esc(hora(t.ended_at)) : '—'}
+                ${t.company_name ? ` · ${esc(t.company_name)}` : ''}
+                · ${esc(rotuloDoTurno(t))}
+                ${t.source === 'import' ? ' · importado' : t.source === 'manual' ? ' · lançado na mão' : ''}</span>
+            </span>
+            <span class="item-fim">
+              <span class="num" style="font-weight:600">${esc(horasCurto(horasDoTurno(t)))}</span>
+              <span class="num apagado" style="display:block;font-size:12px">${esc(money(valorDoTurno(t)))}</span>
+            </span>
+          </button>`).join('')}</div>`
+          : vazio({ emoji: '📭', titulo: 'Nenhum turno neste mês',
+                    texto: 'Lance pela administração ou ela bate o ponto no app.' })}
+      </section>`;
 
     alvo.innerHTML = `
       ${htmlSeletorMes()}
 
-      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
-        <button class="btn btn-primario btn-largo" id="v-novo-turno">
+      <div class="linha-botoes" style="margin-bottom:16px">
+        <button class="btn btn-primario" id="v-novo-turno">
           ${ICONE.mais}<span>Lançar horários</span>
         </button>
-        <button class="btn btn-medio btn-largo" id="v-novo-pag">
-          ${ICONE.mais}<span>Registrar pagamento / recebimento</span>
+        <button class="btn" id="v-novo-pag">
+          ${ICONE.mais}<span>Pagamento</span>
         </button>
       </div>
 
       <section class="cartao">
         <div class="heroi">
-          <p class="heroi-rotulo">Total a receber em ${esc(nomeMes(mesRef))}</p>
-          <p class="heroi-valor saldo">${esc(money(total))}</p>
+          <p class="heroi-rotulo">${pagoMes > 0.004 && (total - pagoMes) < 0.5
+            ? `Tudo pago em ${esc(nomeMes(mesRef))}`
+            : `A receber em ${esc(nomeMes(mesRef))}`}</p>
+          <p class="heroi-valor saldo">${esc(money(Math.max(0, total - pagoMes)))}</p>
           <div class="heroi-nota">
-            <span class="ficha ficha-neutra">${esc(horas(r.horas))} · média ${esc(money(taxaGeral))}/h</span>
+            <span class="ficha ficha-neutra">${esc(horas(r.horas))} · ${esc(plural(noMes.length, 'turno', 'turnos'))} · ganhou ${esc(money(total))}${pagoMes > 0.004 ? ` · já pago ${esc(money(pagoMes))}` : ''}</span>
             ${htmlRecadoExtraPessoa(extraDoPeriodo(noMes), { compacto: true })}
           </div>
         </div>
@@ -1609,6 +1651,7 @@ export async function telaDeAdmin(raiz, ctx) {
       </section>
 
       ${htmlRecadoExtraPessoa(extraDoPeriodo(noMes), { nomeMes: nomeMes(mesRef) })}
+      ${dicaOutroMes}
 
       ${esperado != null ? `
         <div class="recado ${Math.abs(diff) < 0.5 ? '' : 'ruim'}" style="margin-top:14px">
@@ -1617,6 +1660,8 @@ export async function telaDeAdmin(raiz, ctx) {
             · diferença <strong>${esc(money(diff))}</strong>
             ${Math.abs(diff) >= 0.5 ? ' — confira extras/horários que escaparam.' : ' — batendo.'}</span>
         </div>` : ''}
+
+      ${htmlTurnosMes}
 
       <section class="cartao" style="margin-top:16px">
         ${htmlPizzas()}
@@ -1637,28 +1682,6 @@ export async function telaDeAdmin(raiz, ctx) {
           </button>`).join('')}</div>`
           : vazio({ emoji: '💸', titulo: 'Nenhum pagamento registrado',
                     texto: 'Importe das planilhas ou lance na mão.' })}
-      </section>
-
-      <section class="cartao" style="margin-top:16px">
-        <div class="cartao-topo"><h2 class="cartao-titulo">Turnos do mês</h2>
-          <span class="apagado">${esc(plural(noMes.length, 'turno', 'turnos'))}</span></div>
-        <div class="grafico" id="vp-dias"></div>
-        <div id="vp-tabela"></div>
-        ${noMes.length ? `<div class="lista" style="margin-top:12px">${noMes.map((t) => `
-          <button class="item clicavel" data-turno="${esc(t.id)}">
-            <span class="item-faixa" style="background:${esc(t.segments?.[0]?.cor || PALETA[0])}"></span>
-            <span class="item-corpo">
-              <span class="item-titulo">${esc(maiuscula(dataLonga(t.started_at)))}</span>
-              <span class="item-sub">${esc(hora(t.started_at))} → ${t.ended_at ? esc(hora(t.ended_at)) : '—'}
-                ${t.company_name ? ` · ${esc(t.company_name)}` : ''}
-                · ${esc(rotuloDoTurno(t))}</span>
-            </span>
-            <span class="item-fim">
-              <span class="num" style="font-weight:600">${esc(horasCurto(horasDoTurno(t)))}</span>
-              <span class="num apagado" style="display:block;font-size:12px">${esc(money(valorDoTurno(t)))}</span>
-            </span>
-          </button>`).join('')}</div>`
-          : vazio({ emoji: '📭', titulo: 'Nenhum turno neste mês' })}
       </section>`;
 
     const serieD = serieDoMes(mesRef, r.porDia);
@@ -1682,7 +1705,7 @@ export async function telaDeAdmin(raiz, ctx) {
     $$('[data-turno]', alvo).forEach((b) => b.addEventListener('click', () => {
       editaTurno(noMes.find((t) => t.id === b.dataset.turno) || turnos.find((t) => t.id === b.dataset.turno), { userId: p.id });
     }));
-    $('#v-novo-pag', alvo).addEventListener('click', () => editaPagamentoLanc(null, p));
+    $('#v-novo-pag', alvo).addEventListener('click', () => abrePagar(p));
     $$('[data-pag]', alvo).forEach((b) => b.addEventListener('click', () => {
       editaPagamentoLanc(pagamentos.find((x) => x.id === b.dataset.pag), p);
     }));
@@ -1727,7 +1750,7 @@ export async function telaDeAdmin(raiz, ctx) {
                 paid_on, amount, title, note: $('#pg-nota', caixa).value || null,
               }));
             fechar();
-            if (aba === 'visao' && pessoaFoco) abaVisaoPessoa($('#conteudo-aba', raiz), pessoaFoco);
+            aposMudarPagamento();
             torrada(novo ? 'Pagamento lançado.' : 'Pagamento salvo.', 'bom');
           } catch (e) { erro.textContent = e.message; erro.hidden = false; }
         });
@@ -1735,10 +1758,275 @@ export async function telaDeAdmin(raiz, ctx) {
           if (!await confirma({ titulo: 'Apagar pagamento?', ok: 'Apagar', perigo: true })) return;
           await store.apagaPagamento(pg.id);
           fechar();
-          if (aba === 'visao' && pessoaFoco) abaVisaoPessoa($('#conteudo-aba', raiz), pessoaFoco);
+          aposMudarPagamento();
           torrada('Pagamento apagado.', 'bom');
         });
       },
+    });
+  }
+
+  /* ======================================================================
+     ABA: PAGAMENTOS — quem deve, de qual mês, um toque pra pagar
+     ====================================================================== */
+
+  let filtroPagamentos = 'devem'; // 'devem' | 'todos'
+
+  function aposMudarPagamento() {
+    if (aba === 'visao' && pessoaFoco) abaVisaoPessoa($('#conteudo-aba', raiz), pessoaFoco);
+    else if (aba === 'pagamentos') abaPagamentos($('#conteudo-aba', raiz));
+  }
+
+  async function abaPagamentos(alvo) {
+    alvo.innerHTML = carregando('Somando o que cada um tem a receber…');
+    const agora = new Date();
+    const ym = chaveMes(agora);
+    const ymAnt = chaveMes(somaMeses(agora, -1));
+    try {
+      await Promise.all([
+        store.listaBonusMes({ yearMonth: ym }),
+        store.listaBonusMes({ yearMonth: ymAnt }).catch(() => []),
+      ]);
+    } catch { /* bônus automático é extra; o saldo de turnos continua */ }
+
+    const de = somaMeses(inicioDoMes(agora), -36);
+    const [turnosBrutos, pags, bonus] = await Promise.all([
+      store.listaTurnos({ de }),
+      store.listaPagamentos(),
+      store.listaBonusTodos().catch(() => []),
+    ]);
+    const turnos = pintaTrechos(turnosBrutos, tarefas);
+    const equipe = pessoas.filter((p) => p.role !== 'admin');
+    const linhas = saldosPorPessoa({ pessoas: equipe, turnos, bonus, pagamentos: pags, agora })
+      .filter((l) => l.p.active !== false || l.devido > 0.5 || l.saldo < -0.5)
+      .sort((a, b) => b.devido - a.devido || a.p.full_name.localeCompare(b.p.full_name, 'pt-BR'));
+
+    const visiveis = filtroPagamentos === 'todos'
+      ? linhas
+      : linhas.filter((l) => l.devido > 0.5);
+
+    const totalDevido = roundMoney(linhas.reduce((s, l) => s + l.devido, 0));
+    const desteMes = roundMoney(linhas.reduce((s, l) => s + l.abertoEste, 0));
+    const passado = roundMoney(linhas.reduce((s, l) => s + l.abertoPassado, 0));
+    const antes = roundMoney(linhas.reduce((s, l) => s + l.abertoAntes, 0));
+    const qtd = linhas.filter((l) => l.devido > 0.5).length;
+
+    alvo.innerHTML = `
+      <section class="cartao pg-hero">
+        <p class="heroi-rotulo">A pagar</p>
+        <p class="heroi-valor ${totalDevido > 0.5 ? 'saldo' : ''}">${esc(money(totalDevido))}</p>
+        <div class="heroi-nota">
+          <span class="ficha ficha-neutra">${esc(plural(qtd, 'pessoa', 'pessoas'))}</span>
+          ${desteMes > 0.5 ? `<span class="ficha ficha-neutra">este mês ${esc(money(desteMes))}</span>` : ''}
+          ${passado > 0.5 ? `<span class="ficha ficha-baixa">mês passado ${esc(money(passado))}</span>` : ''}
+          ${antes > 0.5 ? `<span class="ficha ficha-baixa">antes ${esc(money(antes))}</span>` : ''}
+          ${totalDevido < 0.5 ? '<span class="ficha ficha-alta">ninguém em aberto</span>' : ''}
+        </div>
+      </section>
+
+      <div class="pg-filtros" role="tablist" aria-label="Quem mostrar">
+        <button class="pg-filtro ${filtroPagamentos === 'devem' ? 'on' : ''}" data-filtro-pg="devem">Quem deve</button>
+        <button class="pg-filtro ${filtroPagamentos === 'todos' ? 'on' : ''}" data-filtro-pg="todos">Todo mundo</button>
+      </div>
+
+      ${visiveis.length ? `<div class="pg-lista">${visiveis.map(htmlCartaoPagamento).join('')}</div>`
+        : vazio({
+          emoji: filtroPagamentos === 'devem' ? '✨' : '💸',
+          titulo: filtroPagamentos === 'devem' ? 'Ninguém tem saldo em aberto' : 'Nenhuma pessoa nesta lista',
+          texto: filtroPagamentos === 'devem'
+            ? 'Quando alguém trabalhar e ainda não tiver sido pago, aparece aqui — com o mês certinho.'
+            : 'Cadastre a equipe para lançar pagamentos.',
+        })}`;
+
+    $$('[data-filtro-pg]', alvo).forEach((b) => b.addEventListener('click', () => {
+      filtroPagamentos = b.dataset.filtroPg;
+      abaPagamentos(alvo);
+    }));
+    $$('[data-pagar]', alvo).forEach((b) => b.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      const lin = linhas.find((x) => x.p.id === b.dataset.pagar);
+      if (lin) abrePagar(lin.p, lin);
+    }));
+    $$('[data-pg-hist]', alvo).forEach((b) => b.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      const lin = linhas.find((x) => x.p.id === b.dataset.pgHist);
+      const pg = lin?.pagamentos.find((x) => x.id === b.dataset.pg);
+      if (pg && lin) editaPagamentoLanc(pg, lin.p);
+    }));
+  }
+
+  function htmlCartaoPagamento(l) {
+    const chips = [];
+    if (l.abertoEste > 0.5) chips.push(`<span class="pg-chip">${esc(rotuloMesDevido(l.desteMes.ym))} <strong>${esc(money(l.abertoEste))}</strong></span>`);
+    if (l.abertoPassado > 0.5) chips.push(`<span class="pg-chip velho">${esc(rotuloMesDevido(l.doPassado.ym))} <strong>${esc(money(l.abertoPassado))}</strong></span>`);
+    if (l.abertoAntes > 0.5) {
+      const n = l.meses.filter((m) => m.aberto > 0.5 && m !== l.desteMes && m !== l.doPassado).length;
+      chips.push(`<span class="pg-chip velho">${n > 1 ? `${n} meses antes` : 'antes'} <strong>${esc(money(l.abertoAntes))}</strong></span>`);
+    }
+    const emDia = l.devido < 0.5;
+    const credito = l.saldo < -0.5;
+    const mesesDetalhe = l.meses.length
+      ? l.meses.map((m) => `
+          <div class="pg-mes ${m.aberto > 0.5 ? 'aberto' : m.aberto < -0.5 ? 'credito' : 'ok'}">
+            <span class="pg-mes-nome">${esc(rotuloMesDevido(m.ym))}</span>
+            <span class="apagado">ganhou ${esc(money(m.ganhou))}${m.pagou > 0.004 ? ` · pago ${esc(money(m.pagou))}` : ''}</span>
+            <span class="num pg-mes-saldo">${m.aberto > 0.5 ? esc(money(m.aberto)) : m.aberto < -0.5 ? `+${esc(money(-m.aberto))}` : 'em dia'}</span>
+          </div>`).join('')
+      : '<p class="apagado" style="padding:8px 0">Sem movimento neste período.</p>';
+    const hist = l.pagamentos.slice(0, 8).map((pg) => {
+      const [y, mo] = String(pg.year_month || '').split('-').map(Number);
+      const ref = y ? maiuscula(mesAno(new Date(y, (mo || 1) - 1, 1))) : '';
+      return `
+      <button type="button" class="pg-hist-item" data-pg-hist="${esc(l.p.id)}" data-pg="${esc(pg.id)}">
+        <span>${esc(dataBR(pg.paid_on))}${ref ? ` · ${esc(ref)}` : ''}</span>
+        <span class="num">${esc(money(pg.amount))}</span>
+      </button>`;
+    }).join('');
+
+    return `
+      <article class="pg-card">
+        <div class="pg-topo">
+          <span class="avatar" style="width:40px;height:40px">${esc(iniciais(l.p.full_name))}</span>
+          <div class="pg-quem">
+            <div class="item-titulo">${esc(l.p.full_name)}</div>
+            <div class="pg-chips">${chips.length ? chips.join('') : `<span class="pg-chip ok">${credito ? `crédito ${esc(money(-l.saldo))}` : 'em dia'}</span>`}</div>
+          </div>
+          <div class="pg-lado">
+            <div class="num pg-devido ${emDia ? 'ok' : ''}">${esc(money(emDia ? 0 : l.devido))}</div>
+            ${emDia
+              ? ''
+              : `<button type="button" class="btn btn-pequeno btn-verde" data-pagar="${esc(l.p.id)}">${ICONE.pagar}<span>Pagar</span></button>`}
+          </div>
+        </div>
+        <details class="pg-detalhe">
+          <summary>detalhe</summary>
+          <div class="pg-meses">${mesesDetalhe}</div>
+          ${hist ? `<div class="pg-hist"><p class="pg-hist-rotulo">Últimos pagamentos</p>${hist}</div>` : ''}
+        </details>
+      </article>`;
+  }
+
+  function abrePagar(p, saldoPrevio = null) {
+    const agora = new Date();
+    const montar = async (caixa, fechar) => {
+      let lin = saldoPrevio;
+      if (!lin) {
+        caixa.innerHTML = carregando('Calculando o saldo…');
+        const ym = chaveMes(agora);
+        const ymAnt = chaveMes(somaMeses(agora, -1));
+        try {
+          await Promise.all([
+            store.listaBonusMes({ userId: p.id, yearMonth: ym }),
+            store.listaBonusMes({ userId: p.id, yearMonth: ymAnt }).catch(() => []),
+          ]);
+        } catch { /* segue com o que tiver */ }
+        const [turnosBrutos, pags, bonus] = await Promise.all([
+          store.listaTurnos({ userId: p.id, de: somaMeses(inicioDoMes(agora), -36) }),
+          store.listaPagamentos({ userId: p.id }),
+          store.listaBonusPessoa(p.id).catch(() => []),
+        ]);
+        lin = saldosPorPessoa({
+          pessoas: [p],
+          turnos: pintaTrechos(turnosBrutos, tarefas),
+          bonus, pagamentos: pags, agora,
+        })[0];
+      }
+
+      const devido = lin.devido;
+      const atalhos = [];
+      if (devido > 0.5) atalhos.push({ id: 'tudo', rotulo: `Tudo · ${money(devido)}`, valor: devido });
+      if (lin.abertoEste > 0.5) atalhos.push({ id: 'mes', rotulo: `Este mês · ${money(lin.abertoEste)}`, valor: lin.abertoEste });
+      if (lin.abertoPassado > 0.5) atalhos.push({ id: 'passado', rotulo: `Mês passado · ${money(lin.abertoPassado)}`, valor: lin.abertoPassado });
+      let modo = devido > 0.5 ? 'tudo' : 'livre';
+
+      const pintaPartes = (valor) => {
+        const soYm = modo === 'mes' ? chaveMes(agora)
+          : modo === 'passado' ? chaveMes(somaMeses(agora, -1))
+          : null;
+        const partes = repartePagamento(lin.meses, valor, agora, { soYm });
+        if (!partes.length) return '<p class="apagado">Nada em aberto — o valor entra como pagamento deste mês.</p>';
+        return `<ul class="pg-partes">${partes.map((x) =>
+          `<li><span>baixa ${esc(rotuloMesDevido(x.ym, agora))}</span><span class="num">${esc(money(x.amount))}</span></li>`).join('')}</ul>`;
+      };
+
+      caixa.innerHTML = `
+        <p class="pg-pagar-saldo">${devido > 0.5
+          ? `Saldo em aberto: <strong>${esc(money(devido))}</strong>`
+          : 'Nada em aberto — pode lançar um valor mesmo assim.'}</p>
+        ${lin.abertoEste > 0.5 || lin.abertoPassado > 0.5 || lin.abertoAntes > 0.5 ? `
+          <p class="apagado pg-pagar-quebra">
+            ${lin.abertoEste > 0.5 ? `este mês ${esc(money(lin.abertoEste))}` : ''}
+            ${lin.abertoPassado > 0.5 ? ` · mês passado ${esc(money(lin.abertoPassado))}` : ''}
+            ${lin.abertoAntes > 0.5 ? ` · antes ${esc(money(lin.abertoAntes))}` : ''}
+          </p>` : ''}
+        ${atalhos.length > 1 ? `
+          <div class="pg-atalhos">
+            ${atalhos.map((a, i) => `<button type="button" class="pg-atalho ${i === 0 ? 'on' : ''}" data-atalho="${esc(a.id)}" data-valor="${esc(String(a.valor))}">${esc(a.rotulo)}</button>`).join('')}
+          </div>` : ''}
+        <label class="campo"><span class="campo-rotulo">Valor (R$)</span>
+          <input class="entrada" type="number" min="0" step="0.01" id="pg-val" value="${esc(devido > 0.5 ? String(devido) : '')}"></label>
+        <label class="campo"><span class="campo-rotulo">Data do pagamento</span>
+          <input class="entrada" type="date" id="pg-data" value="${esc(diaChave(agora))}"></label>
+        <label class="campo"><span class="campo-rotulo">Nota (opcional)</span>
+          <input class="entrada" id="pg-nota" placeholder="pix, dinheiro, adiantamento…"></label>
+        <div id="pg-partes">${pintaPartes(devido > 0.5 ? devido : 0)}</div>
+        <p class="campo-erro" id="pg-erro" hidden></p>
+        <button class="btn btn-primario btn-largo" id="pg-salva" style="margin-top:8px">
+          ${ICONE.pagar}<span>Pagar agora</span>
+        </button>
+        <p class="apagado" style="margin-top:10px;font-size:12.5px;text-align:center">Entra na hora no painel dela, no mês certo.</p>`;
+
+      const valorAtual = () => roundMoney(+$('#pg-val', caixa).value || 0);
+      const atualizaPartes = () => { $('#pg-partes', caixa).innerHTML = pintaPartes(valorAtual()); };
+      $('#pg-val', caixa).addEventListener('input', () => {
+        modo = 'livre';
+        $$('[data-atalho]', caixa).forEach((b) => b.classList.remove('on'));
+        atualizaPartes();
+      });
+      $$('[data-atalho]', caixa).forEach((b) => b.addEventListener('click', () => {
+        modo = b.dataset.atalho;
+        $$('[data-atalho]', caixa).forEach((x) => x.classList.toggle('on', x === b));
+        $('#pg-val', caixa).value = b.dataset.valor;
+        atualizaPartes();
+      }));
+      $('#pg-salva', caixa).addEventListener('click', async (ev) => {
+        const erro = $('#pg-erro', caixa);
+        erro.hidden = true;
+        const amount = valorAtual();
+        const paid_on = $('#pg-data', caixa).value;
+        const note = $('#pg-nota', caixa).value.trim() || null;
+        if (!(amount > 0.004)) { erro.textContent = 'Informe o valor.'; erro.hidden = false; return; }
+        if (!paid_on) { erro.textContent = 'Informe a data.'; erro.hidden = false; return; }
+        const soYm = modo === 'mes' ? chaveMes(agora)
+          : modo === 'passado' ? chaveMes(somaMeses(agora, -1))
+          : null;
+        const partes = repartePagamento(lin.meses, amount, agora, { soYm });
+        const lote = partes.length ? partes : [{ ym: chaveMes(agora), amount }];
+        try {
+          await comBotaoOcupado(ev.currentTarget, 'Pagando…', async () => {
+            for (const parte of lote) {
+              await store.lancaPagamento({
+                user_id: p.id,
+                paid_on,
+                amount: parte.amount,
+                year_month: parte.ym,
+                title: `Pagamento · ${rotuloMesDevido(parte.ym, agora)}`,
+                note,
+              });
+            }
+          });
+          fechar();
+          aposMudarPagamento();
+          torrada(`Pago ${money(amount)} para ${p.full_name}. Já está no saldo dela.`, 'bom');
+        } catch (e) { erro.textContent = e.message; erro.hidden = false; }
+      });
+    };
+
+    abreFolha({
+      titulo: 'Pagar',
+      sub: p.full_name,
+      corpo: carregando('Calculando o saldo…'),
+      aoMontar: (caixa, fechar) => { montar(caixa, fechar); },
     });
   }
 

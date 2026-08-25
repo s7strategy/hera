@@ -276,20 +276,29 @@ export async function criaStoreSupabase() {
       return ok(await sb.from('bonus_entries').select('*').eq('user_id', userId)
         .order('bonus_on', { ascending: true }).order('created_at'));
     },
+    async listaBonusTodos() {
+      return ok(await sb.from('bonus_entries').select('*')
+        .order('bonus_on', { ascending: true }).limit(5000));
+    },
     async listaPagamentos({ userId = null, yearMonth = null } = {}) {
-      let q = sb.from('payments').select('*').order('paid_on', { ascending: false });
+      let q = sb.from('payments').select('*').order('paid_on', { ascending: false }).limit(5000);
       if (userId) q = q.eq('user_id', userId);
       if (yearMonth) q = q.eq('year_month', yearMonth);
       return ok(await q);
     },
     async lancaPagamento({ user_id, paid_on, amount, title = 'Pagamento', note = null, year_month = null }) {
       exigeAdmin();
-      const when = paid_on ? new Date(paid_on) : new Date();
-      const ym = year_month || `${when.getFullYear()}-${String(when.getMonth() + 1).padStart(2, '0')}`;
+      const paidOn = (typeof paid_on === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(paid_on))
+        ? paid_on
+        : (() => {
+          const when = paid_on ? new Date(paid_on) : new Date();
+          return `${when.getFullYear()}-${String(when.getMonth() + 1).padStart(2, '0')}-${String(when.getDate()).padStart(2, '0')}`;
+        })();
+      const ym = year_month || paidOn.slice(0, 7);
       const titulo = String(title || 'Pagamento').trim() || 'Pagamento';
       return ok(await sb.from('payments').insert({
         user_id,
-        paid_on: when.toISOString().slice(0, 10),
+        paid_on: paidOn,
         year_month: ym,
         amount: +amount || 0,
         title: titulo,
@@ -496,7 +505,7 @@ export async function criaStoreSupabase() {
 
     /* ---- consultas ---- */
     async listaTurnos({ userId = null, de = null, ate = null } = {}) {
-      let q = sb.from('shifts').select('*').order('started_at', { ascending: false });
+      let q = sb.from('shifts').select('*').order('started_at', { ascending: false }).limit(5000);
       if (userId) q = q.eq('user_id', userId);
       if (de) q = q.gte('started_at', new Date(de).toISOString());
       if (ate) q = q.lte('started_at', new Date(ate).toISOString());

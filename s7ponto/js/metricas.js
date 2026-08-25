@@ -114,7 +114,8 @@ export function agrega(turnos, agora = new Date()) {
       const t = porTarefa.get(nome); t.horas += h; t.valor += vConta;
       if (!t.cor && trecho.cor) t.cor = trecho.cor;
     }
-    if (turno.pay_mode === 'shift' && turno.flat_amount != null) {
+    if ((turno.pay_mode === 'shift' || (turno.period && turno.flat_amount != null))
+        && turno.flat_amount != null) {
       const v = +turno.flat_amount || 0;
       valor += v;
       porDia.get(dia).valor += v;
@@ -369,4 +370,138 @@ export function resumoDoDia(turnos, refData = new Date(), agora = new Date()) {
   const chave = diaChave(refData);
   const a = agrega(turnos.filter((t) => diaChave(t.started_at) === chave), agora);
   return { horas: a.horas, valor: a.valor, turnos: a.turnos };
+}
+
+/* ==========================================================================
+   Saldos a pagar (ganho − já pago), por pessoa e por mês
+   ========================================================================== */
+
+export const roundMoney = (n) => Math.round((Number(n) || 0) * 100) / 100;
+
+/** "este mês" / "mês passado" / "junho" / "junho de 2025". */
+export function rotuloMesDevido(ym, agora = new Date()) {
+  if (!ym) return '';
+  const atual = chaveMes(agora);
+  const ant = chaveMes(somaMeses(agora, -1));
+  if (ym === atual) return 'este mês';
+  if (ym === ant) return 'mês passado';
+  const [y, m] = String(ym).split('-').map(Number);
+  const d = new Date(y, (m || 1) - 1, 1);
+  return y === agora.getFullYear() ? nomeMes(d) : mesAno(d);
+}
+
+function buracoMes() {
+  return { trabalho: 0, bonus: 0, horas: 0, turnos: 0, pago: 0 };
+}
+
+/**
+ * De cada pessoa: o que ganhou, o que já recebeu, o que ainda falta,
+ * separado por mês (para o botão Pagar baixar o mês certo).
+ */
+export function saldosPorPessoa({
+  pessoas = [], turnos = [], bonus = [], pagamentos = [], agora = new Date(),
+} = {}) {
+  const porUser = new Map();
+  const pagsPor = new Map();
+  const pega = (userId, ym) => {
+    if (!porUser.has(userId)) porUser.set(userId, new Map());
+    const m = porUser.get(userId);
+    if (!m.has(ym)) m.set(ym, buracoMes());
+    return m.get(ym);
+  };
+
+  for (const t of turnos || []) {
+    if (!t?.user_id) continue;
+    const b = pega(t.user_id, chaveMes(t.started_at));
+    b.trabalho += valorDoTurno(t, agora);
+    b.horas += horasDoTurno(t, agora);
+    b.turnos += 1;
+  }
+  for (const e of bonus || []) {
+    if (!e?.user_id || !e.year_month) continue;
+    pega(e.user_id, e.year_month).bonus += +e.amount || 0;
+  }
+  for (const pg of pagamentos || []) {
+    if (!pg?.user_id) continue;
+    pega(pg.user_id, pg.year_month || chaveMes(pg.paid_on)).pago += +pg.amount || 0;
+    if (!pagsPor.has(pg.user_id)) pagsPor.set(pg.user_id, []);
+    pagsPor.get(pg.user_id).push(pg);
+  }
+
+  const ymAtual = chaveMes(agora);
+  const ymAnt = chaveMes(somaMeses(agora, -1));
+
+  return (pessoas || []).map((p) => {
+    const meses = [...(porUser.get(p.id) || new Map()).entries()]
+      .map(([ym, x]) => {
+        const ganhou = roundMoney((x.trabalho || 0) + (x.bonus || 0));
+        const pagou = roundMoney(x.pago || 0);
+        return {
+          ym,
+          trabalho: roundMoney(x.trabalho || 0),
+          bonus: roundMoney(x.bonus || 0),
+          ganhou,
+          pagou,
+          horas: x.horas || 0,
+          turnos: x.turnos || 0,
+          aberto: roundMoney(ganhou - pagou),
+        };
+      })
+      .filter((m) => m.ganhou > 0.004 || m.pagou > 0.004)
+      .sort((a, b) => b.ym.localeCompare(a.ym));
+
+    const ganhou = roundMoney(meses.reduce((s, m) => s + m.ganhou, 0));
+    const pagou = roundMoney(meses.reduce((s, m) => s + m.pagou, 0));
+    const devido = roundMoney(meses.reduce((s, m) => s + Math.max(0, m.aberto), 0));
+    const desteMes = meses.find((m) => m.ym === ymAtual) || null;
+    const doPassado = meses.find((m) => m.ym === ymAnt) || null;
+
+    return {
+      p,
+      meses,
+      ganhou,
+      pagou,
+      devido,
+      saldo: roundMoney(ganhou - pagou),
+      desteMes,
+      doPassado,
+      abertoEste: roundMoney(Math.max(0, desteMes?.aberto || 0)),
+      abertoPassado: roundMoney(Math.max(0, doPassado?.aberto || 0)),
+      abertoAntes: roundMoney(meses
+        .filter((m) => m.ym !== ymAtual && m.ym !== ymAnt)
+        .reduce((s, m) => s + Math.max(0, m.aberto), 0)),
+      pagamentos: (pagsPor.get(p.id) || [])
+        .slice()
+        .sort((a, b) => String(b.paid_on || '').localeCompare(String(a.paid_on || ''))),
+    };
+  });
+}
+
+/** Parte um valor nos meses em aberto, do mais antigo pro mais novo.
+ *  `soYm` trava o lançamento num mês (atalho “este mês” / “mês passado”). */
+export function repartePagamento(meses, valor, agora = new Date(), { soYm = null } = {}) {
+  const qtd = roundMoney(valor);
+  if (qtd < 0.005) return [];
+  if (soYm) return [{ ym: soYm, amount: qtd }];
+  const abertos = (meses || [])
+    .filter((m) => m.aberto > 0.004)
+    .slice()
+    .sort((a, b) => a.ym.localeCompare(b.ym));
+  let resto = roundMoney(valor);
+  const partes = [];
+  for (const m of abertos) {
+    if (resto < 0.005) break;
+    const q = roundMoney(Math.min(m.aberto, resto));
+    if (q > 0.004) {
+      partes.push({ ym: m.ym, amount: q });
+      resto = roundMoney(resto - q);
+    }
+  }
+  if (resto > 0.004) {
+    const ym = chaveMes(agora);
+    const ja = partes.find((x) => x.ym === ym);
+    if (ja) ja.amount = roundMoney(ja.amount + resto);
+    else partes.push({ ym, amount: resto });
+  }
+  return partes;
 }

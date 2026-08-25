@@ -421,6 +421,10 @@ export function criaStoreDemo() {
       const lista = (db.bonusEntries || []).filter((e) => e.user_id === userId);
       return espera(lista.map((e) => ({ ...e })));
     },
+    async listaBonusTodos() {
+      carrega();
+      return espera((db.bonusEntries || []).map((e) => ({ ...e })));
+    },
     async listaPagamentos({ userId = null, yearMonth = null } = {}) {
       carrega();
       if (!db.payments) db.payments = [];
@@ -433,11 +437,13 @@ export function criaStoreDemo() {
     async lancaPagamento({ user_id, paid_on, amount, title = 'Pagamento', note = null, year_month = null }) {
       exigeAdmin(); carrega();
       if (!db.payments) db.payments = [];
-      const when = paid_on ? new Date(paid_on) : new Date();
-      const ym = year_month || `${when.getFullYear()}-${String(when.getMonth() + 1).padStart(2, '0')}`;
+      const paidOn = (typeof paid_on === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(paid_on))
+        ? paid_on
+        : diaChave(paid_on ? new Date(paid_on) : new Date());
+      const ym = year_month || paidOn.slice(0, 7);
       const novo = {
         id: uid(), user_id,
-        paid_on: when.toISOString().slice(0, 10),
+        paid_on: paidOn,
         year_month: ym, amount: +amount || 0,
         title: String(title || 'Pagamento').trim() || 'Pagamento',
         note: note || null, source: 'manual',

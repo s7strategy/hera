@@ -6,14 +6,14 @@ import { store } from './store.js';
 import {
   esc, money, moneyShort, horas, horasCurto, pct, mesAno, dataLonga,
   dataCurta, hora, somaMeses, inicioDoMes, fimDoMes, plural,
-  dataBR, maiuscula, nomeMes, chaveMes,
+  dataBR, maiuscula, nomeMes, chaveMes, nomePeriodo,
 } from './util.js';
 import { $, $$, ICONE, carregando, vazio } from './ui.js';
 import { graficoDias, graficoMeses, tabelaDeApoio, PALETA } from './charts.js';
 import {
   pintaTrechos, resumoDoMes, serieDoMes, serieDeMeses,
   horasDoTurno, valorDoTurno, somaBonus, totalComBonus, somaPagamentos,
-  agrupaBonus, comparaSaldo,
+  agrupaBonus, comparaSaldo, saldosPorPessoa,
 } from './metricas.js';
 import { htmlRecibo, htmlPizzas, pintaPizzas, htmlDetalheBonus } from './extrato.js';
 import { extraDoPeriodo, htmlRecadoExtraPessoa } from './hora-extra.js';
@@ -26,14 +26,7 @@ export async function telaDeNumeros(raiz, ctx) {
   let bonusTodos = [];
 
   raiz.innerHTML = carregando('Somando suas horas…');
-  turnos = pintaTrechos(
-    await store.listaTurnos({ userId: usuario.id }),
-    await store.listaTarefas(true),
-  );
-
-  const primeiroTurno = turnos.length
-    ? inicioDoMes(turnos[turnos.length - 1].started_at)
-    : inicioDoMes(new Date());
+  let primeiroTurno = inicioDoMes(new Date());
 
   function mesesDoSeletor() {
     const fim = inicioDoMes(new Date());
@@ -63,13 +56,20 @@ export async function telaDeNumeros(raiz, ctx) {
   }
 
   async function desenha() {
+    turnos = pintaTrechos(
+      await store.listaTurnos({ userId: usuario.id }),
+      await store.listaTarefas(true),
+    );
+    primeiroTurno = turnos.length
+      ? inicioDoMes(turnos[turnos.length - 1].started_at)
+      : inicioDoMes(new Date());
     await carregaBonus();
     let pagamentos = [];
+    let pagsTodos = [];
     try {
-      pagamentos = await store.listaPagamentos({
-        userId: usuario.id, yearMonth: chaveMes(mesRef),
-      });
-    } catch { pagamentos = []; }
+      pagsTodos = await store.listaPagamentos({ userId: usuario.id });
+      pagamentos = pagsTodos.filter((x) => x.year_month === chaveMes(mesRef));
+    } catch { pagamentos = []; pagsTodos = []; }
     const r = resumoDoMes(turnos, mesRef);
     const grupos = agrupaBonus(bonusMes);
     const total = totalComBonus(r.valor, bonusMes);
@@ -82,7 +82,13 @@ export async function telaDeNumeros(raiz, ctx) {
     const taxaGeral = r.horas > 0.001 ? total / r.horas : 0;
     const bancoExtra = extraDoPeriodo(noMes);
 
+    const falta = Math.max(0, total - pago);
+    const emDia = total > 0.004 && falta < 0.5;
     const ehMesCorrente = chaveMes(mesRef) === chaveMes(new Date());
+    const saldoGeral = saldosPorPessoa({
+      pessoas: [usuario], turnos, bonus: bonusTodos, pagamentos: pagsTodos,
+    })[0];
+    const outrosAbertos = (saldoGeral?.abertoPassado || 0) + (saldoGeral?.abertoAntes || 0);
     const cmp = comparaSaldo(turnos, bonusTodos, mesRef);
     const dv = cmp.variacao.total;
     const temAnt = cmp.diaLimite > 0 && (cmp.anterior.total > 0.004 || cmp.atual.total > 0.004);
@@ -114,12 +120,13 @@ export async function telaDeNumeros(raiz, ctx) {
 
       <section class="cartao">
         <div class="heroi">
-          <p class="heroi-rotulo">${ehMesCorrente
-            ? 'Você recebe neste mês'
-            : `Você recebeu em ${esc(nomeMes(mesRef))}`}</p>
-          <p class="heroi-valor saldo">${esc(money(total))}</p>
+          <p class="heroi-rotulo">${emDia
+            ? (ehMesCorrente ? 'Tudo recebido neste mês' : `Tudo recebido em ${esc(nomeMes(mesRef))}`)
+            : (ehMesCorrente ? 'Você tem a receber' : `A receber de ${esc(nomeMes(mesRef))}`)}</p>
+          <p class="heroi-valor saldo">${esc(money(emDia ? total : falta))}</p>
           <div class="heroi-nota">
             <span class="ficha ficha-neutra">${esc(horas(r.horas))} trabalhadas</span>
+            ${total > 0.004 ? `<span class="ficha ficha-neutra">ganhou ${esc(money(total))}${pago > 0.004 ? ` · recebeu ${esc(money(pago))}` : ''}</span>` : ''}
             ${htmlRecadoExtraPessoa(bancoExtra, { compacto: true })}
             ${fichaVar}
           </div>
@@ -130,6 +137,21 @@ export async function telaDeNumeros(raiz, ctx) {
       </section>
 
       ${htmlRecadoExtraPessoa(bancoExtra, { nomeMes: nomeMes(mesRef) })}
+      ${ehMesCorrente && outrosAbertos > 0.5 ? `
+        <div class="recado info" style="margin-top:14px">
+          <span class="recado-emoji">💸</span>
+          <span>Ainda tem <strong>${esc(money(outrosAbertos))}</strong> a receber de meses anteriores.</span>
+        </div>` : ''}
+
+      <section class="cartao" style="margin-top:16px">
+        <div class="cartao-topo">
+          <h2 class="cartao-titulo">Seus turnos</h2>
+          <span class="apagado">${esc(plural(noMes.length, 'turno', 'turnos'))}</span>
+        </div>
+        ${noMes.length ? `<div class="lista">${noMes.map(linhaDoTurno).join('')}</div>`
+          : vazio({ emoji: '🌱', titulo: 'Nenhum turno neste mês',
+                    texto: 'Quando a administração lançar ou você bater o ponto, aparece aqui.' })}
+      </section>
 
       <section class="grade-metricas" style="margin-top:16px">
         <div class="metrica">
@@ -196,15 +218,6 @@ export async function telaDeNumeros(raiz, ctx) {
         <div class="cartao-topo"><h2 class="cartao-titulo">Mês a mês</h2>
           <span class="apagado" style="font-size:13px">trabalho + bônus · toque na barra</span></div>
         <div class="grafico" id="g-meses"></div>
-      </section>
-
-      <section class="cartao">
-        <div class="cartao-topo">
-          <h2 class="cartao-titulo">Seus turnos</h2>
-        </div>
-        ${noMes.length ? `<div class="lista">${noMes.map(linhaDoTurno).join('')}</div>`
-          : vazio({ emoji: '🌱', titulo: 'Nenhum turno neste mês',
-                    texto: 'Quando você bater o ponto, ele aparece aqui.' })}
       </section>`;
 
     const serieD = serieDoMes(mesRef, r.porDia);
@@ -247,7 +260,9 @@ export async function telaDeNumeros(raiz, ctx) {
   function linhaDoTurno(t) {
     const h = horasDoTurno(t);
     const v = valorDoTurno(t);
-    const nomes = [...new Set((t.segments || []).map((s) => s.task_name))];
+    const nomes = t.period
+      ? `Turno ${nomePeriodo(t.period)}`
+      : ([...new Set((t.segments || []).map((s) => s.task_name))].join(', ') || 'sem tarefa');
     const cor = t.segments?.[0]?.cor || PALETA[0];
     return `
       <div class="item">
@@ -257,8 +272,8 @@ export async function telaDeNumeros(raiz, ctx) {
           <div class="item-sub">
             ${esc(hora(t.started_at))} → ${t.ended_at ? esc(hora(t.ended_at)) : '<em>em aberto</em>'}
             ${t.company_name ? ` · ${esc(t.company_name)}` : ''}
-            · ${esc(nomes.join(', ') || 'sem tarefa')}
-            ${t.source === 'import' ? ' · importado' : t.source === 'manual' ? ' · lançado pelo admin' : ''}
+            · ${esc(nomes)}
+            ${t.source === 'import' ? ' · importado' : t.source === 'manual' ? ' · lançado na mão' : ''}
           </div>
         </div>
         <div class="item-fim">

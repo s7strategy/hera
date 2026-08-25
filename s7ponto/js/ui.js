@@ -32,6 +32,7 @@ export const ICONE = {
   seta:    svg('<path d="M5 12h14"/><path d="M13 6l6 6-6 6"/>'),
   cima:    svg('<path d="M12 19V5"/><path d="M5 12l7-7 7 7"/>'),
   baixo:   svg('<path d="M12 5v14"/><path d="M19 12l-7 7-7-7"/>'),
+  pagar:   svg('<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6 12h.01"/><path d="M18 12h.01"/>'),
   sol:     svg('<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.9 4.9l1.4 1.4"/><path d="M17.7 17.7l1.4 1.4"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M4.9 19.1l1.4-1.4"/><path d="M17.7 6.3l1.4-1.4"/>'),
   lua:     svg('<path d="M21 14.5A8.5 8.5 0 1 1 9.5 3 7 7 0 0 0 21 14.5z"/>'),
 };
