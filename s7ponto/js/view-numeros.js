@@ -1,24 +1,25 @@
 /* ==========================================================================
    S7 PONTO — "Meus números": quanto entrou, quantas horas, e como ficou
-   comparado com o mês passado.
+   comparado com o mês passado. Trabalho + bônus (separados e no total).
    ========================================================================== */
 import { store } from './store.js';
 import {
   esc, money, moneyShort, horas, horasCurto, num, pct, mesAno, dataLonga,
   dataCurta, hora, somaMeses, inicioDoMes, fimDoMes, diaChave, plural,
-  baixaArquivo, csvLinha, dataBR, maiuscula, nomeMes,
+  baixaArquivo, csvLinha, dataBR, maiuscula, nomeMes, chaveMes,
 } from './util.js';
 import { $, $$, ICONE, carregando, vazio, torrada } from './ui.js';
 import { graficoDias, graficoMeses, graficoTarefas, tabelaDeApoio, PALETA } from './charts.js';
 import {
   pintaTrechos, resumoDoMes, serieDoMes, serieDeMeses,
-  horasDoTurno, valorDoTurno,
+  horasDoTurno, valorDoTurno, somaBonus, totalComBonus,
 } from './metricas.js';
 
 export async function telaDeNumeros(raiz, ctx) {
   const { usuario } = ctx;
   let mesRef = inicioDoMes(new Date());
   let turnos = [];
+  let bonusMes = [];
 
   raiz.innerHTML = carregando('Somando suas horas…');
   turnos = pintaTrechos(
@@ -30,14 +31,27 @@ export async function telaDeNumeros(raiz, ctx) {
     ? inicioDoMes(turnos[turnos.length - 1].started_at)
     : inicioDoMes(new Date());
 
-  function desenha() {
+  async function carregaBonus() {
+    try {
+      bonusMes = await store.listaBonusMes({
+        userId: usuario.id, yearMonth: chaveMes(mesRef),
+      });
+    } catch {
+      bonusMes = [];
+    }
+  }
+
+  async function desenha() {
+    await carregaBonus();
     const r = resumoDoMes(turnos, mesRef);
+    const bonus = somaBonus(bonusMes);
+    const total = totalComBonus(r.valor, bonusMes);
     const noMes = turnos.filter((t) => {
       const d = new Date(t.started_at);
       return d >= inicioDoMes(mesRef) && d <= fimDoMes(mesRef);
     });
 
-    const ehMesCorrente = diaChave(mesRef).slice(0, 7) === diaChave(new Date()).slice(0, 7);
+    const ehMesCorrente = chaveMes(mesRef) === chaveMes(new Date());
     const temAnterior = r.anterior.valor > 0 || r.anterior.horas > 0;
     const dv = r.variacao.valor;
     const fichaVar = !temAnterior
@@ -46,7 +60,7 @@ export async function telaDeNumeros(raiz, ctx) {
            ${dv.abs >= 0 ? ICONE.cima : ICONE.baixo}
            ${esc(money(Math.abs(dv.abs)))}${dv.pct !== null ? ` · ${esc(pct(dv.pct))}` : ''}
          </span>
-         <span class="ficha ficha-neutra">${esc(nomeMes(somaMeses(mesRef, -1)))}: ${esc(moneyShort(r.anterior.valor))}</span>`;
+         <span class="ficha ficha-neutra">${esc(nomeMes(somaMeses(mesRef, -1)))}: trabalho ${esc(moneyShort(r.anterior.valor))}</span>`;
 
     const podeAvancar = somaMeses(mesRef, 1) <= inicioDoMes(new Date());
     const podeVoltar = somaMeses(mesRef, -1) >= somaMeses(primeiroTurno, -1);
@@ -63,21 +77,43 @@ export async function telaDeNumeros(raiz, ctx) {
           <p class="heroi-rotulo">${ehMesCorrente
             ? 'Você recebe neste mês'
             : `Você recebeu em ${esc(nomeMes(mesRef))}`}</p>
-          <p class="heroi-valor" style="color:var(--salvia-alt)">${esc(money(r.valor))}</p>
-          <div class="heroi-nota">${fichaVar}</div>
+          <p class="heroi-valor" style="color:var(--salvia-alt)">${esc(money(total))}</p>
+          <div class="heroi-nota">
+            <span class="ficha ficha-neutra">trabalho ${esc(money(r.valor))}</span>
+            ${bonus ? `<span class="ficha ficha-neutra">bônus ${esc(money(bonus))}</span>` : ''}
+            ${fichaVar}
+          </div>
         </div>
       </section>
 
+      ${bonusMes.length ? `
+        <section class="cartao" style="margin-top:16px">
+          <div class="cartao-topo">
+            <h2 class="cartao-titulo">Bônus do mês</h2>
+            <span class="apagado num" style="font-size:14px">${esc(money(bonus))}</span>
+          </div>
+          <div class="lista">${bonusMes.map((e) => `
+            <div class="item">
+              <div class="item-corpo">
+                <div class="item-titulo">${esc(e.title)}</div>
+                ${e.note ? `<div class="item-sub">${esc(e.note)}</div>` : ''}
+              </div>
+              <div class="item-fim">
+                <div class="num" style="font-weight:600;color:var(--salvia-alt)">${esc(money(e.amount))}</div>
+              </div>
+            </div>`).join('')}</div>
+        </section>` : ''}
+
       <section class="grade-metricas" style="margin-top:16px">
+        <div class="metrica">
+          <div class="metrica-rotulo">Do trabalho</div>
+          <div class="metrica-valor" style="color:var(--salvia-alt)">${esc(money(r.valor))}</div>
+          <div class="metrica-nota">${esc(horas(r.horas))} trabalhadas</div>
+        </div>
         <div class="metrica">
           <div class="metrica-rotulo">Horas trabalhadas</div>
           <div class="metrica-valor">${esc(horas(r.horas))}</div>
           ${temAnterior ? `<div class="metrica-nota">${esc(horas(Math.abs(r.variacao.horas.abs)))} ${r.variacao.horas.abs >= 0 ? 'a mais' : 'a menos'} que em ${esc(nomeMes(somaMeses(mesRef, -1)))}</div>` : ''}
-        </div>
-        <div class="metrica">
-          <div class="metrica-rotulo">Média por dia trabalhado</div>
-          <div class="metrica-valor">${esc(horas(r.mediaHorasPorDia))}</div>
-          <div class="metrica-nota">${esc(money(r.mediaValorPorDia))} por dia</div>
         </div>
         <div class="metrica">
           <div class="metrica-rotulo">Dias trabalhados</div>
@@ -85,9 +121,9 @@ export async function telaDeNumeros(raiz, ctx) {
           ${temAnterior ? `<div class="metrica-nota">${esc(plural(Math.abs(r.variacao.dias.abs), 'dia', 'dias'))} ${r.variacao.dias.abs >= 0 ? 'a mais' : 'a menos'} que no mês passado</div>` : ''}
         </div>
         <div class="metrica">
-          <div class="metrica-rotulo">Dias por semana</div>
-          <div class="metrica-valor">${esc(num(r.mediaDiasPorSemana, 1))}</div>
-          <div class="metrica-nota">na média do mês</div>
+          <div class="metrica-rotulo">Média por dia</div>
+          <div class="metrica-valor">${esc(horas(r.mediaHorasPorDia))}</div>
+          <div class="metrica-nota">${esc(money(r.mediaValorPorDia))} por dia (trabalho)</div>
         </div>
       </section>
 
@@ -107,7 +143,7 @@ export async function telaDeNumeros(raiz, ctx) {
 
       <section class="cartao">
         <div class="cartao-topo"><h2 class="cartao-titulo">Mês a mês</h2>
-          <span class="apagado" style="font-size:13px">últimos 6 meses</span></div>
+          <span class="apagado" style="font-size:13px">últimos 6 meses (trabalho)</span></div>
         <div class="grafico" id="g-meses"></div>
       </section>
 
@@ -121,7 +157,6 @@ export async function telaDeNumeros(raiz, ctx) {
                     texto: 'Quando você bater o ponto, ele aparece aqui.' })}
       </section>`;
 
-    /* gráficos */
     const serieD = serieDoMes(mesRef, r.porDia);
     graficoDias($('#g-dias', raiz), serieD, { cor: PALETA[0] });
     $('#t-dias', raiz).innerHTML = tabelaDeApoio(
@@ -131,14 +166,14 @@ export async function telaDeNumeros(raiz, ctx) {
     graficoTarefas($('#g-tarefas', raiz), r.porTarefa);
     graficoMeses($('#g-meses', raiz), serieDeMeses(turnos, mesRef, 6), { cor: PALETA[0] });
 
-    /* navegação */
-    $$('[data-mes]', raiz).forEach((b) => b.addEventListener('click', () => {
+    $$('[data-mes]', raiz).forEach((b) => b.addEventListener('click', async () => {
       mesRef = somaMeses(mesRef, +b.dataset.mes);
-      desenha();
+      raiz.innerHTML = carregando('Somando suas horas…');
+      await desenha();
       raiz.scrollIntoView({ block: 'start', behavior: 'smooth' });
     }));
 
-    $('[data-exporta]', raiz)?.addEventListener('click', () => exporta(noMes, r));
+    $('[data-exporta]', raiz)?.addEventListener('click', () => exporta(noMes, r, bonusMes, total));
   }
 
   function linhaDoTurno(t) {
@@ -165,24 +200,35 @@ export async function telaDeNumeros(raiz, ctx) {
       </div>`;
   }
 
-  function exporta(lista, r) {
-    if (!lista.length) { torrada('Não há turnos neste mês para baixar.', 'ruim'); return; }
-    const linhas = [csvLinha(['Data', 'Entrada', 'Saída', 'Empresa', 'Tarefa', 'Horas', 'R$/h', 'Valor'])];
+  function exporta(lista, r, bons, total) {
+    if (!lista.length && !bons.length) {
+      torrada('Não há nada neste mês para baixar.', 'ruim');
+      return;
+    }
+    const linhas = [csvLinha(['Tipo', 'Data', 'Entrada', 'Saída', 'Empresa', 'Título', 'Horas', 'Valor'])];
     for (const t of lista) {
       for (const s of t.segments || []) {
         const h = (new Date(s.ended_at || new Date()) - new Date(s.started_at)) / 3600000;
+        const v = (s.flat_amount != null && s.flat_amount !== '')
+          ? +s.flat_amount
+          : h * (+s.hourly_rate || 0);
         linhas.push(csvLinha([
-          dataBR(s.started_at), hora(s.started_at), s.ended_at ? hora(s.ended_at) : '',
-          t.company_name || '', s.task_name, num(h, 2), num(+s.hourly_rate, 2), num(h * (+s.hourly_rate || 0), 2),
+          'trabalho', dataBR(s.started_at), hora(s.started_at), s.ended_at ? hora(s.ended_at) : '',
+          t.company_name || '', s.task_name, num(h, 2), num(v, 2),
         ]));
       }
     }
+    for (const e of bons) {
+      linhas.push(csvLinha(['bônus', chaveMes(mesRef), '', '', '', e.title, '', num(+e.amount, 2)]));
+    }
     linhas.push('');
-    linhas.push(csvLinha(['TOTAL', '', '', '', num(r.horas, 2), '', num(r.valor, 2)]));
-    baixaArquivo(`s7ponto-${usuario.username}-${diaChave(mesRef).slice(0, 7)}.csv`, linhas.join('\n'));
+    linhas.push(csvLinha(['TOTAL trabalho', '', '', '', '', '', num(r.horas, 2), num(r.valor, 2)]));
+    linhas.push(csvLinha(['TOTAL bônus', '', '', '', '', '', '', num(somaBonus(bons), 2)]));
+    linhas.push(csvLinha(['TOTAL geral', '', '', '', '', '', '', num(total, 2)]));
+    baixaArquivo(`s7ponto-${usuario.username}-${chaveMes(mesRef)}.csv`, linhas.join('\n'));
     torrada('Extrato baixado.', 'bom');
   }
 
-  desenha();
+  await desenha();
   return { destruir() {} };
 }

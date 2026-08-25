@@ -7,13 +7,13 @@ import {
   esc, money, horas, horasCurto, num, iniciais, maiuscula, plural,
   mesAno, nomeMes, dataLonga, dataBR, dataCurta, hora, diaChave,
   inicioDoMes, fimDoMes, somaMeses, paraInputLocal, deInputLocal,
-  baixaArquivo, csvLinha, horasEntre, PERIODOS,
+  baixaArquivo, csvLinha, horasEntre, PERIODOS, chaveMes,
 } from './util.js';
 import {
   $, $$, ICONE, el, abreFolha, confirma, torrada, carregando, vazio, comBotaoOcupado,
 } from './ui.js';
 import { PALETA, graficoTarefas } from './charts.js';
-import { pintaTrechos, agrega, horasDoTurno, valorDoTurno } from './metricas.js';
+import { pintaTrechos, agrega, horasDoTurno, valorDoTurno, somaBonus } from './metricas.js';
 
 const ABAS = [
   { id: 'equipe',     nome: 'Equipe' },
@@ -130,6 +130,7 @@ export async function telaDeAdmin(raiz, ctx) {
           <button class="btn btn-medio" data-empresas>${ICONE.predio}<span>Liberar empresas</span></button>
           <button class="btn btn-medio" data-tarefas>${ICONE.etiqueta}<span>Liberar tarefas</span></button>
           <button class="btn btn-medio" data-pagamento>${ICONE.engrenagem}<span>Como paga</span></button>
+          <button class="btn btn-medio" data-bonus>${ICONE.etiqueta}<span>Bônus</span></button>
           <button class="btn btn-medio" data-edita>${ICONE.lapis}<span>Editar dados</span></button>
           <button class="btn btn-medio" data-senha>${ICONE.engrenagem}<span>Definir nova senha</span></button>
           <button class="btn btn-medio btn-perigo" data-apaga>${ICONE.lixo}<span>Remover do sistema</span></button>
@@ -138,6 +139,7 @@ export async function telaDeAdmin(raiz, ctx) {
         $('[data-empresas]', caixa).addEventListener('click', () => { fechar(); liberaEmpresas(p); });
         $('[data-tarefas]', caixa).addEventListener('click', () => { fechar(); liberaTarefas(p); });
         $('[data-pagamento]', caixa).addEventListener('click', () => { fechar(); editaPagamento(p); });
+        $('[data-bonus]', caixa).addEventListener('click', () => { fechar(); editaBonus(p); });
         $('[data-edita]', caixa).addEventListener('click', () => { fechar(); editaPessoa(p); });
         $('[data-senha]', caixa).addEventListener('click', () => { fechar(); defineSenha(p); });
         $('[data-apaga]', caixa).addEventListener('click', async () => {
@@ -257,6 +259,216 @@ export async function telaDeAdmin(raiz, ctx) {
             torrada('Pagamento salvo.', 'bom');
           } catch (e) { erro.textContent = e.message; erro.hidden = false; }
         });
+      },
+    });
+  }
+
+  async function editaBonus(p) {
+    const ym = chaveMes(mesRef);
+    let templates = [];
+    let entries = [];
+
+    async function carregaBonus() {
+      [templates, entries] = await Promise.all([
+        store.listaTemplatesBonus(p.id),
+        store.listaBonusMes({ userId: p.id, yearMonth: ym }),
+      ]);
+    }
+
+    function corpoBonus() {
+      const soma = somaBonus(entries);
+      return `
+        <p class="campo-dica" style="margin-bottom:14px">
+          Automático repete todo mês. Manual vale só em <strong>${esc(nomeMes(mesRef))}</strong>.
+          O funcionário vê cada item separado e o total junto.
+        </p>
+
+        <h3 style="font-size:15px;margin:0 0 10px">Automáticos (todo mês)</h3>
+        ${templates.length ? `<div class="lista" style="margin-bottom:12px">${templates.map((t) => `
+          <div class="item" data-tpl="${esc(t.id)}" style="gap:10px">
+            <span class="item-corpo" style="min-width:0;flex:1">
+              <span class="item-titulo">${esc(t.title)}
+                ${t.active ? '' : '<span class="ficha ficha-baixa" style="margin-left:6px;padding:2px 8px;font-size:11px">pausado</span>'}
+              </span>
+              <span class="item-sub">${esc(money(t.amount))} · automático</span>
+            </span>
+            <button class="btn btn-pequeno btn-fantasma" data-ed-tpl="${esc(t.id)}">Editar</button>
+            <button class="btn btn-pequeno btn-fantasma" data-rm-tpl="${esc(t.id)}">${ICONE.lixo}</button>
+          </div>`).join('')}</div>`
+          : `<p class="apagado" style="margin:0 0 12px;font-size:14px">Nenhum bônus automático ainda.</p>`}
+        <button class="btn btn-medio btn-largo" data-novo-tpl style="margin-bottom:20px">${ICONE.mais}<span>Novo automático</span></button>
+
+        <h3 style="font-size:15px;margin:0 0 10px">Neste mês · ${esc(nomeMes(mesRef))}</h3>
+        ${entries.length ? `<div class="lista" style="margin-bottom:12px">${entries.map((e) => `
+          <div class="item" style="gap:10px">
+            <span class="item-corpo" style="min-width:0;flex:1">
+              <span class="item-titulo">${esc(e.title)}</span>
+              <span class="item-sub">${esc(money(e.amount))} · ${e.source === 'auto' ? 'auto' : 'manual'}${e.note ? ` · ${esc(e.note)}` : ''}</span>
+            </span>
+            <button class="btn btn-pequeno btn-fantasma" data-ed-ent="${esc(e.id)}">Editar</button>
+            <button class="btn btn-pequeno btn-fantasma" data-rm-ent="${esc(e.id)}">${ICONE.lixo}</button>
+          </div>`).join('')}</div>`
+          : `<p class="apagado" style="margin:0 0 12px;font-size:14px">Nenhum lançamento neste mês.</p>`}
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <span class="apagado" style="font-size:14px">Soma dos bônus</span>
+          <strong class="num">${esc(money(soma))}</strong>
+        </div>
+        <button class="btn btn-primario btn-medio btn-largo" data-novo-ent>${ICONE.mais}<span>Lançar bônus neste mês</span></button>`;
+    }
+
+    function formBonus({ tituloFolha, sub, title = '', amount = '', note = '', mostraNota = false, active = null, aoSalvar }) {
+      abreFolha({
+        titulo: tituloFolha,
+        sub,
+        corpo: `
+          <label class="campo"><span class="campo-rotulo">Título</span>
+            <input class="entrada" id="b-titulo" value="${esc(title)}" placeholder="ex.: Comissão, Bônus noite"></label>
+          <label class="campo"><span class="campo-rotulo">Valor (R$)</span>
+            <input class="entrada" type="number" min="0" step="0.01" id="b-valor" value="${esc(amount)}" placeholder="ex.: 200"></label>
+          ${mostraNota ? `
+            <label class="campo"><span class="campo-rotulo">Nota (opcional)</span>
+              <input class="entrada" id="b-nota" value="${esc(note || '')}" placeholder="ex.: meta batida"></label>` : ''}
+          ${active !== null ? `
+            <label class="chave" style="margin-bottom:16px">
+              <input type="checkbox" id="b-ativo" ${active ? 'checked' : ''}>
+              <span class="chave-pista"></span>
+              <span>Ativo — gera todo mês</span>
+            </label>` : ''}
+          <p class="campo-erro" id="b-erro" hidden></p>
+          <button class="btn btn-primario btn-medio btn-largo" id="b-salva">Salvar</button>`,
+        aoMontar: (caixa, fechar) => {
+          const erro = $('#b-erro', caixa);
+          $('#b-salva', caixa).addEventListener('click', async (ev) => {
+            erro.hidden = true;
+            const tit = $('#b-titulo', caixa).value.trim();
+            const val = $('#b-valor', caixa).value;
+            if (!tit) { erro.textContent = 'Escreva o título.'; erro.hidden = false; return; }
+            try {
+              await comBotaoOcupado(ev.currentTarget, 'Salvando…', () => aoSalvar({
+                title: tit,
+                amount: val === '' ? 0 : +val,
+                note: mostraNota ? ($('#b-nota', caixa)?.value || null) : undefined,
+                active: active !== null ? !!$('#b-ativo', caixa)?.checked : undefined,
+              }));
+              fechar();
+            } catch (e) { erro.textContent = e.message; erro.hidden = false; }
+          });
+        },
+      });
+    }
+
+    await carregaBonus();
+    abreFolha({
+      titulo: `Bônus · ${p.full_name.split(' ')[0]}`,
+      sub: 'Título e valor — automático ou só neste mês.',
+      corpo: `<div id="bonus-corpo">${corpoBonus()}</div>`,
+      aoMontar: (caixa) => {
+        const corpo = $('#bonus-corpo', caixa);
+
+        async function redesenha() {
+          await carregaBonus();
+          corpo.innerHTML = corpoBonus();
+          liga();
+        }
+
+        function liga() {
+          $('[data-novo-tpl]', corpo)?.addEventListener('click', () => {
+            formBonus({
+              tituloFolha: 'Novo bônus automático',
+              sub: 'Vai aparecer todo mês enquanto estiver ativo.',
+              aoSalvar: async ({ title, amount }) => {
+                await store.criaTemplateBonus({
+                  user_id: p.id, title, amount, active: true,
+                  sort_order: templates.length,
+                });
+                torrada('Automático criado.', 'bom');
+                await redesenha();
+              },
+            });
+          });
+
+          corpo.querySelectorAll('[data-ed-tpl]').forEach((b) => {
+            b.addEventListener('click', () => {
+              const t = templates.find((x) => x.id === b.dataset.edTpl);
+              if (!t) return;
+              formBonus({
+                tituloFolha: 'Editar automático',
+                sub: 'Desligue “Ativo” para pausar nos próximos meses.',
+                title: t.title, amount: t.amount, active: t.active,
+                aoSalvar: async ({ title, amount, active }) => {
+                  await store.atualizaTemplateBonus(t.id, { title, amount, active });
+                  torrada('Automático atualizado.', 'bom');
+                  await redesenha();
+                },
+              });
+            });
+          });
+
+          corpo.querySelectorAll('[data-rm-tpl]').forEach((b) => {
+            b.addEventListener('click', async () => {
+              const t = templates.find((x) => x.id === b.dataset.rmTpl);
+              if (!t) return;
+              if (!await confirma({
+                titulo: `Remover “${t.title}”?`,
+                texto: 'Para de gerar nos próximos meses. Lançamentos já feitos neste mês continuam até você apagar.',
+                ok: 'Remover', perigo: true,
+              })) return;
+              await store.apagaTemplateBonus(t.id);
+              torrada('Automático removido.', 'bom');
+              await redesenha();
+            });
+          });
+
+          $('[data-novo-ent]', corpo)?.addEventListener('click', () => {
+            formBonus({
+              tituloFolha: 'Lançar bônus neste mês',
+              sub: `Só em ${nomeMes(mesRef)}.`,
+              mostraNota: true,
+              aoSalvar: async ({ title, amount, note }) => {
+                await store.lancaBonus({
+                  user_id: p.id, year_month: ym, title, amount, note,
+                });
+                torrada('Bônus lançado.', 'bom');
+                await redesenha();
+              },
+            });
+          });
+
+          corpo.querySelectorAll('[data-ed-ent]').forEach((b) => {
+            b.addEventListener('click', () => {
+              const e = entries.find((x) => x.id === b.dataset.edEnt);
+              if (!e) return;
+              formBonus({
+                tituloFolha: 'Editar lançamento',
+                sub: e.source === 'auto' ? 'Veio do automático — ajuste só neste mês.' : 'Lançamento manual.',
+                title: e.title, amount: e.amount, note: e.note, mostraNota: true,
+                aoSalvar: async ({ title, amount, note }) => {
+                  await store.atualizaBonus(e.id, { title, amount, note });
+                  torrada('Lançamento atualizado.', 'bom');
+                  await redesenha();
+                },
+              });
+            });
+          });
+
+          corpo.querySelectorAll('[data-rm-ent]').forEach((b) => {
+            b.addEventListener('click', async () => {
+              const e = entries.find((x) => x.id === b.dataset.rmEnt);
+              if (!e) return;
+              if (!await confirma({
+                titulo: `Apagar “${e.title}” deste mês?`,
+                texto: e.source === 'auto'
+                  ? 'Some só deste mês. No próximo o automático pode gerar de novo.'
+                  : 'Some só deste mês.',
+                ok: 'Apagar', perigo: true,
+              })) return;
+              await store.apagaBonus(e.id);
+              torrada('Lançamento apagado.', 'bom');
+              await redesenha();
+            });
+          });
+        }
+        liga();
       },
     });
   }
@@ -800,19 +1012,34 @@ export async function telaDeAdmin(raiz, ctx) {
 
   async function abaRelatorios(alvo) {
     alvo.innerHTML = carregando('Fechando as contas…');
-    const turnos = pintaTrechos(await store.listaTurnos({
-      de: inicioDoMes(mesRef), ate: fimDoMes(mesRef),
-    }), tarefas);
+    const ym = chaveMes(mesRef);
+    const [turnosBrutos, bonusMes] = await Promise.all([
+      store.listaTurnos({ de: inicioDoMes(mesRef), ate: fimDoMes(mesRef) }),
+      store.listaBonusMes({ yearMonth: ym }),
+    ]);
+    const turnos = pintaTrechos(turnosBrutos, tarefas);
     const geral = agrega(turnos);
+    const bonusPorPessoa = new Map();
+    for (const e of bonusMes) {
+      if (!bonusPorPessoa.has(e.user_id)) bonusPorPessoa.set(e.user_id, []);
+      bonusPorPessoa.get(e.user_id).push(e);
+    }
+    const totalBonus = somaBonus(bonusMes);
 
     const linhas = pessoas.map((p) => {
       const r = geral.porPessoa.get(p.id) || { horas: 0, valor: 0, turnos: 0 };
+      const bons = bonusPorPessoa.get(p.id) || [];
+      const bonus = somaBonus(bons);
       const dias = new Set(turnos.filter((t) => t.user_id === p.id).map((t) => diaChave(t.started_at))).size;
-      return { p, ...r, dias, media: dias ? r.horas / dias : 0 };
-    }).filter((l) => l.horas > 0 || l.p.active)
-      .sort((a, b) => b.valor - a.valor);
+      return {
+        p, ...r, dias, media: dias ? r.horas / dias : 0,
+        bonus, total: (+r.valor || 0) + bonus, bons,
+      };
+    }).filter((l) => l.horas > 0 || l.bonus > 0 || l.p.active)
+      .sort((a, b) => b.total - a.total);
 
-    const maiorValor = Math.max(...linhas.map((l) => l.valor), 1);
+    const custoTotal = geral.valor + totalBonus;
+    const maiorValor = Math.max(...linhas.map((l) => l.total), 1);
 
     alvo.innerHTML = `
       ${barraDeFiltro({ semPessoa: true })}
@@ -820,11 +1047,12 @@ export async function telaDeAdmin(raiz, ctx) {
       <section class="cartao">
         <div class="heroi">
           <p class="heroi-rotulo">Custo de mão de obra em ${esc(nomeMes(mesRef))}</p>
-          <p class="heroi-valor">${esc(money(geral.valor))}</p>
+          <p class="heroi-valor">${esc(money(custoTotal))}</p>
           <div class="heroi-nota">
+            <span class="ficha ficha-neutra">trabalho ${esc(money(geral.valor))}</span>
+            <span class="ficha ficha-neutra">bônus ${esc(money(totalBonus))}</span>
             <span class="ficha ficha-neutra">${esc(horas(geral.horas))}</span>
-            <span class="ficha ficha-neutra">${esc(plural(geral.turnos, 'turno', 'turnos'))}</span>
-            <span class="ficha ficha-neutra">${esc(plural(linhas.filter((l) => l.horas > 0).length, 'pessoa', 'pessoas'))}</span>
+            <span class="ficha ficha-neutra">${esc(plural(linhas.filter((l) => l.horas > 0 || l.bonus > 0).length, 'pessoa', 'pessoas'))}</span>
           </div>
         </div>
       </section>
@@ -839,14 +1067,18 @@ export async function telaDeAdmin(raiz, ctx) {
             <div style="display:flex;align-items:center;gap:12px">
               <span class="avatar" style="width:38px;height:38px;font-size:12px;flex:none">${esc(iniciais(l.p.full_name))}</span>
               <span class="item-titulo" style="flex:1;min-width:0">${esc(l.p.full_name)}</span>
-              <span class="num" style="font-weight:600;font-size:17px;flex:none">${esc(money(l.valor))}</span>
+              <span class="num" style="font-weight:600;font-size:17px;flex:none">${esc(money(l.total))}</span>
             </div>
-            <div class="item-sub" style="margin:0">${l.horas
-              ? `${esc(horas(l.horas))} · ${esc(plural(l.dias, 'dia', 'dias'))} · média de ${esc(horas(l.media))} por dia`
-              : 'sem registro neste mês'}</div>
-            ${l.valor ? `
+            <div class="item-sub" style="margin:0">${[
+              l.horas ? `${esc(horas(l.horas))} · trabalho ${esc(money(l.valor))}` : 'sem trabalho neste mês',
+              l.bonus ? `bônus ${esc(money(l.bonus))}` : null,
+            ].filter(Boolean).join(' · ')}</div>
+            ${l.bons.length ? `
+              <div class="apagado" style="font-size:12px">${l.bons.map((e) =>
+                `${esc(e.title)} ${esc(money(e.amount))}`).join(' · ')}</div>` : ''}
+            ${l.total ? `
               <div style="height:8px;border-radius:5px;background:rgba(255,255,255,.05);overflow:hidden">
-                <div style="height:100%;border-radius:5px;background:${PALETA[0]};width:${(l.valor / maiorValor) * 100}%"></div>
+                <div style="height:100%;border-radius:5px;background:${PALETA[0]};width:${(l.total / maiorValor) * 100}%"></div>
               </div>` : ''}
           </div>`).join('')}</div>`
           : vazio({ emoji: '📊', titulo: 'Nada registrado neste mês' })}
@@ -863,14 +1095,15 @@ export async function telaDeAdmin(raiz, ctx) {
 
     $('#r-csv', alvo).addEventListener('click', () => {
       if (!linhas.length) { torrada('Nada para baixar neste mês.', 'ruim'); return; }
-      const csv = [csvLinha(['Pessoa', 'Usuário', 'Turnos', 'Dias', 'Horas', 'Média h/dia', 'Total R$'])];
+      const csv = [csvLinha(['Pessoa', 'Usuário', 'Turnos', 'Dias', 'Horas', 'Trabalho R$', 'Bônus R$', 'Total R$'])];
       linhas.forEach((l) => csv.push(csvLinha([
         l.p.full_name, l.p.username, l.turnos, l.dias,
-        num(l.horas, 2), num(l.media, 2), num(l.valor, 2),
+        num(l.horas, 2), num(l.valor, 2), num(l.bonus, 2), num(l.total, 2),
       ])));
       csv.push('');
-      csv.push(csvLinha(['TOTAL', '', geral.turnos, '', num(geral.horas, 2), '', num(geral.valor, 2)]));
-      baixaArquivo(`s7ponto-relatorio-${diaChave(mesRef).slice(0, 7)}.csv`, csv.join('\n'));
+      csv.push(csvLinha(['TOTAL', '', geral.turnos, '', num(geral.horas, 2),
+        num(geral.valor, 2), num(totalBonus, 2), num(custoTotal, 2)]));
+      baixaArquivo(`s7ponto-relatorio-${ym}.csv`, csv.join('\n'));
       torrada('Relatório baixado.', 'bom');
     });
   }

@@ -94,7 +94,7 @@ function semear() {
   }
   return {
     profiles, tasks, companies, assignments, companyAssignments, shifts, segments,
-    taskRates: [], shiftRates: [],
+    taskRates: [], shiftRates: [], bonusTemplates: [], bonusEntries: [],
     senhas: { admin: '1234', maria: '1234', joao: '1234' },
   };
 }
@@ -110,6 +110,8 @@ function ler() {
       if (!Array.isArray(db.companyAssignments)) db.companyAssignments = [];
       if (!Array.isArray(db.taskRates)) db.taskRates = [];
       if (!Array.isArray(db.shiftRates)) db.shiftRates = [];
+      if (!Array.isArray(db.bonusTemplates)) db.bonusTemplates = [];
+      if (!Array.isArray(db.bonusEntries)) db.bonusEntries = [];
       db.profiles.forEach((p) => { if (!p.pay_mode) p.pay_mode = 'hourly'; });
       return db;
     }
@@ -280,6 +282,105 @@ export function criaStoreDemo() {
         .concat((ratesTurno || []).filter((r) => r.period).map((r) => ({
           id: uid(), user_id: userId, period: r.period, amount: +r.amount || 0,
         })));
+      salva();
+      return espera(true);
+    },
+
+    async listaTemplatesBonus(userId = null) {
+      carrega();
+      if (!db.bonusTemplates) db.bonusTemplates = [];
+      const todas = db.bonusTemplates.map((r) => ({ ...r }))
+        .sort((a, b) => (a.sort_order - b.sort_order) || String(a.created_at).localeCompare(String(b.created_at)));
+      return espera(userId ? todas.filter((r) => r.user_id === userId) : todas);
+    },
+    async criaTemplateBonus({ user_id, title, amount, active = true, sort_order = 0 }) {
+      exigeAdmin(); carrega();
+      const titulo = String(title || '').trim();
+      if (!titulo) throw new Error('Dê um título ao bônus.');
+      if (!db.bonusTemplates) db.bonusTemplates = [];
+      const novo = {
+        id: uid(), user_id, title: titulo, amount: +amount || 0,
+        active: !!active, sort_order: +sort_order || 0, created_at: new Date().toISOString(),
+      };
+      db.bonusTemplates.push(novo);
+      salva();
+      return espera({ ...novo });
+    },
+    async atualizaTemplateBonus(id, patch) {
+      exigeAdmin(); carrega();
+      const t = db.bonusTemplates.find((x) => x.id === id);
+      if (!t) throw new Error('Bônus automático não encontrado.');
+      if (patch.title != null) t.title = String(patch.title).trim();
+      if (patch.amount != null) t.amount = +patch.amount || 0;
+      if (patch.active != null) t.active = !!patch.active;
+      if (patch.sort_order != null) t.sort_order = +patch.sort_order || 0;
+      salva();
+      return espera({ ...t });
+    },
+    async apagaTemplateBonus(id) {
+      exigeAdmin(); carrega();
+      db.bonusTemplates = (db.bonusTemplates || []).filter((x) => x.id !== id);
+      salva();
+      return espera(true);
+    },
+    async listaBonusMes({ userId = null, yearMonth }) {
+      carrega();
+      if (!yearMonth || !/^\d{4}-\d{2}$/.test(yearMonth)) {
+        throw new Error('Mês inválido: use AAAA-MM.');
+      }
+      if (!db.bonusTemplates) db.bonusTemplates = [];
+      if (!db.bonusEntries) db.bonusEntries = [];
+      const alvos = userId
+        ? [userId]
+        : [...new Set(db.bonusTemplates.filter((t) => t.active).map((t) => t.user_id))];
+      for (const uidP of alvos) {
+        for (const t of db.bonusTemplates.filter((x) => x.user_id === uidP && x.active)) {
+          const ja = db.bonusEntries.some((e) =>
+            e.user_id === uidP && e.year_month === yearMonth && e.template_id === t.id);
+          if (!ja) {
+            db.bonusEntries.push({
+              id: uid(), user_id: uidP, year_month: yearMonth,
+              title: t.title, amount: +t.amount || 0, source: 'auto',
+              template_id: t.id, note: null, created_at: new Date().toISOString(),
+            });
+          }
+        }
+      }
+      salva();
+      let lista = db.bonusEntries.filter((e) => e.year_month === yearMonth);
+      if (userId) lista = lista.filter((e) => e.user_id === userId);
+      return espera(lista.map((e) => ({ ...e })));
+    },
+    async lancaBonus({ user_id, year_month, title, amount, note = null }) {
+      exigeAdmin(); carrega();
+      const titulo = String(title || '').trim();
+      if (!titulo) throw new Error('Dê um título ao bônus.');
+      if (!year_month || !/^\d{4}-\d{2}$/.test(year_month)) {
+        throw new Error('Mês inválido: use AAAA-MM.');
+      }
+      if (!db.bonusEntries) db.bonusEntries = [];
+      const novo = {
+        id: uid(), user_id, year_month, title: titulo, amount: +amount || 0,
+        source: 'manual', template_id: null, note: note || null,
+        created_at: new Date().toISOString(),
+      };
+      db.bonusEntries.push(novo);
+      salva();
+      return espera({ ...novo });
+    },
+    async atualizaBonus(id, patch) {
+      exigeAdmin(); carrega();
+      const e = (db.bonusEntries || []).find((x) => x.id === id);
+      if (!e) throw new Error('Bônus não encontrado.');
+      if (patch.title != null) e.title = String(patch.title).trim();
+      if (patch.amount != null) e.amount = +patch.amount || 0;
+      if (patch.note != null) e.note = patch.note;
+      salva();
+      return espera({ ...e });
+    },
+    async apagaBonus(id) {
+      exigeAdmin(); carrega();
+      db.bonusEntries = (db.bonusEntries || []).filter((x) => x.id !== id);
       salva();
       return espera(true);
     },

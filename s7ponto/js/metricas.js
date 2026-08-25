@@ -27,6 +27,14 @@ export const valorDoTurno = (turno, agora = new Date()) => {
   return (turno.segments || []).reduce((s, t) => s + valorDoTrecho(t, agora), 0);
 };
 
+/** Soma dos bônus de um mês (lista de entries). */
+export const somaBonus = (entries = []) =>
+  (entries || []).reduce((s, e) => s + (+e.amount || 0), 0);
+
+/** Total a receber = trabalho do mês + bônus. */
+export const totalComBonus = (valorTrabalho, entries = []) =>
+  (+valorTrabalho || 0) + somaBonus(entries);
+
 /* ==========================================================================
    Agregação de um conjunto de turnos
    ========================================================================== */

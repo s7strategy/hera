@@ -83,6 +83,13 @@ const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
 export const nomeMes      = (d) => MESES[new Date(d).getMonth()];
 export const mesAno       = (d) => `${nomeMes(d)} de ${new Date(d).getFullYear()}`;
 export const mesAnoCurto  = (d) => `${nomeMes(d).slice(0, 3)}/${String(new Date(d).getFullYear()).slice(2)}`;
+/** Chave AAAA-MM a partir de uma data (ou string já no formato). */
+export const chaveMes = (d) => {
+  if (typeof d === 'string' && /^\d{4}-\d{2}$/.test(d)) return d;
+  const x = new Date(d);
+  const m = String(x.getMonth() + 1).padStart(2, '0');
+  return `${x.getFullYear()}-${m}`;
+};
 
 const DIAS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
 export const nomeDia    = (d) => DIAS[new Date(d).getDay()];

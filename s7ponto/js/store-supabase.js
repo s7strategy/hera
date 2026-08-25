@@ -173,6 +173,80 @@ export async function criaStoreSupabase() {
       return true;
     },
 
+    /* ---- bônus mensais ---- */
+    async listaTemplatesBonus(userId = null) {
+      let q = sb.from('bonus_templates').select('*').order('sort_order').order('created_at');
+      if (userId) q = q.eq('user_id', userId);
+      return ok(await q);
+    },
+    async criaTemplateBonus({ user_id, title, amount, active = true, sort_order = 0 }) {
+      exigeAdmin();
+      const titulo = String(title || '').trim();
+      if (!titulo) throw new Error('Dê um título ao bônus.');
+      return ok(await sb.from('bonus_templates').insert({
+        user_id, title: titulo, amount: +amount || 0, active: !!active, sort_order: +sort_order || 0,
+      }).select().single());
+    },
+    async atualizaTemplateBonus(id, patch) {
+      exigeAdmin();
+      const p = { ...patch };
+      if (p.title != null) p.title = String(p.title).trim();
+      if (p.amount != null) p.amount = +p.amount || 0;
+      return ok(await sb.from('bonus_templates').update(p).eq('id', id).select().single());
+    },
+    async apagaTemplateBonus(id) {
+      exigeAdmin();
+      ok(await sb.from('bonus_templates').delete().eq('id', id));
+      return true;
+    },
+    /**
+     * Lista bônus do mês. Garante entries dos templates ativos (idempotente).
+     * @param {{ userId?: string, yearMonth: string }} opts
+     */
+    async listaBonusMes({ userId = null, yearMonth }) {
+      if (!yearMonth || !/^\d{4}-\d{2}$/.test(yearMonth)) {
+        throw new Error('Mês inválido: use AAAA-MM.');
+      }
+      if (userId) {
+        ok(await sb.rpc('garante_bonus_mes', { p_user: userId, p_year_month: yearMonth }));
+      } else {
+        // admin pedindo o mês inteiro: garante para todas as pessoas com template ativo
+        const templates = ok(await sb.from('bonus_templates').select('user_id').eq('active', true));
+        const ids = [...new Set(templates.map((t) => t.user_id))];
+        for (const uid of ids) {
+          ok(await sb.rpc('garante_bonus_mes', { p_user: uid, p_year_month: yearMonth }));
+        }
+      }
+      let q = sb.from('bonus_entries').select('*').eq('year_month', yearMonth)
+        .order('created_at');
+      if (userId) q = q.eq('user_id', userId);
+      return ok(await q);
+    },
+    async lancaBonus({ user_id, year_month, title, amount, note = null }) {
+      exigeAdmin();
+      const titulo = String(title || '').trim();
+      if (!titulo) throw new Error('Dê um título ao bônus.');
+      if (!year_month || !/^\d{4}-\d{2}$/.test(year_month)) {
+        throw new Error('Mês inválido: use AAAA-MM.');
+      }
+      return ok(await sb.from('bonus_entries').insert({
+        user_id, year_month, title: titulo, amount: +amount || 0,
+        source: 'manual', note: note || null,
+      }).select().single());
+    },
+    async atualizaBonus(id, patch) {
+      exigeAdmin();
+      const p = { ...patch };
+      if (p.title != null) p.title = String(p.title).trim();
+      if (p.amount != null) p.amount = +p.amount || 0;
+      return ok(await sb.from('bonus_entries').update(p).eq('id', id).select().single());
+    },
+    async apagaBonus(id) {
+      exigeAdmin();
+      ok(await sb.from('bonus_entries').delete().eq('id', id));
+      return true;
+    },
+
     /* ---- equipe ---- */
     async listaPessoas() {
       exigeAdmin();
