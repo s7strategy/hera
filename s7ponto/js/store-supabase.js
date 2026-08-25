@@ -586,5 +586,36 @@ export async function criaStoreSupabase() {
       ok(await sb.from('shifts').delete().eq('id', shiftId));
       return true;
     },
+
+    async avisaHoraExtra({
+      userId, shiftId, yearMonth, hoursExtra, hoursWorked, hoursExpected, authorized = false,
+    }) {
+      const uid = userId || usuario?.id;
+      if (!uid || !shiftId) throw new Error('Falta o turno para avisar a hora extra.');
+      const row = {
+        user_id: uid,
+        shift_id: shiftId,
+        year_month: yearMonth,
+        hours_extra: +hoursExtra || 0,
+        hours_worked: +hoursWorked || 0,
+        hours_expected: +hoursExpected || 0,
+        notified_at: new Date().toISOString(),
+      };
+      if (authorized) {
+        return ok(await sb.from('overtime_notices')
+          .upsert({ ...row, authorized: true }, { onConflict: 'shift_id' })
+          .select().single());
+      }
+      return ok(await sb.from('overtime_notices')
+        .upsert({ ...row, authorized: false }, { onConflict: 'shift_id', ignoreDuplicates: true })
+        .select().maybeSingle());
+    },
+
+    async listaAvisosHoraExtra({ userId = null, yearMonth = null } = {}) {
+      let q = sb.from('overtime_notices').select('*').order('notified_at', { ascending: false });
+      if (userId) q = q.eq('user_id', userId);
+      if (yearMonth) q = q.eq('year_month', yearMonth);
+      return ok(await q);
+    },
   };
 }

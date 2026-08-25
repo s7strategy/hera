@@ -16,6 +16,7 @@ import {
   agrupaBonus, comparaSaldo,
 } from './metricas.js';
 import { htmlRecibo, htmlPizzas, pintaPizzas, htmlDetalheBonus } from './extrato.js';
+import { extraDoPeriodo, htmlRecadoExtraPessoa } from './hora-extra.js';
 
 export async function telaDeNumeros(raiz, ctx) {
   const { usuario } = ctx;
@@ -79,6 +80,7 @@ export async function telaDeNumeros(raiz, ctx) {
     });
     const taxaTrabalho = r.horas > 0.001 ? r.valor / r.horas : 0;
     const taxaGeral = r.horas > 0.001 ? total / r.horas : 0;
+    const bancoExtra = extraDoPeriodo(noMes);
 
     const ehMesCorrente = chaveMes(mesRef) === chaveMes(new Date());
     const cmp = comparaSaldo(turnos, bonusTodos, mesRef);
@@ -118,6 +120,7 @@ export async function telaDeNumeros(raiz, ctx) {
           <p class="heroi-valor saldo">${esc(money(total))}</p>
           <div class="heroi-nota">
             <span class="ficha ficha-neutra">${esc(horas(r.horas))} trabalhadas</span>
+            ${htmlRecadoExtraPessoa(bancoExtra, { compacto: true })}
             ${fichaVar}
           </div>
           ${cmp.parcial ? `<p class="apagado" style="font-size:12.5px;margin-top:10px">Comparado até o dia ${esc(String(cmp.diaLimite))} (ontem), com bônus e extras — o dia de hoje fica de fora enquanto puder estar em aberto.</p>` : ''}
@@ -125,6 +128,8 @@ export async function telaDeNumeros(raiz, ctx) {
         ${htmlRecibo({ horasMes: r.horas, trabalho: r.valor, grupos, total, pago })}
         ${htmlDetalheBonus(bonusMes)}
       </section>
+
+      ${htmlRecadoExtraPessoa(bancoExtra, { nomeMes: nomeMes(mesRef) })}
 
       <section class="grade-metricas" style="margin-top:16px">
         <div class="metrica">

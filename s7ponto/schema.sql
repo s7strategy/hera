@@ -231,6 +231,28 @@ create table if not exists s7ponto.sheet_month_totals (
 comment on table s7ponto.sheet_month_totals is
   'Total do mês na planilha (trabalho + extras). Conferência app × planilha.';
 
+-- Avisos de hora extra enviados do ponto ao gestor (um por turno)
+create table if not exists s7ponto.overtime_notices (
+  id              uuid primary key default gen_random_uuid(),
+  user_id         uuid not null references s7ponto.profiles (id) on delete cascade,
+  shift_id        uuid not null references s7ponto.shifts (id) on delete cascade,
+  year_month      text not null check (year_month ~ '^\d{4}-\d{2}$'),
+  hours_extra     numeric(8,4) not null default 0,
+  hours_worked    numeric(8,4) not null default 0,
+  hours_expected  numeric(8,4) not null default 0,
+  authorized      boolean not null default false,
+  notified_at     timestamptz not null default now(),
+  created_at      timestamptz not null default now(),
+  unique (shift_id)
+);
+comment on table s7ponto.overtime_notices is
+  'Aviso de hora extra enviado do ponto ao gestor. authorized = confirmou no fechamento.';
+
+create index if not exists overtime_notices_por_pessoa_mes
+  on s7ponto.overtime_notices (user_id, year_month);
+create index if not exists overtime_notices_por_mes
+  on s7ponto.overtime_notices (year_month, notified_at desc);
+
 -- Regra de ouro: no máximo UM turno aberto por pessoa,
 -- e no máximo UM trecho aberto por turno. Garantido pelo banco.
 create unique index if not exists shifts_um_aberto_por_pessoa
@@ -310,6 +332,7 @@ alter table s7ponto.payments             enable row level security;
 alter table s7ponto.sheet_month_totals   enable row level security;
 alter table s7ponto.shifts               enable row level security;
 alter table s7ponto.segments             enable row level security;
+alter table s7ponto.overtime_notices     enable row level security;
 
 -- profiles
 drop policy if exists profiles_leitura on s7ponto.profiles;
@@ -397,6 +420,27 @@ create policy sheet_totals_leitura on s7ponto.sheet_month_totals for select to a
 drop policy if exists sheet_totals_escrita_admin on s7ponto.sheet_month_totals;
 create policy sheet_totals_escrita_admin on s7ponto.sheet_month_totals for all to authenticated
   using (s7ponto.is_admin()) with check (s7ponto.is_admin());
+
+-- hora extra: a pessoa registra o próprio aviso; admin lê tudo
+drop policy if exists overtime_leitura on s7ponto.overtime_notices;
+create policy overtime_leitura on s7ponto.overtime_notices for select to authenticated
+  using (user_id = auth.uid() or s7ponto.is_admin());
+
+drop policy if exists overtime_insercao on s7ponto.overtime_notices;
+create policy overtime_insercao on s7ponto.overtime_notices for insert to authenticated
+  with check (
+    (user_id = auth.uid() and s7ponto.owns_shift(shift_id))
+    or s7ponto.is_admin()
+  );
+
+drop policy if exists overtime_atualizacao on s7ponto.overtime_notices;
+create policy overtime_atualizacao on s7ponto.overtime_notices for update to authenticated
+  using (user_id = auth.uid() or s7ponto.is_admin())
+  with check (user_id = auth.uid() or s7ponto.is_admin());
+
+drop policy if exists overtime_exclusao_admin on s7ponto.overtime_notices;
+create policy overtime_exclusao_admin on s7ponto.overtime_notices for delete to authenticated
+  using (s7ponto.is_admin());
 
 -- shifts: a pessoa bate o próprio ponto; admin corrige o de qualquer um.
 drop policy if exists shifts_leitura on s7ponto.shifts;

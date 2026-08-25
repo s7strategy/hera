@@ -11,7 +11,7 @@ import { CONFIG } from './config.js';
 import { store } from './store.js';
 import {
   esc, saudacao, dataLonga, hora, cronometro, horas, money, plural, maiuscula,
-  paraInputLocal, deInputLocal, somaDias, horasEntre,
+  paraInputLocal, deInputLocal, somaDias, horasEntre, chaveMes,
   PERIODOS, nomePeriodo,
 } from './util.js';
 import { $, ICONE, abreFolha, confirma, torrada, comBotaoOcupado, carregando } from './ui.js';
@@ -20,6 +20,9 @@ import {
   pintaTrechos, horasDoTurno, valorDoTurno, resumoDoDia, resumoDaSemana,
   serieDaSemana, agrega,
 } from './metricas.js';
+import {
+  extraDoPeriodo, htmlAlertaLiberdade, TEXTO_AVISO_GESTOR,
+} from './hora-extra.js';
 
 export async function telaDePonto(raiz, ctx) {
   const { usuario } = ctx;
@@ -32,6 +35,7 @@ export async function telaDePonto(raiz, ctx) {
   let recentes = [];
   let tique = null;
   let lembrete = null;
+  let avisoDoTurno = null;
 
   raiz.innerHTML = carregando('Buscando seu ponto…');
 
@@ -55,6 +59,43 @@ export async function telaDePonto(raiz, ctx) {
   }
 
   const trechoAtual = () => turno?.segments?.find((s) => !s.ended_at) || null;
+
+  function turnoComSaida(quando) {
+    const iso = new Date(quando).toISOString();
+    return {
+      ...turno,
+      ended_at: iso,
+      segments: (turno.segments || []).map((s) => ({
+        ...s,
+        ended_at: s.ended_at || iso,
+      })),
+    };
+  }
+
+  function bancoDoMes(turnoRef = turno, agora = new Date()) {
+    const mes = chaveMes(turnoRef?.started_at || agora);
+    const lista = recentes.filter((t) => t.id !== turnoRef?.id && chaveMes(t.started_at) === mes);
+    if (turnoRef) lista.push(turnoRef);
+    return extraDoPeriodo(lista, agora);
+  }
+
+  function disparaAviso(banco, { authorized = false, turnoRef = turno } = {}) {
+    if (!turnoRef || !banco?.temExtra) return;
+    const ja = avisoDoTurno === turnoRef.id && !authorized;
+    if (ja) return;
+    avisoDoTurno = turnoRef.id;
+    store.avisaHoraExtra({
+      userId: usuario.id,
+      shiftId: turnoRef.id,
+      yearMonth: chaveMes(turnoRef.started_at),
+      hoursExtra: banco.extra,
+      hoursWorked: banco.trabalhado,
+      hoursExpected: banco.previsto,
+      authorized,
+    }).catch(() => {
+      if (!authorized) avisoDoTurno = null;
+    });
+  }
 
   function precoTarefa(t) {
     const tr = taxasTarefa.find((r) => r.task_id === t.id);
@@ -210,16 +251,27 @@ export async function telaDePonto(raiz, ctx) {
     const h = horasDoTurno(turno);
     const v = valorDoTurno(turno);
     const quantas = new Set((turno.segments || []).map((s) => s.task_name)).size;
-    const certeza = await confirma({
-      titulo: 'Fechar o turno agora?',
-      texto: `Você trabalhou ${horas(h)} em ${plural(quantas, 'tarefa', 'tarefas')} — ${money(v)}.`,
-      ok: 'Sim, fechar turno',
-      cancelar: 'Ainda não',
-    });
+    const banco = bancoDoMes(turno);
+    const certeza = banco.temExtra
+      ? await confirma({
+        titulo: 'Atenção: hora extra',
+        texto: `${TEXTO_AVISO_GESTOR} No mês, depois de compensar os dias mais curtos, já são ${horas(banco.extra)} a mais.`,
+        ok: 'Sim, fechar mesmo assim',
+        cancelar: 'Ainda não',
+        perigo: true,
+      })
+      : await confirma({
+        titulo: 'Fechar o turno agora?',
+        texto: `Você trabalhou ${horas(h)} em ${plural(quantas, 'tarefa', 'tarefas')} — ${money(v)}.`,
+        ok: 'Sim, fechar turno',
+        cancelar: 'Ainda não',
+      });
     if (!certeza) return;
+    if (banco.temExtra) disparaAviso(banco, { authorized: true });
     try {
       await store.fechaTurno(turno.id);
       const resumo = { h, v, quantas };
+      avisoDoTurno = null;
       await buscar(); desenha();
       festeja(resumo);
     } catch (e) { torrada(e.message, 'ruim', 6); }
@@ -268,10 +320,24 @@ export async function telaDePonto(raiz, ctx) {
             torrada('A saída precisa ser depois da entrada.', 'ruim');
             return;
           }
+          const hipotetico = turnoComSaida(quando);
+          const banco = bancoDoMes(hipotetico, quando);
+          if (banco.temExtra) {
+            const okExtra = await confirma({
+              titulo: 'Atenção: hora extra',
+              texto: `${TEXTO_AVISO_GESTOR} Com esta saída, no mês já são ${horas(banco.extra)} a mais (já compensando os dias mais curtos).`,
+              ok: 'Sim, fechar mesmo assim',
+              cancelar: 'Voltar',
+              perigo: true,
+            });
+            if (!okExtra) return;
+            disparaAviso(banco, { authorized: true, turnoRef: hipotetico });
+          }
           try {
             await comBotaoOcupado(ev.currentTarget, 'Fechando…',
               () => store.fechaTurno(turno.id, quando));
             fechar('ok');
+            avisoDoTurno = null;
             await buscar(); desenha();
             torrada('Turno corrigido e fechado.', 'bom');
           } catch (e) { torrada(e.message, 'ruim', 6); }
@@ -407,6 +473,8 @@ export async function telaDePonto(raiz, ctx) {
         </div>
       </section>
 
+      ${htmlAlertaLiberdade()}
+
       ${esquecido ? `
         <button class="recado ruim" id="btn-esquecido" style="margin-top:16px;width:100%;text-align:left">
           <span class="recado-emoji">⏰</span>
@@ -453,6 +521,14 @@ export async function telaDePonto(raiz, ctx) {
       rel.textContent = cronometro(Date.now() - new Date(turno.started_at).getTime());
       const g = $('#ganho-turno', raiz);
       if (g) g.textContent = money(valorDoTurno(turno));
+      const banco = bancoDoMes(turno);
+      const caixa = $('#alerta-extra', raiz);
+      if (caixa) {
+        caixa.hidden = !banco.temExtra;
+        const qtd = $('#alerta-extra-qtd', caixa);
+        if (qtd && banco.temExtra) qtd.textContent = horas(banco.extra);
+      }
+      if (banco.temExtra) disparaAviso(banco);
     };
     passo();
     tique = setInterval(passo, 1000);

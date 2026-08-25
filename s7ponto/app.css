@@ -643,6 +643,8 @@ button.recado:hover { filter: brightness(1.12); }
 .recado.info  { background: rgba(57,135,229,.1); border-color: rgba(57,135,229,.35); }
 .recado.bom   { background: rgba(25,158,112,.1); border-color: rgba(47,187,137,.35); }
 .recado.ruim  { background: rgba(230,103,103,.1); border-color: rgba(230,103,103,.38); }
+.alerta-hora-extra-lista { display: block; margin-top: 6px; }
+.alerta-liberdade { margin-top: 16px; }
 
 .torradeira {
   position: fixed; z-index: 300; left: 50%; transform: translateX(-50%);

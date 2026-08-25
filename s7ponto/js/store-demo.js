@@ -95,7 +95,7 @@ function semear() {
   return {
     profiles, tasks, companies, assignments, companyAssignments, shifts, segments,
     taskRates: [], shiftRates: [], bonusTemplates: [], bonusEntries: [],
-    payments: [], sheetMonthTotals: [],
+    payments: [], sheetMonthTotals: [], overtimeNotices: [],
     senhas: { admin: '1234', maria: 'maria321*', joao: 'joao321*' },
   };
 }
@@ -115,6 +115,7 @@ function ler() {
       if (!Array.isArray(db.bonusEntries)) db.bonusEntries = [];
       if (!Array.isArray(db.payments)) db.payments = [];
       if (!Array.isArray(db.sheetMonthTotals)) db.sheetMonthTotals = [];
+      if (!Array.isArray(db.overtimeNotices)) db.overtimeNotices = [];
       db.profiles.forEach((p) => {
         if (!p.pay_mode) p.pay_mode = 'hourly';
         if (!p.theme) p.theme = 'escuro';
@@ -751,8 +752,43 @@ export function criaStoreDemo() {
       exigeAdmin(); carrega();
       db.shifts = db.shifts.filter((s) => s.id !== shiftId);
       db.segments = db.segments.filter((sg) => sg.shift_id !== shiftId);
+      db.overtimeNotices = (db.overtimeNotices || []).filter((n) => n.shift_id !== shiftId);
       salva();
       return espera(true);
+    },
+
+    async avisaHoraExtra({
+      userId, shiftId, yearMonth, hoursExtra, hoursWorked, hoursExpected, authorized = false,
+    }) {
+      carrega();
+      if (!db.overtimeNotices) db.overtimeNotices = [];
+      const dono = userId || usuario?.id;
+      if (!dono || !shiftId) throw new Error('Falta o turno para avisar a hora extra.');
+      const agora = new Date().toISOString();
+      let n = db.overtimeNotices.find((x) => x.shift_id === shiftId);
+      if (!n) {
+        n = { id: uid(), user_id: dono, shift_id: shiftId, created_at: agora };
+        db.overtimeNotices.push(n);
+      }
+      n.year_month = yearMonth;
+      n.hours_extra = +hoursExtra || 0;
+      n.hours_worked = +hoursWorked || 0;
+      n.hours_expected = +hoursExpected || 0;
+      if (authorized) n.authorized = true;
+      else if (n.authorized == null) n.authorized = false;
+      n.notified_at = agora;
+      salva();
+      return espera({ ...n });
+    },
+
+    async listaAvisosHoraExtra({ userId = null, yearMonth = null } = {}) {
+      carrega();
+      if (!db.overtimeNotices) db.overtimeNotices = [];
+      let lista = db.overtimeNotices.map((n) => ({ ...n }));
+      if (userId) lista = lista.filter((n) => n.user_id === userId);
+      if (yearMonth) lista = lista.filter((n) => n.year_month === yearMonth);
+      lista.sort((a, b) => String(b.notified_at || '').localeCompare(String(a.notified_at || '')));
+      return espera(lista);
     },
 
     /* ---- utilidades da demo ---- */

@@ -22,6 +22,9 @@ import {
 import {
   htmlRecibo, htmlReciboPessoa, htmlPizzas, pintaPizzas, htmlDetalheBonus, fatiasPorPessoa,
 } from './extrato.js';
+import {
+  extraDoPeriodo, extraPorPessoa, htmlAlertaExtra, htmlRecadoExtraPessoa,
+} from './hora-extra.js';
 
 const ABAS = [
   { id: 'equipe',      nome: 'Equipe' },
@@ -134,6 +137,7 @@ export async function telaDeAdmin(raiz, ctx) {
 
   function abaEquipe(alvo) {
     alvo.innerHTML = `
+      <div id="alerta-extra-equipe"></div>
       <button class="btn btn-primario btn-largo" id="nova-pessoa">
         ${ICONE.mais}<span>Cadastrar pessoa</span>
       </button>
@@ -144,6 +148,27 @@ export async function telaDeAdmin(raiz, ctx) {
     $('#nova-pessoa', alvo).addEventListener('click', () => editaPessoa(null));
     $$('[data-pessoa]', alvo).forEach((b) =>
       b.addEventListener('click', () => menuDaPessoa(pessoas.find((p) => p.id === b.dataset.pessoa))));
+
+    const mesAgora = inicioDoMes(new Date());
+    const ym = chaveMes(mesAgora);
+    Promise.all([
+      store.listaTurnos({ de: mesAgora, ate: fimDoMes(mesAgora) }),
+      store.listaAvisosHoraExtra({ yearMonth: ym }).catch(() => []),
+    ]).then(([brutos, avisos]) => {
+      if (!$('#alerta-extra-equipe', alvo)) return;
+      const extras = extraPorPessoa(pintaTrechos(brutos, tarefas), pessoas);
+      $('#alerta-extra-equipe', alvo).innerHTML = htmlAlertaExtra(extras, {
+        tituloMes: nomeMes(mesAgora),
+        avisos: (avisos || []).length,
+      });
+      extras.forEach((e) => {
+        if (!e.temExtra) return;
+        const titulo = alvo.querySelector(`[data-pessoa="${e.user_id}"] .item-titulo`);
+        if (titulo && !titulo.querySelector('[data-extra]')) {
+          titulo.insertAdjacentHTML('beforeend', ` ${htmlRecadoExtraPessoa(e, { compacto: true })}`);
+        }
+      });
+    }).catch(() => {});
   }
 
   function cartaoDaPessoa(p) {
@@ -1015,8 +1040,12 @@ export async function telaDeAdmin(raiz, ctx) {
         </span>
       </button>`;
 
+    const extrasMes = extraPorPessoa(turnos, pessoas);
+    const avisosPromessa = store.listaAvisosHoraExtra({ yearMonth: chaveMes(mesRef) }).catch(() => []);
+
     alvo.innerHTML = `
       ${barraDeFiltro({ sticky: true })}
+      <div id="alerta-extra-turnos">${htmlAlertaExtra(extrasMes, { tituloMes: nomeMes(mesRef) })}</div>
       ${abertos.length ? `
         <div class="recado" style="margin-bottom:16px">
           <span class="recado-emoji">⏳</span>
@@ -1040,6 +1069,14 @@ export async function telaDeAdmin(raiz, ctx) {
     $('#novo-turno', alvo).addEventListener('click', () => editaTurno(null));
     $$('[data-turno]', alvo).forEach((b) =>
       b.addEventListener('click', () => editaTurno(turnos.find((t) => t.id === b.dataset.turno))));
+    avisosPromessa.then((avisos) => {
+      const caixa = $('#alerta-extra-turnos', alvo);
+      if (caixa) {
+        caixa.innerHTML = htmlAlertaExtra(extrasMes, {
+          tituloMes: nomeMes(mesRef), avisos: (avisos || []).length,
+        });
+      }
+    });
   }
 
   function editaTurno(t, opts = {}) {
@@ -1564,11 +1601,14 @@ export async function telaDeAdmin(raiz, ctx) {
           <p class="heroi-valor saldo">${esc(money(total))}</p>
           <div class="heroi-nota">
             <span class="ficha ficha-neutra">${esc(horas(r.horas))} · média ${esc(money(taxaGeral))}/h</span>
+            ${htmlRecadoExtraPessoa(extraDoPeriodo(noMes), { compacto: true })}
           </div>
         </div>
         ${htmlRecibo({ horasMes: r.horas, trabalho: r.valor, grupos, total, pago: pagoMes })}
         ${htmlDetalheBonus(bonusMes)}
       </section>
+
+      ${htmlRecadoExtraPessoa(extraDoPeriodo(noMes), { nomeMes: nomeMes(mesRef) })}
 
       ${esperado != null ? `
         <div class="recado ${Math.abs(diff) < 0.5 ? '' : 'ruim'}" style="margin-top:14px">
@@ -1723,6 +1763,8 @@ export async function telaDeAdmin(raiz, ctx) {
     }
     const planPor = new Map(planilhas.map((x) => [x.user_id, x]));
 
+    const extrasPor = new Map(extraPorPessoa(turnos, pessoas).map((e) => [e.user_id, e]));
+
     const linhas = pessoas.map((p) => {
       const r = geral.porPessoa.get(p.id) || { horas: 0, valor: 0, turnos: 0 };
       const bons = bonusPor.get(p.id) || [];
@@ -1731,14 +1773,17 @@ export async function telaDeAdmin(raiz, ctx) {
       const pl = planPor.get(p.id);
       const esperado = pl ? +pl.expected_total : null;
       const diff = esperado != null ? app - esperado : null;
-      return { p, trabalho: +r.valor || 0, bonus, app, esperado, diff, bons, horas: r.horas };
+      const extra = extrasPor.get(p.id);
+      return { p, trabalho: +r.valor || 0, bonus, app, esperado, diff, bons, horas: r.horas, extra };
     }).filter((l) => l.app > 0 || l.esperado != null || l.p.active)
       .sort((a, b) => Math.abs(b.diff || 0) - Math.abs(a.diff || 0));
 
     const comDiff = linhas.filter((l) => l.diff != null && Math.abs(l.diff) >= 0.5);
+    const comExtra = [...extrasPor.values()].filter((e) => e.temExtra);
 
     alvo.innerHTML = `
       ${barraDeFiltro({ semPessoa: true })}
+      ${htmlAlertaExtra(comExtra, { tituloMes: nomeMes(mesRef) })}
       <div class="recado" style="margin-bottom:16px">
         <span class="recado-emoji">🔎</span>
         <span>Compara o total da <strong>planilha</strong> (trabalho + extras importados) com o
@@ -1763,11 +1808,13 @@ export async function telaDeAdmin(raiz, ctx) {
             <div style="display:flex;align-items:center;gap:12px">
               <span class="avatar" style="width:38px;height:38px;font-size:12px;flex:none">${esc(iniciais(l.p.full_name))}</span>
               <span class="item-titulo" style="flex:1">${esc(l.p.full_name)}</span>
+              ${l.extra?.temExtra ? htmlRecadoExtraPessoa(l.extra, { compacto: true }) : ''}
               <span class="ficha ${okDiff ? 'ficha-alta' : 'ficha-baixa'}">${okDiff ? 'ok' : esc(money(l.diff))}</span>
             </div>
             <div class="item-sub" style="margin:0">
               app ${esc(money(l.app))} (trabalho ${esc(money(l.trabalho))} + bônus ${esc(money(l.bonus))})
               · planilha ${l.esperado != null ? esc(money(l.esperado)) : '—'}
+              ${l.extra?.temExtra ? ` · hora extra ${esc(horas(l.extra.extra))}` : ''}
             </div>
             ${l.bons.length ? `<div class="recibo-corpo" style="padding-top:4px">${
               agrupaBonus(l.bons).map((g) =>
@@ -1820,22 +1867,27 @@ export async function telaDeAdmin(raiz, ctx) {
     }
     const totalBonus = somaBonus(bonusMes);
 
+    const extrasPor = new Map(extraPorPessoa(turnos, pessoas).map((e) => [e.user_id, e]));
+
     const linhas = pessoas.map((p) => {
       const r = geral.porPessoa.get(p.id) || { horas: 0, valor: 0, turnos: 0 };
       const bons = bonusPorPessoa.get(p.id) || [];
       const bonus = somaBonus(bons);
       const dias = new Set(turnos.filter((t) => t.user_id === p.id).map((t) => diaChave(t.started_at))).size;
+      const extra = extrasPor.get(p.id);
       return {
         p, ...r, dias, media: dias ? r.horas / dias : 0,
-        bonus, total: (+r.valor || 0) + bonus, bons,
+        bonus, total: (+r.valor || 0) + bonus, bons, extra,
       };
     }).filter((l) => l.horas > 0 || l.bonus > 0 || l.p.active)
       .sort((a, b) => b.total - a.total);
 
     const custoTotal = geral.valor + totalBonus;
+    const comExtra = [...extrasPor.values()].filter((e) => e.temExtra);
 
     alvo.innerHTML = `
       ${barraDeFiltro({ semPessoa: true })}
+      ${htmlAlertaExtra(comExtra, { tituloMes: nomeMes(mesRef) })}
 
       <section class="cartao">
         <div class="heroi">
@@ -1859,6 +1911,7 @@ export async function telaDeAdmin(raiz, ctx) {
           htmlReciboPessoa({
             p: l.p, horasMes: l.horas, dias: l.dias, trabalho: l.valor,
             grupos: agrupaBonus(l.bons), total: l.total, clicavel: true,
+            horasExtra: l.extra?.temExtra ? l.extra.extra : 0,
           })).join('')}</div>`
           : vazio({ emoji: '📊', titulo: 'Nada registrado neste mês' })}
       </section>
@@ -1899,10 +1952,11 @@ export async function telaDeAdmin(raiz, ctx) {
 
     $('#r-csv', alvo).addEventListener('click', () => {
       if (!linhas.length) { torrada('Nada para baixar neste mês.', 'ruim'); return; }
-      const csv = [csvLinha(['Pessoa', 'Usuário', 'Turnos', 'Dias', 'Horas', 'Trabalho R$', 'Bônus R$', 'Total R$'])];
+      const csv = [csvLinha(['Pessoa', 'Usuário', 'Turnos', 'Dias', 'Horas', 'Hora extra', 'Trabalho R$', 'Bônus R$', 'Total R$'])];
       linhas.forEach((l) => csv.push(csvLinha([
         l.p.full_name, l.p.username, l.turnos, l.dias,
-        num(l.horas, 2), num(l.valor, 2), num(l.bonus, 2), num(l.total, 2),
+        num(l.horas, 2), num(l.extra?.temExtra ? l.extra.extra : 0, 2),
+        num(l.valor, 2), num(l.bonus, 2), num(l.total, 2),
       ])));
       csv.push('');
       csv.push(csvLinha(['TOTAL', '', geral.turnos, '', num(geral.horas, 2),

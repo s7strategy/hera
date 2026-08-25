@@ -81,6 +81,7 @@ export function htmlBarraPago({ pago, total, falta }) {
 /** Card de uma pessoa no relatório — hierarquia clara, bônus unidos. */
 export function htmlReciboPessoa({
   p, horasMes, dias = 0, trabalho, grupos, total, pago = 0, id = '', clicavel = false,
+  horasExtra = 0,
 }) {
   const extra = clicavel
     ? ` class="recibo recibo-clicavel" data-pessoa="${esc(id || p.id)}" tabindex="0"`
@@ -88,6 +89,7 @@ export function htmlReciboPessoa({
   const sub = [
     horasMes > 0.001 ? horas(horasMes) : null,
     dias ? `${dias} ${dias === 1 ? 'dia' : 'dias'}` : null,
+    horasExtra >= 15 / 60 ? `${horas(horasExtra)} extra` : null,
   ].filter(Boolean).join(' · ') || 'sem registro neste mês';
 
   return `
