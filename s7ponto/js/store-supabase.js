@@ -247,6 +247,54 @@ export async function criaStoreSupabase() {
       return true;
     },
 
+    /* ---- pagamentos / recebimentos ---- */
+    async listaPagamentos({ userId = null, yearMonth = null } = {}) {
+      let q = sb.from('payments').select('*').order('paid_on', { ascending: false });
+      if (userId) q = q.eq('user_id', userId);
+      if (yearMonth) q = q.eq('year_month', yearMonth);
+      return ok(await q);
+    },
+    async lancaPagamento({ user_id, paid_on, amount, title = 'Pagamento', note = null, year_month = null }) {
+      exigeAdmin();
+      const when = paid_on ? new Date(paid_on) : new Date();
+      const ym = year_month || `${when.getFullYear()}-${String(when.getMonth() + 1).padStart(2, '0')}`;
+      const titulo = String(title || 'Pagamento').trim() || 'Pagamento';
+      return ok(await sb.from('payments').insert({
+        user_id,
+        paid_on: when.toISOString().slice(0, 10),
+        year_month: ym,
+        amount: +amount || 0,
+        title: titulo,
+        note: note || null,
+        source: 'manual',
+      }).select().single());
+    },
+    async atualizaPagamento(id, patch) {
+      exigeAdmin();
+      const p = { ...patch };
+      if (p.amount != null) p.amount = +p.amount || 0;
+      if (p.title != null) p.title = String(p.title).trim() || 'Pagamento';
+      if (p.paid_on) {
+        const when = new Date(p.paid_on);
+        p.paid_on = when.toISOString().slice(0, 10);
+        if (!p.year_month) {
+          p.year_month = `${when.getFullYear()}-${String(when.getMonth() + 1).padStart(2, '0')}`;
+        }
+      }
+      return ok(await sb.from('payments').update(p).eq('id', id).select().single());
+    },
+    async apagaPagamento(id) {
+      exigeAdmin();
+      ok(await sb.from('payments').delete().eq('id', id));
+      return true;
+    },
+    async listaTotaisPlanilha({ userId = null, yearMonth = null } = {}) {
+      let q = sb.from('sheet_month_totals').select('*').order('year_month', { ascending: false });
+      if (userId) q = q.eq('user_id', userId);
+      if (yearMonth) q = q.eq('year_month', yearMonth);
+      return ok(await q);
+    },
+
     /* ---- equipe ---- */
     async listaPessoas() {
       exigeAdmin();

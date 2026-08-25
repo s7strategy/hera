@@ -35,6 +35,9 @@ export const somaBonus = (entries = []) =>
 export const totalComBonus = (valorTrabalho, entries = []) =>
   (+valorTrabalho || 0) + somaBonus(entries);
 
+export const somaPagamentos = (payments = []) =>
+  (payments || []).reduce((s, p) => s + (+p.amount || 0), 0);
+
 /* ==========================================================================
    Agregação de um conjunto de turnos
    ========================================================================== */

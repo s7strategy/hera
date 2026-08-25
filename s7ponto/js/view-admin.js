@@ -1,6 +1,6 @@
 /* ==========================================================================
    S7 PONTO — painel do super admin.
-   Equipe · Tarefas · Turnos · Importar · Relatórios
+   Equipe · Empresas · Tarefas · Turnos · Conferência · Importar · Relatórios
    ========================================================================== */
 import { store } from './store.js';
 import {
@@ -12,16 +12,20 @@ import {
 import {
   $, $$, ICONE, el, abreFolha, confirma, torrada, carregando, vazio, comBotaoOcupado,
 } from './ui.js';
-import { PALETA, graficoTarefas } from './charts.js';
-import { pintaTrechos, agrega, horasDoTurno, valorDoTurno, somaBonus } from './metricas.js';
+import { PALETA, graficoTarefas, graficoDias, tabelaDeApoio } from './charts.js';
+import {
+  pintaTrechos, agrega, horasDoTurno, valorDoTurno, somaBonus, totalComBonus,
+  somaPagamentos, resumoDoMes, serieDoMes,
+} from './metricas.js';
 
 const ABAS = [
-  { id: 'equipe',     nome: 'Equipe' },
-  { id: 'empresas',   nome: 'Empresas' },
-  { id: 'tarefas',    nome: 'Tarefas' },
-  { id: 'turnos',     nome: 'Turnos' },
-  { id: 'importar',   nome: 'Importar' },
-  { id: 'relatorios', nome: 'Relatórios' },
+  { id: 'equipe',      nome: 'Equipe' },
+  { id: 'empresas',    nome: 'Empresas' },
+  { id: 'tarefas',     nome: 'Tarefas' },
+  { id: 'turnos',      nome: 'Turnos' },
+  { id: 'conferencia', nome: 'Conferência' },
+  { id: 'importar',    nome: 'Importar' },
+  { id: 'relatorios',  nome: 'Relatórios' },
 ];
 
 export async function telaDeAdmin(raiz, ctx) {
@@ -30,6 +34,7 @@ export async function telaDeAdmin(raiz, ctx) {
   let empresas = [], atribEmpresas = [];
   let mesRef = inicioDoMes(new Date());
   let filtroPessoa = '';
+  let pessoaFoco = null; // quando aba === 'visao'
 
   raiz.innerHTML = carregando('Abrindo o painel…');
   await recarregaBase();
@@ -56,6 +61,21 @@ export async function telaDeAdmin(raiz, ctx) {
      ====================================================================== */
 
   function desenha() {
+    if (aba === 'visao' && pessoaFoco) {
+      raiz.innerHTML = `
+        <button class="btn btn-fantasma btn-medio" id="voltar-equipe" style="margin-bottom:12px">
+          ${ICONE.esquerda}<span>Voltar à equipe</span>
+        </button>
+        <h1 class="secao-titulo" style="margin-bottom:4px">${esc(pessoaFoco.full_name)}</h1>
+        <p class="apagado" style="margin-bottom:16px">@${esc(pessoaFoco.username)} · visão como a pessoa vê</p>
+        <div id="conteudo-aba"></div>`;
+      $('#voltar-equipe', raiz).addEventListener('click', () => {
+        aba = 'equipe'; pessoaFoco = null; desenha();
+      });
+      abaVisaoPessoa($('#conteudo-aba', raiz), pessoaFoco);
+      return;
+    }
+
     raiz.innerHTML = `
       <h1 class="secao-titulo">Painel</h1>
       <div class="abas" role="tablist">
@@ -66,15 +86,17 @@ export async function telaDeAdmin(raiz, ctx) {
       <div id="conteudo-aba"></div>`;
 
     $$('[data-aba]', raiz).forEach((b) => {
-      b.addEventListener('click', () => { aba = b.dataset.aba; desenha(); });
+      b.addEventListener('click', () => { aba = b.dataset.aba; pessoaFoco = null; desenha(); });
       if (b.dataset.aba === aba) {
         b.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
       }
     });
 
     const alvo = $('#conteudo-aba', raiz);
-    ({ equipe: abaEquipe, empresas: abaEmpresas, tarefas: abaTarefas, turnos: abaTurnos,
-       importar: abaImportar, relatorios: abaRelatorios }[aba])(alvo);
+    ({
+      equipe: abaEquipe, empresas: abaEmpresas, tarefas: abaTarefas, turnos: abaTurnos,
+      conferencia: abaConferencia, importar: abaImportar, relatorios: abaRelatorios,
+    }[aba])(alvo);
   }
 
   /* ======================================================================
@@ -127,6 +149,7 @@ export async function telaDeAdmin(raiz, ctx) {
       sub: `@${p.username}`,
       corpo: `
         <div style="display:flex;flex-direction:column;gap:10px">
+          <button class="btn btn-primario btn-medio" data-visao>${ICONE.grafico}<span>Ver números (como ela vê)</span></button>
           <button class="btn btn-medio" data-empresas>${ICONE.predio}<span>Liberar empresas</span></button>
           <button class="btn btn-medio" data-tarefas>${ICONE.etiqueta}<span>Liberar tarefas</span></button>
           <button class="btn btn-medio" data-pagamento>${ICONE.engrenagem}<span>Como paga</span></button>
@@ -136,6 +159,9 @@ export async function telaDeAdmin(raiz, ctx) {
           <button class="btn btn-medio btn-perigo" data-apaga>${ICONE.lixo}<span>Remover do sistema</span></button>
         </div>`,
       aoMontar: (caixa, fechar) => {
+        $('[data-visao]', caixa).addEventListener('click', () => {
+          fechar(); pessoaFoco = p; aba = 'visao'; desenha();
+        });
         $('[data-empresas]', caixa).addEventListener('click', () => { fechar(); liberaEmpresas(p); });
         $('[data-tarefas]', caixa).addEventListener('click', () => { fechar(); liberaTarefas(p); });
         $('[data-pagamento]', caixa).addEventListener('click', () => { fechar(); editaPagamento(p); });
@@ -903,8 +929,9 @@ export async function telaDeAdmin(raiz, ctx) {
       b.addEventListener('click', () => editaTurno(turnos.find((t) => t.id === b.dataset.turno))));
   }
 
-  function editaTurno(t) {
+  function editaTurno(t, opts = {}) {
     const novo = !t;
+    const userFixo = opts.userId || null;
     const ativas = tarefas.filter((x) => x.active);
     const sedesAtivas = empresas.filter((x) => x.active);
     if (novo && !ativas.length) { torrada('Cadastre uma tarefa antes de lançar turnos.', 'ruim', 5); return; }
@@ -917,15 +944,17 @@ export async function telaDeAdmin(raiz, ctx) {
       : (tarefas.find((x) => x.id === t.segments?.[0]?.task_id)?.id || ativas[0]?.id || '');
     const empresaAtual = novo ? sedesAtivas[0].id
       : (t.company_id || sedesAtivas[0]?.id || '');
+    const pessoaAtual = userFixo || (!novo ? t.user_id : pessoas[0]?.id);
 
     abreFolha({
-      titulo: novo ? 'Lançar turno na mão' : 'Corrigir turno',
-      sub: novo ? 'Para quando alguém esqueceu de bater o ponto.'
-                : `${t.segments?.length > 1 ? 'Este turno tem mais de uma tarefa — salvar aqui deixa ele com uma só. ' : ''}Ajuste os horários e salve.`,
+      titulo: novo ? 'Adicionar horário' : 'Corrigir entrada / saída',
+      sub: novo
+        ? 'Pode lançar só entrada (saída vazia) ou o dia completo. Serve também para outro dia.'
+        : `${t.segments?.length > 1 ? 'Este turno tem mais de uma tarefa — salvar aqui deixa ele com uma só. ' : ''}Ajuste só a entrada, só a saída, ou os dois.`,
       corpo: `
         <label class="campo"><span class="campo-rotulo">De quem é o turno</span>
-          <select class="entrada" id="v-pessoa" ${novo ? '' : 'disabled'}>
-            ${pessoas.map((p) => `<option value="${esc(p.id)}" ${!novo && p.id === t.user_id ? 'selected' : ''}>${esc(p.full_name)}</option>`).join('')}
+          <select class="entrada" id="v-pessoa" ${novo && !userFixo ? '' : 'disabled'}>
+            ${pessoas.map((p) => `<option value="${esc(p.id)}" ${p.id === pessoaAtual ? 'selected' : ''}>${esc(p.full_name)}</option>`).join('')}
           </select></label>
         <label class="campo"><span class="campo-rotulo">Empresa / sede</span>
           <select class="entrada" id="v-empresa">
@@ -940,7 +969,7 @@ export async function telaDeAdmin(raiz, ctx) {
             <input class="entrada" id="v-ini" type="datetime-local" value="${esc(paraInputLocal(ini))}"></label>
           <label class="campo"><span class="campo-rotulo">Saída</span>
             <input class="entrada" id="v-fim" type="datetime-local" value="${fim ? esc(paraInputLocal(fim)) : ''}">
-            <span class="campo-dica">Deixe vazio para manter em aberto.</span></label>
+            <span class="campo-dica">Deixe vazio para manter em aberto / só entrada.</span></label>
         </div>
         <p class="campo-erro" id="v-erro" hidden></p>
         <div class="linha-botoes">
@@ -949,6 +978,14 @@ export async function telaDeAdmin(raiz, ctx) {
         </div>`,
       aoMontar: (caixa, fechar) => {
         const erro = $('#v-erro', caixa);
+        const aposSalvar = async () => {
+          fechar();
+          if (aba === 'visao' && pessoaFoco) {
+            await abaVisaoPessoa($('#conteudo-aba', raiz), pessoaFoco);
+          } else {
+            desenha();
+          }
+        };
         $('#v-salva', caixa).addEventListener('click', async (ev) => {
           erro.hidden = true;
           const de = deInputLocal($('#v-ini', caixa).value);
@@ -974,23 +1011,293 @@ export async function telaDeAdmin(raiz, ctx) {
                   started_at: de, ended_at: ate, trechos: [trecho],
                   company_id: emp.id, company_name: emp.name,
                 }));
-            fechar();
-            desenha();
-            torrada(novo ? 'Turno lançado.' : 'Turno corrigido.', 'bom');
+            await aposSalvar();
+            torrada(novo ? 'Horário lançado.' : 'Turno corrigido.', 'bom');
           } catch (e) { erro.textContent = e.message; erro.hidden = false; }
         });
 
         $('#v-apaga', caixa)?.addEventListener('click', async () => {
-          fechar();
           if (!await confirma({ titulo: 'Apagar este turno?', texto: 'As horas somem do relatório. Não dá para desfazer.', ok: 'Apagar', perigo: true })) return;
           try {
             await store.apagaTurno(t.id);
-            desenha();
+            await aposSalvar();
             torrada('Turno apagado.', 'bom');
           } catch (e) { torrada(e.message, 'ruim', 6); }
         });
       },
     });
+  }
+
+  /* ======================================================================
+     ABA: VISÃO DA PESSOA (como ela vê + editar horários)
+     ====================================================================== */
+
+  async function abaVisaoPessoa(alvo, p) {
+    alvo.innerHTML = carregando('Carregando números…');
+    const ym = chaveMes(mesRef);
+    const [turnosBrutos, bonusMes, pagamentos] = await Promise.all([
+      store.listaTurnos({ userId: p.id }),
+      store.listaBonusMes({ userId: p.id, yearMonth: ym }),
+      store.listaPagamentos({ userId: p.id }),
+    ]);
+    const turnos = pintaTrechos(turnosBrutos, tarefas);
+    const r = resumoDoMes(turnos, mesRef);
+    const bonus = somaBonus(bonusMes);
+    const total = totalComBonus(r.valor, bonusMes);
+    const pagsMes = pagamentos.filter((x) => x.year_month === ym);
+    const pagoMes = somaPagamentos(pagsMes);
+    const noMes = turnos.filter((t) => {
+      const d = new Date(t.started_at);
+      return d >= inicioDoMes(mesRef) && d <= fimDoMes(mesRef);
+    });
+    const podeAvancar = somaMeses(mesRef, 1) <= inicioDoMes(new Date());
+    const planilha = (await store.listaTotaisPlanilha({ userId: p.id, yearMonth: ym }))[0];
+    const esperado = planilha ? +planilha.expected_total : null;
+    const diff = esperado != null ? total - esperado : null;
+
+    alvo.innerHTML = `
+      <nav class="mes-nav">
+        <button class="mes-nav-btn" data-mes="-1" aria-label="Mês anterior">${ICONE.esquerda}</button>
+        <div class="mes-nav-titulo">${esc(maiuscula(mesAno(mesRef)))}</div>
+        <button class="mes-nav-btn" data-mes="1" ${podeAvancar ? '' : 'disabled'} aria-label="Próximo mês">${ICONE.direita}</button>
+      </nav>
+
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
+        <button class="btn btn-primario btn-largo" id="v-novo-turno">
+          ${ICONE.mais}<span>Adicionar horário (entrada/saída)</span>
+        </button>
+        <button class="btn btn-medio btn-largo" id="v-novo-pag">
+          ${ICONE.mais}<span>Registrar pagamento / recebimento</span>
+        </button>
+      </div>
+
+      <section class="cartao">
+        <div class="heroi">
+          <p class="heroi-rotulo">Total a receber em ${esc(nomeMes(mesRef))}</p>
+          <p class="heroi-valor" style="color:var(--salvia-alt)">${esc(money(total))}</p>
+          <div class="heroi-nota">
+            <span class="ficha ficha-neutra">trabalho ${esc(money(r.valor))}</span>
+            ${bonus ? `<span class="ficha ficha-neutra">bônus ${esc(money(bonus))}</span>` : ''}
+            ${pagoMes ? `<span class="ficha ficha-neutra">já pago ${esc(money(pagoMes))}</span>` : ''}
+          </div>
+        </div>
+      </section>
+
+      ${esperado != null ? `
+        <div class="recado ${Math.abs(diff) < 0.5 ? '' : 'ruim'}" style="margin-top:14px">
+          <span class="recado-emoji">${Math.abs(diff) < 0.5 ? '✅' : '⚠️'}</span>
+          <span>Planilha: <strong>${esc(money(esperado))}</strong> · App: <strong>${esc(money(total))}</strong>
+            · diferença <strong>${esc(money(diff))}</strong>
+            ${Math.abs(diff) >= 0.5 ? ' — confira extras/horários que escaparam.' : ' — batendo.'}</span>
+        </div>` : ''}
+
+      ${bonusMes.length ? `
+        <section class="cartao" style="margin-top:16px">
+          <div class="cartao-topo"><h2 class="cartao-titulo">Bônus do mês</h2>
+            <span class="apagado num">${esc(money(bonus))}</span></div>
+          <div class="lista">${bonusMes.map((e) => `
+            <div class="item">
+              <div class="item-corpo">
+                <div class="item-titulo">${esc(e.title)}</div>
+                <div class="item-sub">${e.source}${e.note ? ` · ${esc(e.note)}` : ''}</div>
+              </div>
+              <div class="num" style="font-weight:600;color:var(--salvia-alt)">${esc(money(e.amount))}</div>
+            </div>`).join('')}</div>
+        </section>` : ''}
+
+      <section class="cartao" style="margin-top:16px">
+        <div class="cartao-topo"><h2 class="cartao-titulo">Pagamentos / recebimentos</h2>
+          <span class="apagado">${esc(plural(pagamentos.length, 'lançamento', 'lançamentos'))}</span></div>
+        ${pagamentos.length ? `<div class="lista">${pagamentos.slice(0, 40).map((pg) => `
+          <button class="item clicavel" data-pag="${esc(pg.id)}">
+            <div class="item-corpo">
+              <div class="item-titulo">${esc(pg.title)}</div>
+              <div class="item-sub">${esc(dataBR(pg.paid_on))} · ${esc(pg.year_month)}
+                ${pg.source === 'import' ? ' · importado' : ''}
+                ${pg.note ? ` · ${esc(String(pg.note).slice(0, 60))}` : ''}</div>
+            </div>
+            <div class="num" style="font-weight:600">${esc(money(pg.amount))}</div>
+          </button>`).join('')}</div>`
+          : vazio({ emoji: '💸', titulo: 'Nenhum pagamento registrado',
+                    texto: 'Importe das planilhas ou lance na mão.' })}
+      </section>
+
+      <section class="cartao" style="margin-top:16px">
+        <div class="cartao-topo"><h2 class="cartao-titulo">Turnos do mês</h2>
+          <span class="apagado">${esc(plural(noMes.length, 'turno', 'turnos'))}</span></div>
+        <div class="grafico" id="vp-dias"></div>
+        <div id="vp-tabela"></div>
+        ${noMes.length ? `<div class="lista" style="margin-top:12px">${noMes.map((t) => `
+          <button class="item clicavel" data-turno="${esc(t.id)}">
+            <span class="item-faixa" style="background:${esc(t.segments?.[0]?.cor || PALETA[0])}"></span>
+            <span class="item-corpo">
+              <span class="item-titulo">${esc(maiuscula(dataLonga(t.started_at)))}</span>
+              <span class="item-sub">${esc(hora(t.started_at))} → ${t.ended_at ? esc(hora(t.ended_at)) : '—'}
+                ${t.company_name ? ` · ${esc(t.company_name)}` : ''}
+                · ${esc([...new Set((t.segments || []).map((s) => s.task_name))].join(', ') || 'sem tarefa')}</span>
+            </span>
+            <span class="item-fim">
+              <span class="num" style="font-weight:600">${esc(horasCurto(horasDoTurno(t)))}</span>
+              <span class="num apagado" style="display:block;font-size:12px">${esc(money(valorDoTurno(t)))}</span>
+            </span>
+          </button>`).join('')}</div>`
+          : vazio({ emoji: '📭', titulo: 'Nenhum turno neste mês' })}
+      </section>`;
+
+    const serieD = serieDoMes(mesRef, r.porDia);
+    graficoDias($('#vp-dias', alvo), serieD, { cor: PALETA[0] });
+    $('#vp-tabela', alvo).innerHTML = tabelaDeApoio(
+      serieD.filter((d) => d.horas > 0).map((d) => [dataCurta(d.data), horasCurto(d.horas), money(d.valor)]),
+      ['Dia', 'Horas', 'Valor'],
+    );
+
+    $$('[data-mes]', alvo).forEach((b) => b.addEventListener('click', () => {
+      mesRef = somaMeses(mesRef, +b.dataset.mes);
+      abaVisaoPessoa(alvo, p);
+    }));
+    $('#v-novo-turno', alvo).addEventListener('click', () => editaTurno(null, { userId: p.id }));
+    $$('[data-turno]', alvo).forEach((b) => b.addEventListener('click', () => {
+      editaTurno(noMes.find((t) => t.id === b.dataset.turno) || turnos.find((t) => t.id === b.dataset.turno), { userId: p.id });
+    }));
+    $('#v-novo-pag', alvo).addEventListener('click', () => editaPagamentoLanc(null, p));
+    $$('[data-pag]', alvo).forEach((b) => b.addEventListener('click', () => {
+      editaPagamentoLanc(pagamentos.find((x) => x.id === b.dataset.pag), p);
+    }));
+  }
+
+  function editaPagamentoLanc(pg, p) {
+    const novo = !pg;
+    const quando = novo ? new Date() : new Date(pg.paid_on);
+    abreFolha({
+      titulo: novo ? 'Registrar pagamento' : 'Editar pagamento',
+      sub: p.full_name,
+      corpo: `
+        <label class="campo"><span class="campo-rotulo">Título</span>
+          <input class="entrada" id="pg-tit" value="${esc(pg?.title || 'Pagamento')}" placeholder="ex.: Pagamento"></label>
+        <label class="campo"><span class="campo-rotulo">Valor (R$)</span>
+          <input class="entrada" type="number" min="0" step="0.01" id="pg-val" value="${esc(pg?.amount ?? '')}"></label>
+        <label class="campo"><span class="campo-rotulo">Data</span>
+          <input class="entrada" type="date" id="pg-data" value="${esc(quando.toISOString().slice(0, 10))}"></label>
+        <label class="campo"><span class="campo-rotulo">Nota (opcional)</span>
+          <input class="entrada" id="pg-nota" value="${esc(pg?.note || '')}"></label>
+        <p class="campo-erro" id="pg-erro" hidden></p>
+        <div class="linha-botoes">
+          ${novo ? '' : '<button class="btn btn-medio btn-perigo" id="pg-apaga">Apagar</button>'}
+          <button class="btn btn-primario btn-medio" id="pg-salva">${novo ? 'Lançar' : 'Salvar'}</button>
+        </div>`,
+      aoMontar: (caixa, fechar) => {
+        const erro = $('#pg-erro', caixa);
+        $('#pg-salva', caixa).addEventListener('click', async (ev) => {
+          erro.hidden = true;
+          const title = $('#pg-tit', caixa).value.trim() || 'Pagamento';
+          const amount = +$('#pg-val', caixa).value;
+          const paid_on = $('#pg-data', caixa).value;
+          if (!Number.isFinite(amount) || amount < 0) {
+            erro.textContent = 'Informe o valor.'; erro.hidden = false; return;
+          }
+          try {
+            await comBotaoOcupado(ev.currentTarget, 'Salvando…', () => novo
+              ? store.lancaPagamento({
+                user_id: p.id, paid_on, amount, title, note: $('#pg-nota', caixa).value || null,
+              })
+              : store.atualizaPagamento(pg.id, {
+                paid_on, amount, title, note: $('#pg-nota', caixa).value || null,
+              }));
+            fechar();
+            if (aba === 'visao' && pessoaFoco) abaVisaoPessoa($('#conteudo-aba', raiz), pessoaFoco);
+            torrada(novo ? 'Pagamento lançado.' : 'Pagamento salvo.', 'bom');
+          } catch (e) { erro.textContent = e.message; erro.hidden = false; }
+        });
+        $('#pg-apaga', caixa)?.addEventListener('click', async () => {
+          if (!await confirma({ titulo: 'Apagar pagamento?', ok: 'Apagar', perigo: true })) return;
+          await store.apagaPagamento(pg.id);
+          fechar();
+          if (aba === 'visao' && pessoaFoco) abaVisaoPessoa($('#conteudo-aba', raiz), pessoaFoco);
+          torrada('Pagamento apagado.', 'bom');
+        });
+      },
+    });
+  }
+
+  /* ======================================================================
+     ABA: CONFERÊNCIA planilha × app
+     ====================================================================== */
+
+  async function abaConferencia(alvo) {
+    alvo.innerHTML = carregando('Conferindo planilha × app…');
+    const ym = chaveMes(mesRef);
+    const [turnosBrutos, bonusMes, planilhas] = await Promise.all([
+      store.listaTurnos({ de: inicioDoMes(mesRef), ate: fimDoMes(mesRef) }),
+      store.listaBonusMes({ yearMonth: ym }),
+      store.listaTotaisPlanilha({ yearMonth: ym }),
+    ]);
+    const turnos = pintaTrechos(turnosBrutos, tarefas);
+    const geral = agrega(turnos);
+    const bonusPor = new Map();
+    for (const e of bonusMes) {
+      if (!bonusPor.has(e.user_id)) bonusPor.set(e.user_id, []);
+      bonusPor.get(e.user_id).push(e);
+    }
+    const planPor = new Map(planilhas.map((x) => [x.user_id, x]));
+
+    const linhas = pessoas.map((p) => {
+      const r = geral.porPessoa.get(p.id) || { horas: 0, valor: 0, turnos: 0 };
+      const bons = bonusPor.get(p.id) || [];
+      const bonus = somaBonus(bons);
+      const app = (+r.valor || 0) + bonus;
+      const pl = planPor.get(p.id);
+      const esperado = pl ? +pl.expected_total : null;
+      const diff = esperado != null ? app - esperado : null;
+      return { p, trabalho: +r.valor || 0, bonus, app, esperado, diff, bons, horas: r.horas };
+    }).filter((l) => l.app > 0 || l.esperado != null || l.p.active)
+      .sort((a, b) => Math.abs(b.diff || 0) - Math.abs(a.diff || 0));
+
+    const comDiff = linhas.filter((l) => l.diff != null && Math.abs(l.diff) >= 0.5);
+
+    alvo.innerHTML = `
+      ${barraDeFiltro({ semPessoa: true })}
+      <div class="recado" style="margin-bottom:16px">
+        <span class="recado-emoji">🔎</span>
+        <span>Compara o total da <strong>planilha</strong> (trabalho + extras importados) com o
+              <strong>app</strong> (turnos + bônus). Se a diferença não for zero, algo escapou.</span>
+      </div>
+      ${comDiff.length ? `
+        <div class="recado ruim" style="margin-bottom:16px">
+          <span class="recado-emoji">⚠️</span>
+          <span><strong>${esc(plural(comDiff.length, 'pessoa com diferença', 'pessoas com diferença'))}</strong> em ${esc(nomeMes(mesRef))}.</span>
+        </div>` : `
+        <div class="recado" style="margin-bottom:16px">
+          <span class="recado-emoji">✅</span>
+          <span>Nenhuma diferença relevante neste mês${planilhas.length ? '' : ' (ainda sem totais de planilha importados)'}.</span>
+        </div>`}
+
+      <section class="cartao">
+        <div class="cartao-topo"><h2 class="cartao-titulo">Por pessoa · ${esc(nomeMes(mesRef))}</h2></div>
+        ${linhas.length ? `<div class="lista">${linhas.map((l) => {
+          const okDiff = l.diff == null || Math.abs(l.diff) < 0.5;
+          return `
+          <button class="item clicavel" data-conf="${esc(l.p.id)}" style="flex-direction:column;align-items:stretch;gap:6px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <span class="avatar" style="width:38px;height:38px;font-size:12px;flex:none">${esc(iniciais(l.p.full_name))}</span>
+              <span class="item-titulo" style="flex:1">${esc(l.p.full_name)}</span>
+              <span class="ficha ${okDiff ? 'ficha-alta' : 'ficha-baixa'}">${okDiff ? 'ok' : esc(money(l.diff))}</span>
+            </div>
+            <div class="item-sub" style="margin:0">
+              app ${esc(money(l.app))} (trabalho ${esc(money(l.trabalho))} + bônus ${esc(money(l.bonus))})
+              · planilha ${l.esperado != null ? esc(money(l.esperado)) : '—'}
+            </div>
+            ${l.bons.length ? `<div class="apagado" style="font-size:12px">${l.bons.map((e) =>
+              `${esc(e.title)} ${esc(money(e.amount))}`).join(' · ')}</div>` : ''}
+          </button>`;
+        }).join('')}</div>` : vazio({ emoji: '🔎', titulo: 'Sem dados neste mês' })}
+      </section>`;
+
+    ligaFiltro(alvo, abaConferencia);
+    $$('[data-conf]', alvo).forEach((b) => b.addEventListener('click', () => {
+      const p = pessoas.find((x) => x.id === b.dataset.conf);
+      if (!p) return;
+      pessoaFoco = p; aba = 'visao'; desenha();
+    }));
   }
 
   /* ======================================================================

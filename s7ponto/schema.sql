@@ -170,7 +170,7 @@ create table if not exists s7ponto.bonus_entries (
   title        text not null,
   amount       numeric(10,2) not null default 0 check (amount >= 0),
   source       text not null default 'manual'
-               check (source in ('auto', 'manual')),
+               check (source in ('auto', 'manual', 'import')),
   template_id  uuid references s7ponto.bonus_templates (id) on delete set null,
   note         text,
   created_at   timestamptz not null default now()
@@ -190,6 +190,41 @@ create index if not exists bonus_entries_por_pessoa_mes
   on s7ponto.bonus_entries (user_id, year_month);
 create index if not exists bonus_entries_por_mes
   on s7ponto.bonus_entries (year_month);
+
+-- Pagamentos / recebimentos
+create table if not exists s7ponto.payments (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid not null references s7ponto.profiles (id) on delete cascade,
+  paid_on     date not null,
+  year_month  text not null check (year_month ~ '^\d{4}-\d{2}$'),
+  amount      numeric(12,2) not null check (amount >= 0),
+  title       text not null default 'Pagamento',
+  note        text,
+  source      text not null default 'manual'
+              check (source in ('import', 'manual')),
+  created_at  timestamptz not null default now()
+);
+comment on table s7ponto.payments is
+  'Histórico do que já foi pago/recebido pela pessoa (com data).';
+
+create index if not exists payments_por_pessoa_mes
+  on s7ponto.payments (user_id, year_month);
+create index if not exists payments_por_data
+  on s7ponto.payments (paid_on desc);
+
+-- Totais da planilha para conferência
+create table if not exists s7ponto.sheet_month_totals (
+  id              uuid primary key default gen_random_uuid(),
+  user_id         uuid not null references s7ponto.profiles (id) on delete cascade,
+  year_month      text not null check (year_month ~ '^\d{4}-\d{2}$'),
+  expected_total  numeric(12,2) not null default 0,
+  note            text,
+  source          text not null default 'import',
+  created_at      timestamptz not null default now(),
+  unique (user_id, year_month)
+);
+comment on table s7ponto.sheet_month_totals is
+  'Total do mês na planilha (trabalho + extras). Conferência app × planilha.';
 
 -- Regra de ouro: no máximo UM turno aberto por pessoa,
 -- e no máximo UM trecho aberto por turno. Garantido pelo banco.
@@ -266,6 +301,8 @@ alter table s7ponto.task_rates           enable row level security;
 alter table s7ponto.shift_rates          enable row level security;
 alter table s7ponto.bonus_templates      enable row level security;
 alter table s7ponto.bonus_entries        enable row level security;
+alter table s7ponto.payments             enable row level security;
+alter table s7ponto.sheet_month_totals   enable row level security;
 alter table s7ponto.shifts               enable row level security;
 alter table s7ponto.segments             enable row level security;
 
@@ -340,6 +377,20 @@ create policy bonus_entries_leitura on s7ponto.bonus_entries for select to authe
   using (user_id = auth.uid() or s7ponto.is_admin());
 drop policy if exists bonus_entries_escrita_admin on s7ponto.bonus_entries;
 create policy bonus_entries_escrita_admin on s7ponto.bonus_entries for all to authenticated
+  using (s7ponto.is_admin()) with check (s7ponto.is_admin());
+
+drop policy if exists payments_leitura on s7ponto.payments;
+create policy payments_leitura on s7ponto.payments for select to authenticated
+  using (user_id = auth.uid() or s7ponto.is_admin());
+drop policy if exists payments_escrita_admin on s7ponto.payments;
+create policy payments_escrita_admin on s7ponto.payments for all to authenticated
+  using (s7ponto.is_admin()) with check (s7ponto.is_admin());
+
+drop policy if exists sheet_totals_leitura on s7ponto.sheet_month_totals;
+create policy sheet_totals_leitura on s7ponto.sheet_month_totals for select to authenticated
+  using (user_id = auth.uid() or s7ponto.is_admin());
+drop policy if exists sheet_totals_escrita_admin on s7ponto.sheet_month_totals;
+create policy sheet_totals_escrita_admin on s7ponto.sheet_month_totals for all to authenticated
   using (s7ponto.is_admin()) with check (s7ponto.is_admin());
 
 -- shifts: a pessoa bate o próprio ponto; admin corrige o de qualquer um.

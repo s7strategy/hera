@@ -95,6 +95,7 @@ function semear() {
   return {
     profiles, tasks, companies, assignments, companyAssignments, shifts, segments,
     taskRates: [], shiftRates: [], bonusTemplates: [], bonusEntries: [],
+    payments: [], sheetMonthTotals: [],
     senhas: { admin: '1234', maria: '1234', joao: '1234' },
   };
 }
@@ -112,6 +113,8 @@ function ler() {
       if (!Array.isArray(db.shiftRates)) db.shiftRates = [];
       if (!Array.isArray(db.bonusTemplates)) db.bonusTemplates = [];
       if (!Array.isArray(db.bonusEntries)) db.bonusEntries = [];
+      if (!Array.isArray(db.payments)) db.payments = [];
+      if (!Array.isArray(db.sheetMonthTotals)) db.sheetMonthTotals = [];
       db.profiles.forEach((p) => { if (!p.pay_mode) p.pay_mode = 'hourly'; });
       return db;
     }
@@ -383,6 +386,61 @@ export function criaStoreDemo() {
       db.bonusEntries = (db.bonusEntries || []).filter((x) => x.id !== id);
       salva();
       return espera(true);
+    },
+
+    async listaPagamentos({ userId = null, yearMonth = null } = {}) {
+      carrega();
+      if (!db.payments) db.payments = [];
+      let lista = db.payments.map((p) => ({ ...p }));
+      if (userId) lista = lista.filter((p) => p.user_id === userId);
+      if (yearMonth) lista = lista.filter((p) => p.year_month === yearMonth);
+      lista.sort((a, b) => String(b.paid_on).localeCompare(String(a.paid_on)));
+      return espera(lista);
+    },
+    async lancaPagamento({ user_id, paid_on, amount, title = 'Pagamento', note = null, year_month = null }) {
+      exigeAdmin(); carrega();
+      if (!db.payments) db.payments = [];
+      const when = paid_on ? new Date(paid_on) : new Date();
+      const ym = year_month || `${when.getFullYear()}-${String(when.getMonth() + 1).padStart(2, '0')}`;
+      const novo = {
+        id: uid(), user_id,
+        paid_on: when.toISOString().slice(0, 10),
+        year_month: ym, amount: +amount || 0,
+        title: String(title || 'Pagamento').trim() || 'Pagamento',
+        note: note || null, source: 'manual',
+        created_at: new Date().toISOString(),
+      };
+      db.payments.push(novo); salva();
+      return espera({ ...novo });
+    },
+    async atualizaPagamento(id, patch) {
+      exigeAdmin(); carrega();
+      const p = (db.payments || []).find((x) => x.id === id);
+      if (!p) throw new Error('Pagamento não encontrado.');
+      if (patch.amount != null) p.amount = +patch.amount || 0;
+      if (patch.title != null) p.title = String(patch.title).trim() || 'Pagamento';
+      if (patch.note != null) p.note = patch.note;
+      if (patch.paid_on) {
+        const when = new Date(patch.paid_on);
+        p.paid_on = when.toISOString().slice(0, 10);
+        p.year_month = patch.year_month || `${when.getFullYear()}-${String(when.getMonth() + 1).padStart(2, '0')}`;
+      }
+      salva();
+      return espera({ ...p });
+    },
+    async apagaPagamento(id) {
+      exigeAdmin(); carrega();
+      db.payments = (db.payments || []).filter((x) => x.id !== id);
+      salva();
+      return espera(true);
+    },
+    async listaTotaisPlanilha({ userId = null, yearMonth = null } = {}) {
+      carrega();
+      if (!db.sheetMonthTotals) db.sheetMonthTotals = [];
+      let lista = db.sheetMonthTotals.map((x) => ({ ...x }));
+      if (userId) lista = lista.filter((x) => x.user_id === userId);
+      if (yearMonth) lista = lista.filter((x) => x.year_month === yearMonth);
+      return espera(lista);
     },
 
     /* ---- equipe ---- */

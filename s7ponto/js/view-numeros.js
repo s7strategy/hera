@@ -12,7 +12,7 @@ import { $, $$, ICONE, carregando, vazio, torrada } from './ui.js';
 import { graficoDias, graficoMeses, graficoTarefas, tabelaDeApoio, PALETA } from './charts.js';
 import {
   pintaTrechos, resumoDoMes, serieDoMes, serieDeMeses,
-  horasDoTurno, valorDoTurno, somaBonus, totalComBonus,
+  horasDoTurno, valorDoTurno, somaBonus, totalComBonus, somaPagamentos,
 } from './metricas.js';
 
 export async function telaDeNumeros(raiz, ctx) {
@@ -43,9 +43,16 @@ export async function telaDeNumeros(raiz, ctx) {
 
   async function desenha() {
     await carregaBonus();
+    let pagamentos = [];
+    try {
+      pagamentos = await store.listaPagamentos({
+        userId: usuario.id, yearMonth: chaveMes(mesRef),
+      });
+    } catch { pagamentos = []; }
     const r = resumoDoMes(turnos, mesRef);
     const bonus = somaBonus(bonusMes);
     const total = totalComBonus(r.valor, bonusMes);
+    const pago = somaPagamentos(pagamentos);
     const noMes = turnos.filter((t) => {
       const d = new Date(t.started_at);
       return d >= inicioDoMes(mesRef) && d <= fimDoMes(mesRef);
@@ -81,6 +88,7 @@ export async function telaDeNumeros(raiz, ctx) {
           <div class="heroi-nota">
             <span class="ficha ficha-neutra">trabalho ${esc(money(r.valor))}</span>
             ${bonus ? `<span class="ficha ficha-neutra">bônus ${esc(money(bonus))}</span>` : ''}
+            ${pago ? `<span class="ficha ficha-neutra">já recebido ${esc(money(pago))}</span>` : ''}
             ${fichaVar}
           </div>
         </div>
@@ -100,6 +108,24 @@ export async function telaDeNumeros(raiz, ctx) {
               </div>
               <div class="item-fim">
                 <div class="num" style="font-weight:600;color:var(--salvia-alt)">${esc(money(e.amount))}</div>
+              </div>
+            </div>`).join('')}</div>
+        </section>` : ''}
+
+      ${pagamentos.length ? `
+        <section class="cartao" style="margin-top:16px">
+          <div class="cartao-topo">
+            <h2 class="cartao-titulo">Pagamentos recebidos</h2>
+            <span class="apagado num" style="font-size:14px">${esc(money(pago))}</span>
+          </div>
+          <div class="lista">${pagamentos.map((pg) => `
+            <div class="item">
+              <div class="item-corpo">
+                <div class="item-titulo">${esc(pg.title)}</div>
+                <div class="item-sub">${esc(dataBR(pg.paid_on))}${pg.note ? ` · ${esc(String(pg.note).slice(0, 80))}` : ''}</div>
+              </div>
+              <div class="item-fim">
+                <div class="num" style="font-weight:600">${esc(money(pg.amount))}</div>
               </div>
             </div>`).join('')}</div>
         </section>` : ''}
