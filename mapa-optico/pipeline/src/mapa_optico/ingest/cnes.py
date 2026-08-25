@@ -164,9 +164,18 @@ def _listar(diretorio: str) -> list[str]:
     tentativa para descobrir que a convencao era outra. Listar responde de uma
     vez, e continua respondendo quando o DATASUS mudar o padrao de nome.
     """
-    ftp = _conectar_ftp()
+    try:
+        ftp = _conectar_ftp()
+    except ftplib.all_errors as exc:  # inclui OSError, socket.error e os erros de protocolo
+        raise CnesIndisponivel(f"FTP do DATASUS nao atendeu: {type(exc).__name__}: {exc}") from exc
     try:
         return [n.rsplit("/", 1)[-1] for n in ftp.nlst(diretorio)]
+    except ftplib.error_perm as exc:
+        # 550 aqui e "esse diretorio nao existe". Vira falha deste caminho, nao
+        # excecao solta: quem chamou ainda tem outros caminhos para tentar.
+        raise CnesIndisponivel(f"{diretorio} nao existe no FTP do DATASUS: {exc}") from exc
+    except OSError as exc:
+        raise CnesIndisponivel(f"listagem de {diretorio} falhou: {exc}") from exc
     finally:
         _fechar(ftp)
 
@@ -548,8 +557,11 @@ def oftalmologistas_por_municipio(
         "pysus": lambda: _via_pysus(uf, competencia, refresh),
         "csv": lambda: _via_csv_manual(uf, competencia),
     }
-    # Do mais barato para o mais pesado, e a dependencia compilada por ultimo.
-    ordem = [caminho_preferido] if caminho_preferido else ["dbc", "base_csv", "pysus", "csv"]
+    # A base completa vem primeiro por ser a que comprovadamente funciona: e
+    # pesada (~10 min de FTP na primeira vez, depois cache), mas nao depende de
+    # dependencia compilada nem de o layout de diretorio do .dbc estar onde a
+    # documentacao diz. O .dbc fica como atalho oportunista.
+    ordem = [caminho_preferido] if caminho_preferido else ["base_csv", "dbc", "pysus", "csv"]
     erros: list[str] = []
 
     with etapa(f"ingest.cnes.{uf}") as c:
