@@ -115,7 +115,7 @@ function abreMenuDoPerfil() {
     titulo: usuario.full_name,
     sub: `@${usuario.username}${usuario.role === 'admin' ? ' · administração' : ''}`,
     corpo: `
-      <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="folha-acoes">
         <button class="btn btn-medio btn-fantasma" data-tema>
           ${claro ? ICONE.lua : ICONE.sol}
           <span>${claro ? 'Usar modo escuro' : 'Usar modo claro'}</span>

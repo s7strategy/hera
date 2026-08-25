@@ -15,7 +15,7 @@ import {
   horasDoTurno, valorDoTurno, somaBonus, totalComBonus, somaPagamentos,
   agrupaBonus, comparaSaldo, saldosPorPessoa,
 } from './metricas.js';
-import { htmlRecibo, htmlPizzas, pintaPizzas, htmlDetalheBonus } from './extrato.js';
+import { htmlRecibo, htmlPizzas, pintaPizzas, htmlDetalheBonus, htmlGradeMetricas } from './extrato.js';
 import { extraDoPeriodo, htmlRecadoExtraPessoa } from './hora-extra.js';
 
 export async function telaDeNumeros(raiz, ctx) {
@@ -78,9 +78,8 @@ export async function telaDeNumeros(raiz, ctx) {
       const d = new Date(t.started_at);
       return d >= inicioDoMes(mesRef) && d <= fimDoMes(mesRef);
     });
-    const taxaTrabalho = r.horas > 0.001 ? r.valor / r.horas : 0;
-    const taxaGeral = r.horas > 0.001 ? total / r.horas : 0;
     const bancoExtra = extraDoPeriodo(noMes);
+    const porTurno = usuario.pay_mode === 'shift' || noMes.some((t) => t.period);
 
     const falta = Math.max(0, total - pago);
     const emDia = total > 0.004 && falta < 0.5;
@@ -108,15 +107,17 @@ export async function telaDeNumeros(raiz, ctx) {
     const meses = mesesDoSeletor();
 
     raiz.innerHTML = `
-      <nav class="mes-nav barra-mes-sticky" aria-label="Escolher o mês">
-        <button class="mes-nav-btn" data-mes="-1" ${podeVoltar ? '' : 'disabled'} aria-label="Mês anterior">${ICONE.esquerda}</button>
-        <label class="mes-nav-escolhe">
-          <select class="mes-nav-titulo" data-mes-escolhe aria-label="Ver outro mês">
-            ${meses.map((m) => `<option value="${esc(chaveMes(m))}" ${chaveMes(m) === chaveMes(mesRef) ? 'selected' : ''}>${esc(maiuscula(mesAno(m)))}</option>`).join('')}
-          </select>
-        </label>
-        <button class="mes-nav-btn" data-mes="1" ${podeAvancar ? '' : 'disabled'} aria-label="Próximo mês">${ICONE.direita}</button>
-      </nav>
+      <div class="barra-mes-sticky">
+        <nav class="mes-nav" aria-label="Escolher o mês">
+          <button class="mes-nav-btn" data-mes="-1" ${podeVoltar ? '' : 'disabled'} aria-label="Mês anterior">${ICONE.esquerda}</button>
+          <label class="mes-nav-escolhe">
+            <select class="mes-nav-titulo" data-mes-escolhe aria-label="Ver outro mês">
+              ${meses.map((m) => `<option value="${esc(chaveMes(m))}" ${chaveMes(m) === chaveMes(mesRef) ? 'selected' : ''}>${esc(maiuscula(mesAno(m)))}</option>`).join('')}
+            </select>
+          </label>
+          <button class="mes-nav-btn" data-mes="1" ${podeAvancar ? '' : 'disabled'} aria-label="Próximo mês">${ICONE.direita}</button>
+        </nav>
+      </div>
 
       <section class="cartao">
         <div class="heroi">
@@ -132,7 +133,7 @@ export async function telaDeNumeros(raiz, ctx) {
           </div>
           ${cmp.parcial ? `<p class="apagado" style="font-size:12.5px;margin-top:10px">Comparado até o dia ${esc(String(cmp.diaLimite))} (ontem), com bônus e extras — o dia de hoje fica de fora enquanto puder estar em aberto.</p>` : ''}
         </div>
-        ${htmlRecibo({ horasMes: r.horas, trabalho: r.valor, grupos, total, pago })}
+        ${htmlRecibo({ horasMes: r.horas, trabalho: r.valor, grupos, total, pago, partes: r.porTarefa })}
         ${htmlDetalheBonus(bonusMes)}
       </section>
 
@@ -144,6 +145,32 @@ export async function telaDeNumeros(raiz, ctx) {
         </div>` : ''}
 
       <section class="cartao" style="margin-top:16px">
+        ${htmlPizzas({ porTurno })}
+      </section>
+
+      ${htmlGradeMetricas({
+        payMode: usuario.pay_mode,
+        r, noMes, total, cmp, temAnt,
+        mesAntNome: nomeMes(somaMeses(mesRef, -1)),
+        periodoTxt,
+      })}
+
+      <section class="cartao" style="margin-top:16px">
+        <div class="cartao-topo">
+          <h2 class="cartao-titulo">Horas por dia</h2>
+          <span class="apagado" style="font-size:13px">${esc(plural(r.turnos, 'turno', 'turnos'))} no mês</span>
+        </div>
+        <div class="grafico" id="g-dias"></div>
+        <div id="t-dias"></div>
+      </section>
+
+      <section class="cartao">
+        <div class="cartao-topo"><h2 class="cartao-titulo">Mês a mês</h2>
+          <span class="apagado" style="font-size:13px">trabalho + bônus · toque na barra</span></div>
+        <div class="grafico" id="g-meses"></div>
+      </section>
+
+      <section class="cartao" style="margin-top:16px">
         <div class="cartao-topo">
           <h2 class="cartao-titulo">Seus turnos</h2>
           <span class="apagado">${esc(plural(noMes.length, 'turno', 'turnos'))}</span>
@@ -151,33 +178,6 @@ export async function telaDeNumeros(raiz, ctx) {
         ${noMes.length ? `<div class="lista">${noMes.map(linhaDoTurno).join('')}</div>`
           : vazio({ emoji: '🌱', titulo: 'Nenhum turno neste mês',
                     texto: 'Quando a administração lançar ou você bater o ponto, aparece aqui.' })}
-      </section>
-
-      <section class="grade-metricas" style="margin-top:16px">
-        <div class="metrica">
-          <div class="metrica-rotulo">Horas no mês</div>
-          <div class="metrica-valor">${esc(horas(r.horas))}</div>
-          ${cmp.diaLimite > 0 && temAnt ? `<div class="metrica-nota">${esc(horas(Math.abs(cmp.variacao.horas.abs)))} ${cmp.variacao.horas.abs >= 0 ? 'a mais' : 'a menos'} que em ${esc(nomeMes(somaMeses(mesRef, -1)))} (${esc(periodoTxt)})</div>` : ''}
-        </div>
-        <div class="metrica">
-          <div class="metrica-rotulo">Dias trabalhados</div>
-          <div class="metrica-valor">${esc(String(r.diasTrabalhados))}</div>
-          ${cmp.diaLimite > 0 && temAnt ? `<div class="metrica-nota">${esc(plural(Math.abs(cmp.variacao.dias.abs), 'dia', 'dias'))} ${cmp.variacao.dias.abs >= 0 ? 'a mais' : 'a menos'} que no mesmo período</div>` : ''}
-        </div>
-        <div class="metrica">
-          <div class="metrica-rotulo">Média do trabalho</div>
-          <div class="metrica-valor">${esc(money(taxaTrabalho))}<small class="metrica-unid">/h</small></div>
-          <div class="metrica-nota">só horas × valor, sem bônus</div>
-        </div>
-        <div class="metrica">
-          <div class="metrica-rotulo">Média com bônus</div>
-          <div class="metrica-valor saldo">${esc(money(taxaGeral))}<small class="metrica-unid">/h</small></div>
-          <div class="metrica-nota">${esc(money(r.mediaValorPorDia))} de trabalho por dia</div>
-        </div>
-      </section>
-
-      <section class="cartao" style="margin-top:16px">
-        ${htmlPizzas()}
       </section>
 
       ${pagamentos.length ? `
@@ -204,30 +204,16 @@ export async function telaDeNumeros(raiz, ctx) {
               Ver menos
             </button>` : ''}
         </section>` : ''}
-
-      <section class="cartao" style="margin-top:16px">
-        <div class="cartao-topo">
-          <h2 class="cartao-titulo">Horas por dia</h2>
-          <span class="apagado" style="font-size:13px">${esc(plural(r.turnos, 'turno', 'turnos'))} no mês</span>
-        </div>
-        <div class="grafico" id="g-dias"></div>
-        <div id="t-dias"></div>
-      </section>
-
-      <section class="cartao">
-        <div class="cartao-topo"><h2 class="cartao-titulo">Mês a mês</h2>
-          <span class="apagado" style="font-size:13px">trabalho + bônus · toque na barra</span></div>
-        <div class="grafico" id="g-meses"></div>
-      </section>`;
+    `;
 
     const serieD = serieDoMes(mesRef, r.porDia);
-    graficoDias($('#g-dias', raiz), serieD, { cor: PALETA[0] });
+    try { graficoDias($('#g-dias', raiz), serieD, { cor: PALETA[0] }); } catch { /* gráfico opcional */ }
     $('#t-dias', raiz).innerHTML = tabelaDeApoio(
       serieD.filter((d) => d.horas > 0).map((d) => [dataCurta(d.data), horasCurto(d.horas), money(d.valor)]),
       ['Dia', 'Horas', 'Valor'],
     );
-    graficoMeses($('#g-meses', raiz), serieDeMeses(turnos, mesRef, 6, new Date(), bonusTodos));
-    pintaPizzas(raiz, r.porTarefa, grupos);
+    try { graficoMeses($('#g-meses', raiz), serieDeMeses(turnos, mesRef, 6, new Date(), bonusTodos)); } catch { /* gráfico opcional */ }
+    try { pintaPizzas(raiz, r.porTarefa, grupos, { porTurno }); } catch { /* gráfico opcional */ }
 
     const recarregaMes = async () => {
       raiz.innerHTML = carregando('Somando suas horas…');

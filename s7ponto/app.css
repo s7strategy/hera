@@ -409,6 +409,11 @@ html[data-tema="claro"] .btn-primario { color: #fff; }
 
 .linha-botoes { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .linha-botoes > * { flex: 1 1 140px; }
+.visao-acoes { margin-bottom: 16px; }
+.visao-acoes > * { flex: 0 1 auto; }
+
+.folha-acoes { display: flex; flex-direction: column; gap: 8px; }
+.folha-acoes .btn { width: 100%; justify-content: flex-start; padding-inline: 18px; }
 
 /* ==========================================================================
    Formulários

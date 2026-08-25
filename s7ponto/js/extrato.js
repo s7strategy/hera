@@ -1,7 +1,7 @@
 /* ==========================================================================
    S7 PONTO — extrato de ganhos (trabalho + bônus agrupados) e pizzas.
    ========================================================================== */
-import { esc, money, horas, iniciais, dataBR } from './util.js';
+import { esc, money, horas, iniciais, dataBR, plural } from './util.js';
 import { $ } from './ui.js';
 import { graficoPizza, PALETA } from './charts.js';
 import { agrupaBonus, fatiasHoras, fatiasSalario } from './metricas.js';
@@ -18,21 +18,27 @@ function linha(nome, valor, detalhe = '') {
     </li>`;
 }
 
-/** Recibo: horas × valor, cada tipo de bônus agrupado, total embaixo. */
-export function htmlRecibo({ horasMes = 0, trabalho = 0, grupos = [], total = 0, pago = 0 }) {
+/** Recibo: horas × valor, cada tipo de bônus agrupado, total embaixo.
+ *  `partes` (ex.: Turno Manhã / Tarde) quebra o trabalho quando há mais de uma origem. */
+export function htmlRecibo({ horasMes = 0, trabalho = 0, grupos = [], total = 0, pago = 0, partes = [] }) {
   const bonus = grupos.reduce((s, g) => s + (g.total || 0), 0);
   const falta = total - pago;
   const mixTrab = total > 0 ? (trabalho / total) * 100 : 0;
   const mixBon = total > 0 ? (bonus / total) * 100 : 0;
+  const linhasPartes = (partes || []).filter((p) => (p.valor || 0) > 0.004 || (p.horas || 0) > 0.001);
+  const detalha = linhasPartes.length > 1;
+  const linhasTrabalho = detalha
+    ? linhasPartes.map((p) => linha(p.nome, p.valor, p.horas > 0.001 ? horas(p.horas) : '')).join('')
+    : ((trabalho > 0.004 || horasMes > 0.001) ? linha(
+      'Trabalho',
+      trabalho,
+      horasMes > 0.001 ? horas(horasMes) : '',
+    ) : '');
 
   return `
     <div class="recibo-corpo">
       <ul class="recibo-linhas">
-        ${(trabalho > 0.004 || horasMes > 0.001) ? linha(
-          'Trabalho',
-          trabalho,
-          horasMes > 0.001 ? horas(horasMes) : '',
-        ) : ''}
+        ${linhasTrabalho}
         ${grupos.map((g) => linha(
           g.title,
           g.total,
@@ -109,29 +115,109 @@ export function htmlReciboPessoa({
     </article>`;
 }
 
-export function htmlPizzas() {
+export function htmlPizzas({ porTurno = false } = {}) {
   return `
     <div class="grade-pizzas">
       <div class="pizza-bloco">
-        <h3 class="pizza-titulo">Horas por tarefa</h3>
-        <p class="pizza-sub">Onde o tempo foi</p>
+        <h3 class="pizza-titulo">${porTurno ? 'Horas por turno' : 'Horas por tarefa'}</h3>
+        <p class="pizza-sub">${porTurno ? 'Manhã, tarde e noite' : 'Onde o tempo foi'}</p>
         <div class="grafico" id="g-pizza-horas"></div>
       </div>
       <div class="pizza-bloco">
-        <h3 class="pizza-titulo">De onde vem o valor</h3>
-        <p class="pizza-sub">Trabalho + bônus</p>
+        <h3 class="pizza-titulo">${porTurno ? 'Valor por turno' : 'De onde vem o valor'}</h3>
+        <p class="pizza-sub">${porTurno ? 'Quanto cada período rende' : 'Trabalho + bônus'}</p>
         <div class="grafico" id="g-pizza-valor"></div>
       </div>
     </div>`;
 }
 
-export function pintaPizzas(raiz, porTarefa, grupos) {
+export function pintaPizzas(raiz, porTarefa, grupos, { porTurno = false } = {}) {
   const horasFat = fatiasHoras(porTarefa);
   const valorFat = fatiasSalario(porTarefa, grupos);
   const gH = $('#g-pizza-horas', raiz);
   const gV = $('#g-pizza-valor', raiz);
-  if (gH) graficoPizza(gH, horasFat, { formato: 'horas', rotuloCentro: 'nas tarefas' });
+  if (gH) graficoPizza(gH, horasFat, { formato: 'horas', rotuloCentro: porTurno ? 'nos turnos' : 'nas tarefas' });
   if (gV) graficoPizza(gV, valorFat, { formato: 'money', rotuloCentro: 'do mês' });
+}
+
+/** Cards de resumo — por turno (Fran) ou por hora (os outros). */
+export function htmlGradeMetricas({
+  payMode = 'hourly',
+  r,
+  noMes = [],
+  total = 0,
+  cmp = null,
+  mesAntNome = '',
+  periodoTxt = '',
+  temAnt = false,
+}) {
+  const notaHoras = cmp?.diaLimite > 0 && temAnt
+    ? `<div class="metrica-nota">${esc(horas(Math.abs(cmp.variacao.horas.abs)))} ${cmp.variacao.horas.abs >= 0 ? 'a mais' : 'a menos'} que em ${esc(mesAntNome)} (${esc(periodoTxt)})</div>`
+    : '';
+  const notaDias = cmp?.diaLimite > 0 && temAnt
+    ? `<div class="metrica-nota">${esc(plural(Math.abs(cmp.variacao.dias.abs), 'dia', 'dias'))} ${cmp.variacao.dias.abs >= 0 ? 'a mais' : 'a menos'} que no mesmo período</div>`
+    : '';
+
+  if (payMode === 'shift') {
+    const nM = noMes.filter((t) => t.period === 'manha').length;
+    const nT = noMes.filter((t) => t.period === 'tarde').length;
+    const nN = noMes.filter((t) => t.period === 'noite').length;
+    const media = noMes.length ? r.valor / noMes.length : 0;
+    const partesPer = [
+      nM ? `${nM} manhã${nM === 1 ? '' : 's'}` : null,
+      nT ? `${nT} tarde${nT === 1 ? '' : 's'}` : null,
+      nN ? `${nN} noite${nN === 1 ? '' : 's'}` : null,
+    ].filter(Boolean).join(' · ') || 'sem períodos';
+    return `
+      <section class="grade-metricas" style="margin-top:16px">
+        <div class="metrica">
+          <div class="metrica-rotulo">Turnos no mês</div>
+          <div class="metrica-valor">${esc(String(noMes.length))}</div>
+          <div class="metrica-nota">${esc(partesPer)}</div>
+        </div>
+        <div class="metrica">
+          <div class="metrica-rotulo">Horas no mês</div>
+          <div class="metrica-valor">${esc(horas(r.horas))}</div>
+          ${notaHoras}
+        </div>
+        <div class="metrica">
+          <div class="metrica-rotulo">Dias trabalhados</div>
+          <div class="metrica-valor">${esc(String(r.diasTrabalhados))}</div>
+          ${notaDias}
+        </div>
+        <div class="metrica">
+          <div class="metrica-rotulo">Média por turno</div>
+          <div class="metrica-valor saldo">${esc(money(media))}</div>
+          <div class="metrica-nota">valor fixo do período, não por hora</div>
+        </div>
+      </section>`;
+  }
+
+  const taxaTrabalho = r.horas > 0.001 ? r.valor / r.horas : 0;
+  const taxaGeral = r.horas > 0.001 ? total / r.horas : 0;
+  return `
+    <section class="grade-metricas" style="margin-top:16px">
+      <div class="metrica">
+        <div class="metrica-rotulo">Horas no mês</div>
+        <div class="metrica-valor">${esc(horas(r.horas))}</div>
+        ${notaHoras}
+      </div>
+      <div class="metrica">
+        <div class="metrica-rotulo">Dias trabalhados</div>
+        <div class="metrica-valor">${esc(String(r.diasTrabalhados))}</div>
+        ${notaDias}
+      </div>
+      <div class="metrica">
+        <div class="metrica-rotulo">Média do trabalho</div>
+        <div class="metrica-valor">${esc(money(taxaTrabalho))}<small class="metrica-unid">/h</small></div>
+        <div class="metrica-nota">só horas × valor, sem bônus</div>
+      </div>
+      <div class="metrica">
+        <div class="metrica-rotulo">Média com bônus</div>
+        <div class="metrica-valor saldo">${esc(money(taxaGeral))}<small class="metrica-unid">/h</small></div>
+        <div class="metrica-nota">${esc(money(r.mediaValorPorDia))} de trabalho por dia</div>
+      </div>
+    </section>`;
 }
 
 export function htmlDetalheBonus(entries = []) {

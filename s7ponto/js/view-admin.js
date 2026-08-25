@@ -4,7 +4,7 @@
    ========================================================================== */
 import { store } from './store.js';
 import {
-  esc, money, horas, horasCurto, num, iniciais, maiuscula, plural,
+  esc, money, moneyShort, horas, horasCurto, num, iniciais, maiuscula, plural, pct,
   mesAno, nomeMes, dataLonga, dataBR, dataCurta, hora, diaChave,
   inicioDoMes, fimDoMes, somaMeses, somaDias, inicioDaSemana,
   paraInputLocal, deInputLocal, juntaDiaHora, deDiaChave,
@@ -14,14 +14,15 @@ import {
 import {
   $, $$, ICONE, el, abreFolha, confirma, torrada, carregando, vazio, comBotaoOcupado,
 } from './ui.js';
-import { PALETA, graficoDias, graficoPizza, tabelaDeApoio } from './charts.js';
+import { PALETA, graficoDias, graficoPizza, graficoMeses, tabelaDeApoio } from './charts.js';
 import {
   pintaTrechos, agrega, horasDoTurno, valorDoTurno, somaBonus, totalComBonus,
-  somaPagamentos, resumoDoMes, serieDoMes, agrupaBonus,
+  somaPagamentos, resumoDoMes, serieDoMes, serieDeMeses, agrupaBonus, comparaSaldo,
   saldosPorPessoa, repartePagamento, rotuloMesDevido, roundMoney,
 } from './metricas.js';
 import {
-  htmlRecibo, htmlReciboPessoa, htmlPizzas, pintaPizzas, htmlDetalheBonus, fatiasPorPessoa,
+  htmlRecibo, htmlReciboPessoa, htmlPizzas, pintaPizzas, htmlDetalheBonus, htmlGradeMetricas,
+  fatiasPorPessoa,
 } from './extrato.js';
 import {
   extraDoPeriodo, extraPorPessoa, htmlAlertaExtra, htmlRecadoExtraPessoa,
@@ -205,7 +206,7 @@ export async function telaDeAdmin(raiz, ctx) {
       titulo: p.full_name,
       sub: `@${p.username}`,
       corpo: `
-        <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="folha-acoes">
           <button class="btn btn-primario btn-medio" data-visao>${ICONE.grafico}<span>Ver números (como ela vê)</span></button>
           <button class="btn btn-medio" data-empresas>${ICONE.predio}<span>Liberar empresas</span></button>
           <button class="btn btn-medio" data-tarefas>${ICONE.etiqueta}<span>Liberar tarefas</span></button>
@@ -1569,11 +1570,15 @@ export async function telaDeAdmin(raiz, ctx) {
   async function abaVisaoPessoa(alvo, p) {
     alvo.innerHTML = carregando('Carregando números…');
     const ym = chaveMes(mesRef);
-    const [turnosBrutos, bonusMes, pagamentos] = await Promise.all([
+    const [turnosBrutos, bonusMes, pagamentos, bonusPessoa] = await Promise.all([
       store.listaTurnos({ userId: p.id }),
       store.listaBonusMes({ userId: p.id, yearMonth: ym }),
       store.listaPagamentos({ userId: p.id }),
+      store.listaBonusPessoa(p.id).catch(() => []),
     ]);
+    const porIdBonus = new Map((bonusPessoa || []).map((e) => [e.id, e]));
+    for (const e of bonusMes) porIdBonus.set(e.id, e);
+    const bonusTodos = [...porIdBonus.values()];
     const turnos = pintaTrechos(turnosBrutos, tarefas);
     const r = resumoDoMes(turnos, mesRef);
     const grupos = agrupaBonus(bonusMes);
@@ -1584,6 +1589,20 @@ export async function telaDeAdmin(raiz, ctx) {
       const d = new Date(t.started_at);
       return d >= inicioDoMes(mesRef) && d <= fimDoMes(mesRef);
     });
+    const porTurno = p.pay_mode === 'shift' || noMes.some((t) => t.period);
+    const cmp = comparaSaldo(turnos, bonusTodos, mesRef);
+    const dv = cmp.variacao.total;
+    const temAnt = cmp.diaLimite > 0 && (cmp.anterior.total > 0.004 || cmp.atual.total > 0.004);
+    const periodoTxt = `1–${cmp.diaLimite}`;
+    const fichaVar = cmp.diaLimite < 1
+      ? '<span class="ficha ficha-neutra">passa o primeiro dia do mês para comparar</span>'
+      : !temAnt
+        ? '<span class="ficha ficha-neutra">primeiro período com registro</span>'
+        : `<span class="ficha ${dv.abs >= 0 ? 'ficha-alta' : 'ficha-baixa'}">
+             ${dv.abs >= 0 ? ICONE.cima : ICONE.baixo}
+             ${esc(money(Math.abs(dv.abs)))}${dv.pct !== null ? ` · ${esc(pct(dv.pct))}` : ''}
+           </span>
+           <span class="ficha ficha-neutra">${esc(nomeMes(somaMeses(mesRef, -1)))} ${esc(periodoTxt)}: ${esc(moneyShort(cmp.anterior.total))}</span>`;
     const planilha = (await store.listaTotaisPlanilha({ userId: p.id, yearMonth: ym }))[0];
     const esperado = planilha ? +planilha.expected_total : null;
     const diff = esperado != null ? total - esperado : null;
@@ -1598,13 +1617,75 @@ export async function telaDeAdmin(raiz, ctx) {
         </div>`
       : '';
 
-    const htmlTurnosMes = `
+    alvo.innerHTML = `
+      ${htmlSeletorMes({ sticky: true })}
+
+      <div class="linha-botoes visao-acoes">
+        <button class="btn btn-primario" id="v-novo-turno">
+          ${ICONE.mais}<span>Lançar horários</span>
+        </button>
+        <button class="btn" id="v-novo-pag">
+          ${ICONE.pagar}<span>Pagamento</span>
+        </button>
+      </div>
+
+      <section class="cartao">
+        <div class="heroi">
+          <p class="heroi-rotulo">${pagoMes > 0.004 && (total - pagoMes) < 0.5
+            ? `Tudo pago em ${esc(nomeMes(mesRef))}`
+            : `A receber em ${esc(nomeMes(mesRef))}`}</p>
+          <p class="heroi-valor saldo">${esc(money(Math.max(0, total - pagoMes)))}</p>
+          <div class="heroi-nota">
+            <span class="ficha ficha-neutra">${esc(horas(r.horas))} · ${esc(plural(noMes.length, 'turno', 'turnos'))} · ganhou ${esc(money(total))}${pagoMes > 0.004 ? ` · já pago ${esc(money(pagoMes))}` : ''}</span>
+            ${htmlRecadoExtraPessoa(extraDoPeriodo(noMes), { compacto: true })}
+            ${fichaVar}
+          </div>
+        </div>
+        ${htmlRecibo({ horasMes: r.horas, trabalho: r.valor, grupos, total, pago: pagoMes, partes: r.porTarefa })}
+        ${htmlDetalheBonus(bonusMes)}
+      </section>
+
+      ${htmlRecadoExtraPessoa(extraDoPeriodo(noMes), { nomeMes: nomeMes(mesRef) })}
+      ${dicaOutroMes}
+
+      ${esperado != null ? `
+        <div class="recado ${Math.abs(diff) < 0.5 ? '' : 'ruim'}" style="margin-top:14px">
+          <span class="recado-emoji">${Math.abs(diff) < 0.5 ? '✅' : '⚠️'}</span>
+          <span>Planilha: <strong>${esc(money(esperado))}</strong> · App: <strong>${esc(money(total))}</strong>
+            · diferença <strong>${esc(money(diff))}</strong>
+            ${Math.abs(diff) >= 0.5 ? ' — confira extras/horários que escaparam.' : ' — batendo.'}</span>
+        </div>` : ''}
+
+      <section class="cartao" style="margin-top:16px">
+        ${htmlPizzas({ porTurno })}
+      </section>
+
+      ${htmlGradeMetricas({
+        payMode: p.pay_mode,
+        r, noMes, total, cmp, temAnt,
+        mesAntNome: nomeMes(somaMeses(mesRef, -1)),
+        periodoTxt,
+      })}
+
+      <section class="cartao" style="margin-top:16px">
+        <div class="cartao-topo">
+          <h2 class="cartao-titulo">Horas por dia</h2>
+          <span class="apagado" style="font-size:13px">${esc(plural(noMes.length, 'turno', 'turnos'))} no mês</span>
+        </div>
+        <div class="grafico" id="vp-dias"></div>
+        <div id="vp-tabela"></div>
+      </section>
+
+      <section class="cartao">
+        <div class="cartao-topo"><h2 class="cartao-titulo">Mês a mês</h2>
+          <span class="apagado" style="font-size:13px">trabalho + bônus · toque na barra</span></div>
+        <div class="grafico" id="vp-meses"></div>
+      </section>
+
       <section class="cartao" style="margin-top:16px">
         <div class="cartao-topo"><h2 class="cartao-titulo">Turnos do mês</h2>
           <span class="apagado">${esc(plural(noMes.length, 'turno', 'turnos'))}</span></div>
-        <div class="grafico" id="vp-dias"></div>
-        <div id="vp-tabela"></div>
-        ${noMes.length ? `<div class="lista" style="margin-top:12px">${noMes.map((t) => `
+        ${noMes.length ? `<div class="lista">${noMes.map((t) => `
           <button class="item clicavel" data-turno="${esc(t.id)}">
             <span class="item-faixa" style="background:${esc(t.segments?.[0]?.cor || PALETA[0])}"></span>
             <span class="item-corpo">
@@ -1621,50 +1702,6 @@ export async function telaDeAdmin(raiz, ctx) {
           </button>`).join('')}</div>`
           : vazio({ emoji: '📭', titulo: 'Nenhum turno neste mês',
                     texto: 'Lance pela administração ou ela bate o ponto no app.' })}
-      </section>`;
-
-    alvo.innerHTML = `
-      ${htmlSeletorMes()}
-
-      <div class="linha-botoes" style="margin-bottom:16px">
-        <button class="btn btn-primario" id="v-novo-turno">
-          ${ICONE.mais}<span>Lançar horários</span>
-        </button>
-        <button class="btn" id="v-novo-pag">
-          ${ICONE.mais}<span>Pagamento</span>
-        </button>
-      </div>
-
-      <section class="cartao">
-        <div class="heroi">
-          <p class="heroi-rotulo">${pagoMes > 0.004 && (total - pagoMes) < 0.5
-            ? `Tudo pago em ${esc(nomeMes(mesRef))}`
-            : `A receber em ${esc(nomeMes(mesRef))}`}</p>
-          <p class="heroi-valor saldo">${esc(money(Math.max(0, total - pagoMes)))}</p>
-          <div class="heroi-nota">
-            <span class="ficha ficha-neutra">${esc(horas(r.horas))} · ${esc(plural(noMes.length, 'turno', 'turnos'))} · ganhou ${esc(money(total))}${pagoMes > 0.004 ? ` · já pago ${esc(money(pagoMes))}` : ''}</span>
-            ${htmlRecadoExtraPessoa(extraDoPeriodo(noMes), { compacto: true })}
-          </div>
-        </div>
-        ${htmlRecibo({ horasMes: r.horas, trabalho: r.valor, grupos, total, pago: pagoMes })}
-        ${htmlDetalheBonus(bonusMes)}
-      </section>
-
-      ${htmlRecadoExtraPessoa(extraDoPeriodo(noMes), { nomeMes: nomeMes(mesRef) })}
-      ${dicaOutroMes}
-
-      ${esperado != null ? `
-        <div class="recado ${Math.abs(diff) < 0.5 ? '' : 'ruim'}" style="margin-top:14px">
-          <span class="recado-emoji">${Math.abs(diff) < 0.5 ? '✅' : '⚠️'}</span>
-          <span>Planilha: <strong>${esc(money(esperado))}</strong> · App: <strong>${esc(money(total))}</strong>
-            · diferença <strong>${esc(money(diff))}</strong>
-            ${Math.abs(diff) >= 0.5 ? ' — confira extras/horários que escaparam.' : ' — batendo.'}</span>
-        </div>` : ''}
-
-      ${htmlTurnosMes}
-
-      <section class="cartao" style="margin-top:16px">
-        ${htmlPizzas()}
       </section>
 
       <section class="cartao" style="margin-top:16px">
@@ -1685,8 +1722,9 @@ export async function telaDeAdmin(raiz, ctx) {
       </section>`;
 
     const serieD = serieDoMes(mesRef, r.porDia);
-    graficoDias($('#vp-dias', alvo), serieD, { cor: PALETA[0] });
-    pintaPizzas(alvo, r.porTarefa, grupos);
+    try { graficoDias($('#vp-dias', alvo), serieD, { cor: PALETA[0] }); } catch { /* gráfico opcional */ }
+    try { pintaPizzas(alvo, r.porTarefa, grupos, { porTurno }); } catch { /* gráfico opcional */ }
+    try { graficoMeses($('#vp-meses', alvo), serieDeMeses(turnos, mesRef, 6, new Date(), bonusTodos)); } catch { /* gráfico opcional */ }
     $('#vp-tabela', alvo).innerHTML = tabelaDeApoio(
       serieD.filter((d) => d.horas > 0).map((d) => [dataCurta(d.data), horasCurto(d.horas), money(d.valor)]),
       ['Dia', 'Horas', 'Valor'],
@@ -1934,12 +1972,15 @@ export async function telaDeAdmin(raiz, ctx) {
 
       const devido = lin.devido;
       const atalhos = [];
-      if (devido > 0.5) atalhos.push({ id: 'tudo', rotulo: `Tudo · ${money(devido)}`, valor: devido });
       if (lin.abertoEste > 0.5) atalhos.push({ id: 'mes', rotulo: `Este mês · ${money(lin.abertoEste)}`, valor: lin.abertoEste });
       if (lin.abertoPassado > 0.5) atalhos.push({ id: 'passado', rotulo: `Mês passado · ${money(lin.abertoPassado)}`, valor: lin.abertoPassado });
-      let modo = devido > 0.5 ? 'tudo' : 'livre';
+      if (devido > 0.5) atalhos.push({ id: 'tudo', rotulo: `Tudo · ${money(devido)}`, valor: devido });
+      let modo = 'livre';
 
       const pintaPartes = (valor) => {
+        if (!(valor > 0.004)) {
+          return '<p class="apagado">Digite quanto vai pagar agora. O resto do saldo continua em aberto.</p>';
+        }
         const soYm = modo === 'mes' ? chaveMes(agora)
           : modo === 'passado' ? chaveMes(somaMeses(agora, -1))
           : null;
@@ -1959,22 +2000,23 @@ export async function telaDeAdmin(raiz, ctx) {
             ${lin.abertoPassado > 0.5 ? ` · mês passado ${esc(money(lin.abertoPassado))}` : ''}
             ${lin.abertoAntes > 0.5 ? ` · antes ${esc(money(lin.abertoAntes))}` : ''}
           </p>` : ''}
-        ${atalhos.length > 1 ? `
+        <p class="apagado" style="margin:0 0 12px;font-size:13px">Não precisa ser o total. Você marca o valor deste pagamento e o saldo desconta só isso.</p>
+        ${atalhos.length ? `
           <div class="pg-atalhos">
-            ${atalhos.map((a, i) => `<button type="button" class="pg-atalho ${i === 0 ? 'on' : ''}" data-atalho="${esc(a.id)}" data-valor="${esc(String(a.valor))}">${esc(a.rotulo)}</button>`).join('')}
+            ${atalhos.map((a) => `<button type="button" class="pg-atalho" data-atalho="${esc(a.id)}" data-valor="${esc(String(a.valor))}">${esc(a.rotulo)}</button>`).join('')}
           </div>` : ''}
-        <label class="campo"><span class="campo-rotulo">Valor (R$)</span>
-          <input class="entrada" type="number" min="0" step="0.01" id="pg-val" value="${esc(devido > 0.5 ? String(devido) : '')}"></label>
+        <label class="campo"><span class="campo-rotulo">Valor que vai pagar agora (R$)</span>
+          <input class="entrada" type="number" min="0" step="0.01" id="pg-val" value="" inputmode="decimal" placeholder="ex.: 400"></label>
         <label class="campo"><span class="campo-rotulo">Data do pagamento</span>
           <input class="entrada" type="date" id="pg-data" value="${esc(diaChave(agora))}"></label>
         <label class="campo"><span class="campo-rotulo">Nota (opcional)</span>
           <input class="entrada" id="pg-nota" placeholder="pix, dinheiro, adiantamento…"></label>
-        <div id="pg-partes">${pintaPartes(devido > 0.5 ? devido : 0)}</div>
+        <div id="pg-partes">${pintaPartes(0)}</div>
         <p class="campo-erro" id="pg-erro" hidden></p>
         <button class="btn btn-primario btn-largo" id="pg-salva" style="margin-top:8px">
-          ${ICONE.pagar}<span>Pagar agora</span>
+          ${ICONE.pagar}<span>Descontar do saldo</span>
         </button>
-        <p class="apagado" style="margin-top:10px;font-size:12.5px;text-align:center">Entra na hora no painel dela, no mês certo.</p>`;
+        <p class="apagado" style="margin-top:10px;font-size:12.5px;text-align:center">O que não pagar agora fica em aberto no painel dela.</p>`;
 
       const valorAtual = () => roundMoney(+$('#pg-val', caixa).value || 0);
       const atualizaPartes = () => { $('#pg-partes', caixa).innerHTML = pintaPartes(valorAtual()); };
@@ -1989,6 +2031,7 @@ export async function telaDeAdmin(raiz, ctx) {
         $('#pg-val', caixa).value = b.dataset.valor;
         atualizaPartes();
       }));
+      requestAnimationFrame(() => $('#pg-val', caixa)?.focus());
       $('#pg-salva', caixa).addEventListener('click', async (ev) => {
         const erro = $('#pg-erro', caixa);
         erro.hidden = true;
@@ -2272,14 +2315,17 @@ export async function telaDeAdmin(raiz, ctx) {
     if (!visto.has(chaveMes(mesRef))) {
       opts.unshift(`<option value="${esc(chaveMes(mesRef))}" selected>${esc(maiuscula(mesAno(mesRef)))}</option>`);
     }
-    return `
-      <nav class="mes-nav${sticky ? ' barra-mes-sticky' : ''}" aria-label="Escolher o mês">
+    const nav = `
+      <nav class="mes-nav" aria-label="Escolher o mês">
         <button class="mes-nav-btn" data-mes="-1" aria-label="Mês anterior">${ICONE.esquerda}</button>
         <label class="mes-nav-escolhe">
           <select class="mes-nav-titulo" data-mes-escolhe aria-label="Ver outro mês">${opts.join('')}</select>
         </label>
         <button class="mes-nav-btn" data-mes="1" ${podeAvancar ? '' : 'disabled'} aria-label="Próximo mês">${ICONE.direita}</button>
       </nav>`;
+    return sticky
+      ? `<div class="barra-mes-sticky">${nav}</div>`
+      : nav;
   }
 
   function barraDeFiltro({ semPessoa = false, sticky = false } = {}) {
