@@ -1,13 +1,25 @@
-# Reprocessa o ranking e commita o snapshot que o dashboard lê.
+# Reprocessa o ranking e commita o snapshot que o dashboard le.
 #
-# O CNES publica uma competência por mês, então rodar mais que isso só gasta
-# quota. O Places NÃO roda aqui por padrão: é a única fonte que custa dinheiro e
-# ela merece uma decisão consciente, não um agendamento.
+# POR QUE ESTE WORKFLOW EXISTE E NAO E SO CONVENIENCIA: o ambiente de
+# desenvolvimento nao alcanca IBGE, DATASUS nem OSRM (proxy corporativo bloqueia
+# o CONNECT). O runner do GitHub alcanca. Entao a ingestao real acontece aqui, e
+# o resultado volta commitado para o repositorio.
+#
+# O CNES publica uma competencia por mes, entao rodar mais que isso so gasta
+# quota. O Places NAO roda aqui por padrao: e a unica fonte que custa dinheiro e
+# ela merece uma decisao consciente, nao um agendamento.
 name: Mapa Óptico — pipeline
 
 on:
   schedule:
     - cron: "0 9 5 * *" # dia 5 de cada mês, 09:00 UTC
+  push:
+    branches:
+      - main
+      - claude/app-development-p8hrwg
+    paths:
+      - "mapa-optico/pipeline/**"
+      - ".github/workflows/mapa-optico-pipeline.yml"
   workflow_dispatch:
     inputs:
       ufs:
@@ -26,9 +38,18 @@ on:
         type: boolean
         default: false
 
+# Duas ingestoes simultaneas commitariam o mesmo arquivo e uma perderia.
+concurrency:
+  group: mapa-optico-pipeline-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
 jobs:
   pipeline:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     defaults:
       run:
         working-directory: mapa-optico/pipeline
@@ -40,10 +61,27 @@ jobs:
           enable-cache: true
 
       - name: Instalar dependências
-        run: uv pip install --system -e ".[dev,cnes]"
+        run: uv pip install --system -e ".[dev]"
 
       - name: Testes
         run: pytest -q
+
+      # O extra `cnes` puxa pysus, que compila coisa e as vezes quebra. Se
+      # quebrar, o pipeline ainda tem o caminho do CSV manual — entao instalar
+      # nao pode derrubar o job, so registrar.
+      - name: Instalar leitor do CNES (pysus)
+        id: pysus
+        continue-on-error: true
+        run: uv pip install --system "pysus>=0.12"
+
+      - name: Diagnóstico das fontes externas
+        continue-on-error: true
+        run: mapa-optico checar-fontes --uf SC
+
+      - name: Fase 0 — provar a leitura do CNES
+        id: fase0
+        continue-on-error: true
+        run: mapa-optico fase0 --uf SC
 
       - name: Cache das fontes externas
         uses: actions/cache@v4
@@ -66,7 +104,7 @@ jobs:
           [ "${{ inputs.com_osrm }}" = "false" ] && FLAGS="$FLAGS --sem-osrm"
           [ "${{ inputs.refresh }}" = "true" ] && FLAGS="$FLAGS --refresh"
           echo "mapa-optico ingest --uf $UFS$FLAGS"
-          mapa-optico --json-logs ingest --uf "$UFS" $FLAGS
+          mapa-optico ingest --uf "$UFS" $FLAGS
 
       - name: Carregar no Supabase
         if: ${{ env.SUPABASE_URL != '' }}
@@ -76,10 +114,12 @@ jobs:
         run: uv pip install --system -e ".[supabase]" && mapa-optico carregar --uf "${{ inputs.ufs || 'SC' }}"
 
       - name: Publicar planilhas do ranking
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ranking
           path: mapa-optico/pipeline/out/
+          if-no-files-found: warn
 
       - name: Commitar snapshot do dashboard
         run: |
@@ -90,6 +130,8 @@ jobs:
           if git diff --staged --quiet; then
             echo "snapshot sem mudança"
           else
-            git commit -m "chore(mapa-optico): atualiza snapshot do ranking"
-            git push
+            git commit -m "chore(mapa-optico): atualiza snapshot do ranking com dados reais"
+            # Outro push pode ter entrado enquanto a ingestao rodava.
+            git pull --rebase origin "${{ github.ref_name }}"
+            git push origin "HEAD:${{ github.ref_name }}"
           fi
