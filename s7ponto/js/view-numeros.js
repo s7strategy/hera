@@ -5,15 +5,17 @@
 import { store } from './store.js';
 import {
   esc, money, moneyShort, horas, horasCurto, num, pct, mesAno, dataLonga,
-  dataCurta, hora, somaMeses, inicioDoMes, fimDoMes, diaChave, plural,
+  dataCurta, hora, somaMeses, inicioDoMes, fimDoMes, plural,
   baixaArquivo, csvLinha, dataBR, maiuscula, nomeMes, chaveMes,
 } from './util.js';
 import { $, $$, ICONE, carregando, vazio, torrada } from './ui.js';
-import { graficoDias, graficoMeses, graficoTarefas, tabelaDeApoio, PALETA } from './charts.js';
+import { graficoDias, graficoMeses, tabelaDeApoio, PALETA } from './charts.js';
 import {
   pintaTrechos, resumoDoMes, serieDoMes, serieDeMeses,
   horasDoTurno, valorDoTurno, somaBonus, totalComBonus, somaPagamentos,
+  agrupaBonus,
 } from './metricas.js';
+import { htmlRecibo, htmlPizzas, pintaPizzas, htmlDetalheBonus } from './extrato.js';
 
 export async function telaDeNumeros(raiz, ctx) {
   const { usuario } = ctx;
@@ -50,13 +52,15 @@ export async function telaDeNumeros(raiz, ctx) {
       });
     } catch { pagamentos = []; }
     const r = resumoDoMes(turnos, mesRef);
-    const bonus = somaBonus(bonusMes);
+    const grupos = agrupaBonus(bonusMes);
     const total = totalComBonus(r.valor, bonusMes);
     const pago = somaPagamentos(pagamentos);
     const noMes = turnos.filter((t) => {
       const d = new Date(t.started_at);
       return d >= inicioDoMes(mesRef) && d <= fimDoMes(mesRef);
     });
+    const taxaTrabalho = r.horas > 0.001 ? r.valor / r.horas : 0;
+    const taxaGeral = r.horas > 0.001 ? total / r.horas : 0;
 
     const ehMesCorrente = chaveMes(mesRef) === chaveMes(new Date());
     const temAnterior = r.anterior.valor > 0 || r.anterior.horas > 0;
@@ -84,34 +88,42 @@ export async function telaDeNumeros(raiz, ctx) {
           <p class="heroi-rotulo">${ehMesCorrente
             ? 'Você recebe neste mês'
             : `Você recebeu em ${esc(nomeMes(mesRef))}`}</p>
-          <p class="heroi-valor" style="color:var(--salvia-alt)">${esc(money(total))}</p>
+          <p class="heroi-valor saldo">${esc(money(total))}</p>
           <div class="heroi-nota">
-            <span class="ficha ficha-neutra">trabalho ${esc(money(r.valor))}</span>
-            ${bonus ? `<span class="ficha ficha-neutra">bônus ${esc(money(bonus))}</span>` : ''}
-            ${pago ? `<span class="ficha ficha-neutra">já recebido ${esc(money(pago))}</span>` : ''}
+            <span class="ficha ficha-neutra">${esc(horas(r.horas))} trabalhadas</span>
             ${fichaVar}
           </div>
         </div>
+        ${htmlRecibo({ horasMes: r.horas, trabalho: r.valor, grupos, total, pago })}
+        ${htmlDetalheBonus(bonusMes)}
       </section>
 
-      ${bonusMes.length ? `
-        <section class="cartao" style="margin-top:16px">
-          <div class="cartao-topo">
-            <h2 class="cartao-titulo">Bônus do mês</h2>
-            <span class="apagado num" style="font-size:14px">${esc(money(bonus))}</span>
-          </div>
-          <div class="lista">${bonusMes.map((e) => `
-            <div class="item">
-              <div class="item-corpo">
-                <div class="item-titulo">${esc(e.title)}</div>
-                ${e.note ? `<div class="item-sub">${esc(e.note)}</div>` : ''}
-                ${e.bonus_on ? `<div class="item-sub">${esc(dataBR(e.bonus_on))}</div>` : ''}
-              </div>
-              <div class="item-fim">
-                <div class="num" style="font-weight:600;color:var(--salvia-alt)">${esc(money(e.amount))}</div>
-              </div>
-            </div>`).join('')}</div>
-        </section>` : ''}
+      <section class="grade-metricas" style="margin-top:16px">
+        <div class="metrica">
+          <div class="metrica-rotulo">Horas no mês</div>
+          <div class="metrica-valor">${esc(horas(r.horas))}</div>
+          ${temAnterior ? `<div class="metrica-nota">${esc(horas(Math.abs(r.variacao.horas.abs)))} ${r.variacao.horas.abs >= 0 ? 'a mais' : 'a menos'} que em ${esc(nomeMes(somaMeses(mesRef, -1)))}</div>` : ''}
+        </div>
+        <div class="metrica">
+          <div class="metrica-rotulo">Dias trabalhados</div>
+          <div class="metrica-valor">${esc(String(r.diasTrabalhados))}</div>
+          ${temAnterior ? `<div class="metrica-nota">${esc(plural(Math.abs(r.variacao.dias.abs), 'dia', 'dias'))} ${r.variacao.dias.abs >= 0 ? 'a mais' : 'a menos'} que no mês passado</div>` : ''}
+        </div>
+        <div class="metrica">
+          <div class="metrica-rotulo">Média do trabalho</div>
+          <div class="metrica-valor">${esc(money(taxaTrabalho))}<small class="metrica-unid">/h</small></div>
+          <div class="metrica-nota">só horas × valor, sem bônus</div>
+        </div>
+        <div class="metrica">
+          <div class="metrica-rotulo">Média com bônus</div>
+          <div class="metrica-valor saldo">${esc(money(taxaGeral))}<small class="metrica-unid">/h</small></div>
+          <div class="metrica-nota">${esc(money(r.mediaValorPorDia))} de trabalho por dia</div>
+        </div>
+      </section>
+
+      <section class="cartao" style="margin-top:16px">
+        ${htmlPizzas()}
+      </section>
 
       ${pagamentos.length ? `
         <section class="cartao" style="margin-top:16px">
@@ -131,29 +143,6 @@ export async function telaDeNumeros(raiz, ctx) {
             </div>`).join('')}</div>
         </section>` : ''}
 
-      <section class="grade-metricas" style="margin-top:16px">
-        <div class="metrica">
-          <div class="metrica-rotulo">Do trabalho</div>
-          <div class="metrica-valor" style="color:var(--salvia-alt)">${esc(money(r.valor))}</div>
-          <div class="metrica-nota">${esc(horas(r.horas))} trabalhadas</div>
-        </div>
-        <div class="metrica">
-          <div class="metrica-rotulo">Horas trabalhadas</div>
-          <div class="metrica-valor">${esc(horas(r.horas))}</div>
-          ${temAnterior ? `<div class="metrica-nota">${esc(horas(Math.abs(r.variacao.horas.abs)))} ${r.variacao.horas.abs >= 0 ? 'a mais' : 'a menos'} que em ${esc(nomeMes(somaMeses(mesRef, -1)))}</div>` : ''}
-        </div>
-        <div class="metrica">
-          <div class="metrica-rotulo">Dias trabalhados</div>
-          <div class="metrica-valor">${esc(String(r.diasTrabalhados))}</div>
-          ${temAnterior ? `<div class="metrica-nota">${esc(plural(Math.abs(r.variacao.dias.abs), 'dia', 'dias'))} ${r.variacao.dias.abs >= 0 ? 'a mais' : 'a menos'} que no mês passado</div>` : ''}
-        </div>
-        <div class="metrica">
-          <div class="metrica-rotulo">Média por dia</div>
-          <div class="metrica-valor">${esc(horas(r.mediaHorasPorDia))}</div>
-          <div class="metrica-nota">${esc(money(r.mediaValorPorDia))} por dia (trabalho)</div>
-        </div>
-      </section>
-
       <section class="cartao" style="margin-top:16px">
         <div class="cartao-topo">
           <h2 class="cartao-titulo">Horas por dia</h2>
@@ -161,11 +150,6 @@ export async function telaDeNumeros(raiz, ctx) {
         </div>
         <div class="grafico" id="g-dias"></div>
         <div id="t-dias"></div>
-      </section>
-
-      <section class="cartao">
-        <div class="cartao-topo"><h2 class="cartao-titulo">Onde foram suas horas</h2></div>
-        <div class="grafico" id="g-tarefas"></div>
       </section>
 
       <section class="cartao">
@@ -190,8 +174,8 @@ export async function telaDeNumeros(raiz, ctx) {
       serieD.filter((d) => d.horas > 0).map((d) => [dataCurta(d.data), horasCurto(d.horas), money(d.valor)]),
       ['Dia', 'Horas', 'Valor'],
     );
-    graficoTarefas($('#g-tarefas', raiz), r.porTarefa);
     graficoMeses($('#g-meses', raiz), serieDeMeses(turnos, mesRef, 6), { cor: PALETA[0] });
+    pintaPizzas(raiz, r.porTarefa, grupos);
 
     $$('[data-mes]', raiz).forEach((b) => b.addEventListener('click', async () => {
       mesRef = somaMeses(mesRef, +b.dataset.mes);

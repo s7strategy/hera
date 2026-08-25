@@ -38,6 +38,43 @@ export const totalComBonus = (valorTrabalho, entries = []) =>
 export const somaPagamentos = (payments = []) =>
   (payments || []).reduce((s, p) => s + (+p.amount || 0), 0);
 
+/** Junta lançamentos iguais (ex.: 5× Noite R$100 → um item R$500). */
+export function agrupaBonus(entries = []) {
+  const mapa = new Map();
+  for (const e of entries || []) {
+    const title = String(e.title || 'Bônus').replace(/\s+/g, ' ').trim() || 'Bônus';
+    const k = title.toLocaleLowerCase('pt-BR');
+    if (!mapa.has(k)) mapa.set(k, { title, count: 0, total: 0, unit: 0, items: [] });
+    const g = mapa.get(k);
+    g.count += 1;
+    g.total += +e.amount || 0;
+    g.items.push(e);
+  }
+  for (const g of mapa.values()) g.unit = g.count ? g.total / g.count : 0;
+  return [...mapa.values()].sort((a, b) => b.total - a.total);
+}
+
+/** Fatias de pizza: horas por tarefa (ignora item só de valor, sem hora). */
+export function fatiasHoras(porTarefa = []) {
+  return (porTarefa || [])
+    .filter((t) => (t.horas || 0) > 0.001)
+    .map((t) => ({ nome: t.nome, valor: t.horas, cor: t.cor }));
+}
+
+/** Fatias de pizza: de onde veio o dinheiro (tarefas + grupos de bônus). */
+export function fatiasSalario(porTarefa = [], grupos = []) {
+  const fatias = [];
+  for (const t of porTarefa || []) {
+    if ((t.valor || 0) > 0.004) fatias.push({ nome: t.nome, valor: t.valor, cor: t.cor });
+  }
+  (grupos || []).forEach((g, i) => {
+    if ((g.total || 0) > 0.004) {
+      fatias.push({ nome: g.title, valor: g.total, cor: corDaSerie(fatias.length + i) });
+    }
+  });
+  return fatias.sort((a, b) => b.valor - a.valor);
+}
+
 /* ==========================================================================
    Agregação de um conjunto de turnos
    ========================================================================== */

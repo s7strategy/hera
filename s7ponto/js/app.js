@@ -4,10 +4,11 @@
 import { CONFIG } from './config.js';
 import { iniciaStore, store, demoForcada } from './store.js';
 import { esc, iniciais } from './util.js';
-import { $, $$, ICONE, el, abreFolha, confirma, torrada, carregando } from './ui.js';
+import { $, $$, ICONE, abreFolha, confirma, torrada, carregando, comBotaoOcupado } from './ui.js';
 import { telaDeEntrar } from './view-login.js';
 import { telaDePonto } from './view-ponto.js';
 import { telaDeNumeros } from './view-numeros.js';
+import { aplicaTema, leTemaLocal, defineTemaUsuario, htmlLogo } from './tema.js';
 
 const raiz = document.getElementById('raiz');
 let usuario = null;
@@ -24,6 +25,24 @@ const TELAS = {
 const telasVisiveis = () => Object.entries(TELAS)
   .filter(([, t]) => !t.soAdmin || usuario?.role === 'admin');
 
+function temaAtual() {
+  return document.documentElement.dataset.tema === 'claro' ? 'claro' : 'escuro';
+}
+
+function pintaBotaoTema(botao) {
+  if (!botao) return;
+  const claro = temaAtual() === 'claro';
+  botao.innerHTML = claro ? ICONE.lua : ICONE.sol;
+  botao.setAttribute('aria-label', claro ? 'Mudar para o modo escuro' : 'Mudar para o modo claro');
+  botao.title = claro ? 'Modo escuro' : 'Modo claro';
+}
+
+async function trocaTema() {
+  const proximo = temaAtual() === 'claro' ? 'escuro' : 'claro';
+  await defineTemaUsuario(store, usuario?.id, proximo);
+  pintaBotaoTema($('#btn-tema'));
+}
+
 /* ==========================================================================
    Casca
    ========================================================================== */
@@ -33,13 +52,14 @@ function desenhaCasca() {
     <div class="app">
       <header class="topo">
         <div class="marca">
-          <img class="marca-logo" src="assets/logo-s7.svg" alt="S7" width="40" height="40">
+          ${htmlLogo('marca-logo', 40)}
           <div>
             <div class="marca-nome">${esc(CONFIG.BRAND.name)}</div>
             <div class="marca-sub" id="casca-sub"></div>
           </div>
         </div>
         ${store.modo === 'demo' ? '<span class="ficha ficha-viva">demonstração</span>' : ''}
+        <button class="btn-tema" id="btn-tema" type="button"></button>
         <button class="avatar" id="btn-perfil" aria-label="Sua conta">${esc(iniciais(usuario.full_name))}</button>
       </header>
       <main class="pagina" id="pagina" tabindex="-1"></main>
@@ -50,7 +70,8 @@ function desenhaCasca() {
     </div>`;
 
   $('#casca-sub').textContent = usuario.full_name;
-
+  pintaBotaoTema($('#btn-tema'));
+  $('#btn-tema').addEventListener('click', trocaTema);
   $$('[data-tela]').forEach((b) => b.addEventListener('click', () => vaiPara(b.dataset.tela)));
   $('#btn-perfil').addEventListener('click', abreMenuDoPerfil);
 }
@@ -89,16 +110,28 @@ async function vaiPara(tela) {
    ========================================================================== */
 
 function abreMenuDoPerfil() {
+  const claro = temaAtual() === 'claro';
   abreFolha({
     titulo: usuario.full_name,
     sub: `@${usuario.username}${usuario.role === 'admin' ? ' · administração' : ''}`,
     corpo: `
       <div style="display:flex;flex-direction:column;gap:10px">
+        <button class="btn btn-medio btn-fantasma" data-tema>
+          ${claro ? ICONE.lua : ICONE.sol}
+          <span>${claro ? 'Usar modo escuro' : 'Usar modo claro'}</span>
+        </button>
+        <button class="btn btn-medio" data-senha>${ICONE.engrenagem}<span>Trocar minha senha</span></button>
         ${store.modo === 'demo' ? `
           <button class="btn btn-medio btn-fantasma" data-zera>${ICONE.lixo}<span>Zerar a demonstração</span></button>` : ''}
         <button class="btn btn-medio btn-perigo" data-sai>${ICONE.sair}<span>Sair da minha conta</span></button>
       </div>`,
     aoMontar: (caixa, fechar) => {
+      $('[data-tema]', caixa).addEventListener('click', async () => {
+        await trocaTema();
+        fechar();
+        abreMenuDoPerfil();
+      });
+      $('[data-senha]', caixa).addEventListener('click', () => { fechar(); abreTrocaSenha(); });
       $('[data-sai]', caixa).addEventListener('click', async () => {
         fechar();
         if (await confirma({ titulo: 'Sair da conta?', texto: 'Você vai precisar entrar de novo com usuário e senha.', ok: 'Sair', perigo: true })) sai();
@@ -114,12 +147,56 @@ function abreMenuDoPerfil() {
   });
 }
 
+function abreTrocaSenha() {
+  abreFolha({
+    titulo: 'Trocar minha senha',
+    sub: 'Só você e a administração mexem nisso.',
+    corpo: `
+      <label class="campo"><span class="campo-rotulo">Senha atual</span>
+        <input class="entrada" id="s-atual" type="password" autocomplete="current-password"></label>
+      <label class="campo"><span class="campo-rotulo">Nova senha</span>
+        <input class="entrada" id="s-nova" type="password" autocomplete="new-password"
+               placeholder="pelo menos 4 caracteres"></label>
+      <label class="campo"><span class="campo-rotulo">Repita a nova senha</span>
+        <input class="entrada" id="s-rep" type="password" autocomplete="new-password"></label>
+      <p class="campo-erro" id="s-erro" hidden></p>
+      <button class="btn btn-primario btn-medio btn-largo" id="s-salva">Guardar senha</button>`,
+    aoMontar: (caixa, fechar) => {
+      const erro = $('#s-erro', caixa);
+      $('#s-salva', caixa).addEventListener('click', async (ev) => {
+        erro.hidden = true;
+        const atual = $('#s-atual', caixa).value;
+        const nova = $('#s-nova', caixa).value;
+        const rep = $('#s-rep', caixa).value;
+        if (nova.length < 4) {
+          erro.textContent = 'A nova senha precisa ter pelo menos 4 caracteres.';
+          erro.hidden = false; return;
+        }
+        if (nova !== rep) {
+          erro.textContent = 'A repetição não bate com a nova senha.';
+          erro.hidden = false; return;
+        }
+        try {
+          await comBotaoOcupado(ev.currentTarget, 'Guardando…',
+            () => store.trocaSenhaPropria(atual, nova));
+          fechar();
+          torrada('Senha atualizada.', 'bom');
+        } catch (e) {
+          erro.textContent = e.message || 'Não consegui trocar a senha.';
+          erro.hidden = false;
+        }
+      });
+    },
+  });
+}
+
 /* ==========================================================================
    Entrada e saída
    ========================================================================== */
 
 async function entrou(perfil) {
   usuario = perfil;
+  aplicaTema(perfil.theme || leTemaLocal(perfil.id));
   desenhaCasca();
   await vaiPara('ponto');
 }
@@ -137,6 +214,7 @@ async function sai() {
    ========================================================================== */
 
 async function partir() {
+  aplicaTema(leTemaLocal());
   raiz.innerHTML = carregando('Abrindo o S7 PONTO…');
   try {
     await iniciaStore();

@@ -4,7 +4,8 @@
 import { CONFIG } from './config.js';
 import { store } from './store.js';
 import { esc } from './util.js';
-import { $, el, torrada, comBotaoOcupado } from './ui.js';
+import { $, torrada, comBotaoOcupado } from './ui.js';
+import { htmlLogo } from './tema.js';
 
 export function telaDeEntrar(raiz, aoEntrar) {
   const demo = store.modo === 'demo';
@@ -13,7 +14,7 @@ export function telaDeEntrar(raiz, aoEntrar) {
   raiz.innerHTML = `
     <div class="entrar">
       <div class="entrar-caixa">
-        <img class="entrar-logo" src="assets/logo-s7.svg" alt="S7" width="96" height="96">
+        ${htmlLogo('entrar-logo', 96)}
         <h1 class="entrar-titulo">${esc(CONFIG.BRAND.name)}</h1>
         <p class="entrar-sub">Bata seu ponto em dois toques.</p>
 

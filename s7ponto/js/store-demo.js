@@ -96,7 +96,7 @@ function semear() {
     profiles, tasks, companies, assignments, companyAssignments, shifts, segments,
     taskRates: [], shiftRates: [], bonusTemplates: [], bonusEntries: [],
     payments: [], sheetMonthTotals: [],
-    senhas: { admin: '1234', maria: '1234', joao: '1234' },
+    senhas: { admin: '1234', maria: 'maria321*', joao: 'joao321*' },
   };
 }
 
@@ -115,7 +115,17 @@ function ler() {
       if (!Array.isArray(db.bonusEntries)) db.bonusEntries = [];
       if (!Array.isArray(db.payments)) db.payments = [];
       if (!Array.isArray(db.sheetMonthTotals)) db.sheetMonthTotals = [];
-      db.profiles.forEach((p) => { if (!p.pay_mode) p.pay_mode = 'hourly'; });
+      db.profiles.forEach((p) => {
+        if (!p.pay_mode) p.pay_mode = 'hourly';
+        if (!p.theme) p.theme = 'escuro';
+      });
+      if (!db.senhas) db.senhas = {};
+      db.profiles.forEach((p) => {
+        if (p.role === 'employee' && (db.senhas[p.username] === '1234' || !db.senhas[p.username])) {
+          db.senhas[p.username] = `${p.username}321*`;
+        }
+      });
+      gravar(db);
       return db;
     }
   } catch { /* storage bloqueado ou json quebrado: recomeça */ }
@@ -472,7 +482,7 @@ export function criaStoreDemo() {
       if (db.profiles.some((p) => p.username === u)) throw new Error(`Já existe alguém com o usuário "${u}".`);
       if (String(password || '').length < 4) throw new Error('A senha precisa ter pelo menos 4 caracteres.');
       const novo = { id: uid(), username: u, full_name: full_name || u, role: role || 'employee',
-                     pay_mode: 'hourly', active: true };
+                     pay_mode: 'hourly', theme: 'escuro', active: true };
       db.profiles.push(novo); db.senhas[u] = String(password); salva();
       return espera(novo);
     },
@@ -492,6 +502,24 @@ export function criaStoreDemo() {
       if (!p) throw new Error('Pessoa não encontrada.');
       db.senhas[p.username] = String(senha); salva();
       return espera(true);
+    },
+    async trocaSenhaPropria(atual, nova) {
+      carrega();
+      if (!usuario) throw new Error('Entre na conta para trocar a senha.');
+      if (String(nova || '').length < 4) throw new Error('A senha precisa ter pelo menos 4 caracteres.');
+      if (db.senhas[usuario.username] !== String(atual)) throw new Error('Senha atual incorreta.');
+      db.senhas[usuario.username] = String(nova); salva();
+      return espera(true);
+    },
+    async defineTema(tema) {
+      carrega();
+      const t = tema === 'claro' ? 'claro' : 'escuro';
+      if (!usuario) return t;
+      const p = db.profiles.find((x) => x.id === usuario.id);
+      if (p) p.theme = t;
+      usuario.theme = t;
+      salva();
+      return espera(t);
     },
     async apagaPessoa(id) {
       exigeAdmin(); carrega();
@@ -716,8 +744,8 @@ export function criaStoreDemo() {
     },
     dicasDeAcesso: () => [
       { username: 'admin', senha: '1234', papel: 'Super admin' },
-      { username: 'maria', senha: '1234', papel: 'Funcionária (2 empresas, 3 tarefas)' },
-      { username: 'joao',  senha: '1234', papel: 'Funcionário (1 empresa, 1 tarefa)' },
+      { username: 'maria', senha: 'maria321*', papel: 'Funcionária (2 empresas, 3 tarefas)' },
+      { username: 'joao',  senha: 'joao321*',  papel: 'Funcionário (1 empresa, 1 tarefa)' },
     ],
   };
 }

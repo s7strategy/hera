@@ -207,6 +207,10 @@ export const chave = (s) => String(s ?? '').normalize('NFD')
 export const iniciais = (nome) => String(nome || '?').trim().split(/\s+/)
   .slice(0, 2).map((p) => p[0] || '').join('').toUpperCase();
 
+/** Senha inicial padrão: usuário + 321*  (ex.: david321*). */
+export const senhaPadrao = (username) =>
+  `${String(username || '').trim().toLowerCase()}321*`;
+
 export const uid = () => (crypto.randomUUID
   ? crypto.randomUUID()
   : 'id-' + Math.random().toString(36).slice(2) + Date.now().toString(36));

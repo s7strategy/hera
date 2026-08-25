@@ -344,6 +344,23 @@ export async function criaStoreSupabase() {
       ok(await sb.rpc('troca_senha', { p_user_id: id, p_senha: senha }));
       return true;
     },
+    async trocaSenhaPropria(atual, nova) {
+      if (!usuario) throw new Error('Entre na conta para trocar a senha.');
+      if (String(nova || '').length < 4) throw new Error('A senha precisa ter pelo menos 4 caracteres.');
+      const { error: errAtual } = await sb.auth.signInWithPassword({
+        email: paraEmail(usuario.username), password: String(atual ?? ''),
+      });
+      if (errAtual) throw new Error('Senha atual incorreta.');
+      const { error } = await sb.auth.updateUser({ password: String(nova) });
+      if (error) throw traduzErro(error);
+      return true;
+    },
+    async defineTema(tema) {
+      const t = tema === 'claro' ? 'claro' : 'escuro';
+      ok(await sb.rpc('define_tema', { p_tema: t }));
+      if (usuario) usuario.theme = t;
+      return t;
+    },
     async apagaPessoa(id) {
       exigeAdmin();
       ok(await sb.rpc('admin_apaga_usuario', { p_user_id: id }));
@@ -481,8 +498,13 @@ export async function criaStoreSupabase() {
       if (ate) q = q.lte('started_at', new Date(ate).toISOString());
       const turnos = ok(await q);
       if (!turnos.length) return [];
-      const segs = ok(await sb.from('segments').select('*')
-        .in('shift_id', turnos.map((t) => t.id)).order('started_at'));
+      const ids = turnos.map((t) => t.id);
+      const segs = [];
+      const LOTE = 60;
+      for (let i = 0; i < ids.length; i += LOTE) {
+        segs.push(...ok(await sb.from('segments').select('*')
+          .in('shift_id', ids.slice(i, i + LOTE)).order('started_at')));
+      }
       const porTurno = new Map();
       segs.forEach((s) => {
         if (!porTurno.has(s.shift_id)) porTurno.set(s.shift_id, []);

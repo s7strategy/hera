@@ -7,16 +7,19 @@ import {
   esc, money, horas, horasCurto, num, iniciais, maiuscula, plural,
   mesAno, nomeMes, dataLonga, dataBR, dataCurta, hora, diaChave,
   inicioDoMes, fimDoMes, somaMeses, paraInputLocal, deInputLocal,
-  baixaArquivo, csvLinha, horasEntre, PERIODOS, chaveMes,
+  baixaArquivo, csvLinha, horasEntre, PERIODOS, chaveMes, senhaPadrao,
 } from './util.js';
 import {
   $, $$, ICONE, el, abreFolha, confirma, torrada, carregando, vazio, comBotaoOcupado,
 } from './ui.js';
-import { PALETA, graficoTarefas, graficoDias, tabelaDeApoio } from './charts.js';
+import { PALETA, graficoDias, graficoPizza, tabelaDeApoio } from './charts.js';
 import {
   pintaTrechos, agrega, horasDoTurno, valorDoTurno, somaBonus, totalComBonus,
-  somaPagamentos, resumoDoMes, serieDoMes,
+  somaPagamentos, resumoDoMes, serieDoMes, agrupaBonus,
 } from './metricas.js';
+import {
+  htmlRecibo, htmlReciboPessoa, htmlPizzas, pintaPizzas, htmlDetalheBonus, fatiasPorPessoa,
+} from './extrato.js';
 
 const ABAS = [
   { id: 'equipe',      nome: 'Equipe' },
@@ -578,8 +581,8 @@ export async function telaDeAdmin(raiz, ctx) {
           <span class="campo-dica">${novo ? 'Só letras minúsculas, números, ponto, hífen ou _.' : 'O usuário não muda depois de criado.'}</span></label>
         ${novo ? `
           <label class="campo"><span class="campo-rotulo">Senha inicial</span>
-            <input class="entrada" id="f-senha" type="text" placeholder="ex.: 1234">
-            <span class="campo-dica">Só a administração pode trocar a senha depois.</span></label>` : ''}
+            <input class="entrada" id="f-senha" type="text" placeholder="ex.: maria321*">
+            <span class="campo-dica">Padrão: usuário + 321*. Ela pode trocar depois no próprio perfil.</span></label>` : ''}
         <label class="campo"><span class="campo-rotulo">O que ela pode fazer</span>
           <select class="entrada" id="f-papel">
             <option value="employee" ${p?.role === 'admin' ? '' : 'selected'}>Bater ponto e ver os próprios números</option>
@@ -596,6 +599,14 @@ export async function telaDeAdmin(raiz, ctx) {
           ${novo ? 'Cadastrar' : 'Salvar'}</button>`,
       aoMontar: (caixa, fechar) => {
         const erro = $('#f-erro', caixa);
+        const campoUser = $('#f-user', caixa);
+        const campoSenha = $('#f-senha', caixa);
+        campoUser?.addEventListener('input', () => {
+          if (!campoSenha || campoSenha.dataset.tocado) return;
+          const u = campoUser.value.trim().toLowerCase();
+          campoSenha.value = u ? senhaPadrao(u) : '';
+        });
+        campoSenha?.addEventListener('input', () => { campoSenha.dataset.tocado = '1'; });
         $('#f-salva', caixa).addEventListener('click', async (ev) => {
           erro.hidden = true;
           const nome = $('#f-nome', caixa).value.trim();
@@ -604,7 +615,7 @@ export async function telaDeAdmin(raiz, ctx) {
           try {
             if (novo) {
               const user = $('#f-user', caixa).value.trim().toLowerCase();
-              const senha = $('#f-senha', caixa).value;
+              const senha = $('#f-senha', caixa).value.trim() || senhaPadrao(user);
               await comBotaoOcupado(ev.currentTarget, 'Cadastrando…',
                 () => store.criaPessoa({ username: user, full_name: nome, password: senha, role: papel }));
             } else {
@@ -625,10 +636,10 @@ export async function telaDeAdmin(raiz, ctx) {
   function defineSenha(p) {
     abreFolha({
       titulo: `Nova senha de ${p.full_name.split(' ')[0]}`,
-      sub: 'Passe a senha para ela. Só a administração define senhas.',
+      sub: `Padrão da equipe: ${p.username}321*. Ela também pode trocar no próprio perfil.`,
       corpo: `
         <label class="campo"><span class="campo-rotulo">Senha</span>
-          <input class="entrada" id="p-senha" type="text" placeholder="ex.: 1234"></label>
+          <input class="entrada" id="p-senha" type="text" placeholder="${esc(senhaPadrao(p.username))}" value="${esc(senhaPadrao(p.username))}"></label>
         <p class="campo-erro" id="p-erro" hidden></p>
         <button class="btn btn-primario btn-medio btn-largo" id="p-salva">Definir senha</button>`,
       aoMontar: (caixa, fechar) => {
@@ -1107,7 +1118,7 @@ export async function telaDeAdmin(raiz, ctx) {
     ]);
     const turnos = pintaTrechos(turnosBrutos, tarefas);
     const r = resumoDoMes(turnos, mesRef);
-    const bonus = somaBonus(bonusMes);
+    const grupos = agrupaBonus(bonusMes);
     const total = totalComBonus(r.valor, bonusMes);
     const pagsMes = pagamentos.filter((x) => x.year_month === ym);
     const pagoMes = somaPagamentos(pagsMes);
@@ -1119,6 +1130,7 @@ export async function telaDeAdmin(raiz, ctx) {
     const planilha = (await store.listaTotaisPlanilha({ userId: p.id, yearMonth: ym }))[0];
     const esperado = planilha ? +planilha.expected_total : null;
     const diff = esperado != null ? total - esperado : null;
+    const taxaGeral = r.horas > 0.001 ? total / r.horas : 0;
 
     alvo.innerHTML = `
       <nav class="mes-nav">
@@ -1139,13 +1151,13 @@ export async function telaDeAdmin(raiz, ctx) {
       <section class="cartao">
         <div class="heroi">
           <p class="heroi-rotulo">Total a receber em ${esc(nomeMes(mesRef))}</p>
-          <p class="heroi-valor" style="color:var(--salvia-alt)">${esc(money(total))}</p>
+          <p class="heroi-valor saldo">${esc(money(total))}</p>
           <div class="heroi-nota">
-            <span class="ficha ficha-neutra">trabalho ${esc(money(r.valor))}</span>
-            ${bonus ? `<span class="ficha ficha-neutra">bônus ${esc(money(bonus))}</span>` : ''}
-            ${pagoMes ? `<span class="ficha ficha-neutra">já pago ${esc(money(pagoMes))}</span>` : ''}
+            <span class="ficha ficha-neutra">${esc(horas(r.horas))} · média ${esc(money(taxaGeral))}/h</span>
           </div>
         </div>
+        ${htmlRecibo({ horasMes: r.horas, trabalho: r.valor, grupos, total, pago: pagoMes })}
+        ${htmlDetalheBonus(bonusMes)}
       </section>
 
       ${esperado != null ? `
@@ -1156,19 +1168,9 @@ export async function telaDeAdmin(raiz, ctx) {
             ${Math.abs(diff) >= 0.5 ? ' — confira extras/horários que escaparam.' : ' — batendo.'}</span>
         </div>` : ''}
 
-      ${bonusMes.length ? `
-        <section class="cartao" style="margin-top:16px">
-          <div class="cartao-topo"><h2 class="cartao-titulo">Bônus do mês</h2>
-            <span class="apagado num">${esc(money(bonus))}</span></div>
-          <div class="lista">${bonusMes.map((e) => `
-            <div class="item">
-              <div class="item-corpo">
-                <div class="item-titulo">${esc(e.title)}</div>
-                <div class="item-sub">${e.bonus_on ? `${esc(dataBR(e.bonus_on))} · ` : ''}${e.source}${e.note ? ` · ${esc(e.note)}` : ''}</div>
-              </div>
-              <div class="num" style="font-weight:600;color:var(--salvia-alt)">${esc(money(e.amount))}</div>
-            </div>`).join('')}</div>
-        </section>` : ''}
+      <section class="cartao" style="margin-top:16px">
+        ${htmlPizzas()}
+      </section>
 
       <section class="cartao" style="margin-top:16px">
         <div class="cartao-topo"><h2 class="cartao-titulo">Pagamentos / recebimentos</h2>
@@ -1211,6 +1213,7 @@ export async function telaDeAdmin(raiz, ctx) {
 
     const serieD = serieDoMes(mesRef, r.porDia);
     graficoDias($('#vp-dias', alvo), serieD, { cor: PALETA[0] });
+    pintaPizzas(alvo, r.porTarefa, grupos);
     $('#vp-tabela', alvo).innerHTML = tabelaDeApoio(
       serieD.filter((d) => d.horas > 0).map((d) => [dataCurta(d.data), horasCurto(d.horas), money(d.valor)]),
       ['Dia', 'Horas', 'Valor'],
@@ -1351,8 +1354,12 @@ export async function telaDeAdmin(raiz, ctx) {
               app ${esc(money(l.app))} (trabalho ${esc(money(l.trabalho))} + bônus ${esc(money(l.bonus))})
               · planilha ${l.esperado != null ? esc(money(l.esperado)) : '—'}
             </div>
-            ${l.bons.length ? `<div class="apagado" style="font-size:12px">${l.bons.map((e) =>
-              `${esc(e.title)} ${esc(money(e.amount))}`).join(' · ')}</div>` : ''}
+            ${l.bons.length ? `<div class="recibo-corpo" style="padding-top:4px">${
+              agrupaBonus(l.bons).map((g) =>
+                `<div class="recibo-linha"><span class="recibo-nome">${esc(g.title)}${
+                  g.count > 1 ? ` <small>${g.count}× ${esc(money(g.unit))}</small>` : ''
+                }</span><span class="num recibo-valor">${esc(money(g.total))}</span></div>`).join('')
+            }</div>` : ''}
           </button>`;
         }).join('')}</div>` : vazio({ emoji: '🔎', titulo: 'Sem dados neste mês' })}
       </section>`;
@@ -1411,7 +1418,6 @@ export async function telaDeAdmin(raiz, ctx) {
       .sort((a, b) => b.total - a.total);
 
     const custoTotal = geral.valor + totalBonus;
-    const maiorValor = Math.max(...linhas.map((l) => l.total), 1);
 
     alvo.innerHTML = `
       ${barraDeFiltro({ semPessoa: true })}
@@ -1419,7 +1425,7 @@ export async function telaDeAdmin(raiz, ctx) {
       <section class="cartao">
         <div class="heroi">
           <p class="heroi-rotulo">Custo de mão de obra em ${esc(nomeMes(mesRef))}</p>
-          <p class="heroi-valor">${esc(money(custoTotal))}</p>
+          <p class="heroi-valor saldo">${esc(money(custoTotal))}</p>
           <div class="heroi-nota">
             <span class="ficha ficha-neutra">trabalho ${esc(money(geral.valor))}</span>
             <span class="ficha ficha-neutra">bônus ${esc(money(totalBonus))}</span>
@@ -1434,36 +1440,47 @@ export async function telaDeAdmin(raiz, ctx) {
           <h2 class="cartao-titulo">Por pessoa</h2>
           <button class="btn btn-pequeno btn-fantasma" id="r-csv">${ICONE.baixar}<span>Baixar CSV</span></button>
         </div>
-        ${linhas.length ? `<div class="lista">${linhas.map((l) => `
-          <div class="item" style="flex-direction:column;align-items:stretch;gap:8px">
-            <div style="display:flex;align-items:center;gap:12px">
-              <span class="avatar" style="width:38px;height:38px;font-size:12px;flex:none">${esc(iniciais(l.p.full_name))}</span>
-              <span class="item-titulo" style="flex:1;min-width:0">${esc(l.p.full_name)}</span>
-              <span class="num" style="font-weight:600;font-size:17px;flex:none">${esc(money(l.total))}</span>
-            </div>
-            <div class="item-sub" style="margin:0">${[
-              l.horas ? `${esc(horas(l.horas))} · trabalho ${esc(money(l.valor))}` : 'sem trabalho neste mês',
-              l.bonus ? `bônus ${esc(money(l.bonus))}` : null,
-            ].filter(Boolean).join(' · ')}</div>
-            ${l.bons.length ? `
-              <div class="apagado" style="font-size:12px">${l.bons.map((e) =>
-                `${esc(e.title)} ${esc(money(e.amount))}`).join(' · ')}</div>` : ''}
-            ${l.total ? `
-              <div style="height:8px;border-radius:5px;background:rgba(255,255,255,.05);overflow:hidden">
-                <div style="height:100%;border-radius:5px;background:${PALETA[0]};width:${(l.total / maiorValor) * 100}%"></div>
-              </div>` : ''}
-          </div>`).join('')}</div>`
+        ${linhas.length ? `<div class="lista-recibos">${linhas.map((l) =>
+          htmlReciboPessoa({
+            p: l.p, horasMes: l.horas, dias: l.dias, trabalho: l.valor,
+            grupos: agrupaBonus(l.bons), total: l.total, clicavel: true,
+          })).join('')}</div>`
           : vazio({ emoji: '📊', titulo: 'Nada registrado neste mês' })}
       </section>
 
       <section class="cartao">
-        <div class="cartao-topo"><h2 class="cartao-titulo">Custo por tarefa</h2></div>
-        <div class="grafico" id="r-tarefas"></div>
+        <div class="cartao-topo"><h2 class="cartao-titulo">Como se divide o custo</h2></div>
+        <div class="grade-pizzas">
+          <div class="pizza-bloco">
+            <h3 class="pizza-titulo">Por pessoa</h3>
+            <div class="grafico" id="r-pizza-pessoas"></div>
+          </div>
+          <div class="pizza-bloco">
+            <h3 class="pizza-titulo">Por tarefa (horas)</h3>
+            <div class="grafico" id="r-tarefas"></div>
+          </div>
+        </div>
       </section>`;
 
     ligaFiltro(alvo, abaRelatorios);
-    graficoTarefas($('#r-tarefas', alvo),
-      [...geral.porTarefa.values()].sort((a, b) => b.horas - a.horas));
+    graficoPizza($('#r-pizza-pessoas', alvo), fatiasPorPessoa(linhas), {
+      formato: 'money', rotuloCentro: 'custo',
+    });
+    graficoPizza($('#r-tarefas', alvo),
+      [...geral.porTarefa.values()].filter((t) => t.horas > 0.001)
+        .map((t) => ({ nome: t.nome, valor: t.horas, cor: t.cor })),
+      { formato: 'horas', rotuloCentro: 'horas' });
+    $$('[data-pessoa]', alvo).forEach((b) => {
+      const abre = () => {
+        const pessoa = pessoas.find((x) => x.id === b.dataset.pessoa);
+        if (!pessoa) return;
+        pessoaFoco = pessoa; aba = 'visao'; desenha();
+      };
+      b.addEventListener('click', abre);
+      b.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); abre(); }
+      });
+    });
 
     $('#r-csv', alvo).addEventListener('click', () => {
       if (!linhas.length) { torrada('Nada para baixar neste mês.', 'ruim'); return; }

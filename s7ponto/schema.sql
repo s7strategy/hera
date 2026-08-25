@@ -36,11 +36,15 @@ create table if not exists s7ponto.profiles (
   pay_mode    text        not null default 'hourly'
                           check (pay_mode in ('hourly', 'task', 'shift')),
   active      boolean     not null default true,
+  theme       text        not null default 'escuro'
+                          check (theme in ('escuro', 'claro')),
   created_at  timestamptz not null default now()
 );
 comment on table s7ponto.profiles is 'Equipe do S7 PONTO. role=admin enxerga e edita tudo.';
 comment on column s7ponto.profiles.pay_mode is
   'hourly=hora×tarefa; task=valor fixo da tarefa; shift=valor fixo manhã/tarde/noite.';
+comment on column s7ponto.profiles.theme is
+  'Preferência de aparência da pessoa: escuro ou claro.';
 
 -- Tarefas e quanto vale a hora de cada uma.
 create table if not exists s7ponto.tasks (
@@ -532,14 +536,14 @@ end $$;
 revoke all on function s7ponto.admin_cria_usuario(text, text, text, text) from public, anon;
 grant execute on function s7ponto.admin_cria_usuario(text, text, text, text) to authenticated;
 
--- Só a administração define senhas (funcionário não troca a própria).
+-- Admin troca qualquer senha; a pessoa troca a própria no perfil.
 create or replace function s7ponto.troca_senha(p_user_id uuid, p_senha text)
 returns void
 language plpgsql security definer
 set search_path = s7ponto, auth, extensions, public as $$
 begin
-  if not s7ponto.is_admin() then
-    raise exception 'Só a administração pode definir senhas.';
+  if not (s7ponto.is_admin() or p_user_id = auth.uid()) then
+    raise exception 'Você só pode trocar a própria senha.';
   end if;
   if length(coalesce(p_senha, '')) < 4 then
     raise exception 'A senha precisa ter pelo menos 4 caracteres.';
@@ -552,6 +556,20 @@ end $$;
 
 revoke all on function s7ponto.troca_senha(uuid, text) from public, anon;
 grant execute on function s7ponto.troca_senha(uuid, text) to authenticated;
+
+create or replace function s7ponto.define_tema(p_tema text)
+returns void
+language plpgsql security definer
+set search_path = s7ponto, public as $$
+begin
+  if coalesce(p_tema, '') not in ('escuro', 'claro') then
+    raise exception 'Tema inválido.';
+  end if;
+  update s7ponto.profiles set theme = p_tema where id = auth.uid();
+end $$;
+
+revoke all on function s7ponto.define_tema(text) from public, anon;
+grant execute on function s7ponto.define_tema(text) to authenticated;
 
 -- Apagar de vez (some do auth e, em cascata, o histórico).
 create or replace function s7ponto.admin_apaga_usuario(p_user_id uuid)

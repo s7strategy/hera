@@ -10,8 +10,12 @@ export const PALETA = ['#d95926', '#199e70', '#3987e5', '#c98500',
                        '#d55181', '#7d9c2f', '#9085e9', '#e66767'];
 export const corDaSerie = (i) => PALETA[i] ?? '#8b8878';   // 9ª em diante: "Outras"
 
-const TINTA_3 = '#9a9689';
-const BORDA   = '#363a2d';
+function cssVar(nome, fallback) {
+  const v = getComputedStyle(document.documentElement).getPropertyValue(nome).trim();
+  return v || fallback;
+}
+const tinta  = () => cssVar('--tinta', '#F7F4EC');
+const borda  = () => cssVar('--borda-forte', '#363a2d');
 
 /* ---------- ajudinhas ---------------------------------------------------- */
 
@@ -97,9 +101,9 @@ export function graficoDias(caixa, dados, { cor = PALETA[0] } = {}) {
     const h = Math.max(d.horas > 0 ? 2 : 0, alturaPlot - (y(d.horas) - T));
     const ehHoje = diaChave(d.data) === hoje;
     if (d.horas > 0) {
-      partes.push(`<path class="barra" data-k="${i}" d="${barraTopoRedondo(x, y(d.horas), larguraBarra, h)}" fill="${cor}"${ehHoje ? ' stroke="#F2EFE8" stroke-width="1.2"' : ''}/>`);
+      partes.push(`<path class="barra" data-k="${i}" d="${barraTopoRedondo(x, y(d.horas), larguraBarra, h)}" fill="${cor}"${ehHoje ? ` stroke="${tinta()}" stroke-width="1.2"` : ''}/>`);
     } else {
-      partes.push(`<rect class="barra" data-k="${i}" x="${x}" y="${y(0) - 2}" width="${larguraBarra}" height="2" rx="1" fill="${BORDA}"/>`);
+      partes.push(`<rect class="barra" data-k="${i}" x="${x}" y="${y(0) - 2}" width="${larguraBarra}" height="2" rx="1" fill="${borda()}"/>`);
     }
     // rótulo do eixo: dia 1, múltiplos de 5 e o último — sem poluir
     const dia = d.data.getDate();
@@ -123,7 +127,7 @@ export function graficoDias(caixa, dados, { cor = PALETA[0] } = {}) {
     },
     (d) => `<div class="dica-titulo">${esc(nomeDia(d.data).slice(0, 3))}, ${esc(dataCurta(d.data))}</div>`
       + `<div class="dica-linha"><span class="dica-ponto" style="background:${cor}"></span>${esc(d.horas ? horas(d.horas) : 'não trabalhou')}</div>`
-      + (d.valor ? `<div class="dica-linha" style="color:#c9c5b6">${esc(money(d.valor))}</div>` : ''));
+      + (d.valor ? `<div class="dica-linha" style="color:var(--tinta-3)">${esc(money(d.valor))}</div>` : ''));
 }
 
 /* ==========================================================================
@@ -153,7 +157,7 @@ export function graficoMeses(caixa, dados, { cor = PALETA[0] } = {}) {
     partes.push(`<path class="barra" data-k="${i}" d="${barraTopoRedondo(x, y(d.valor), w, h)}" fill="${cor}" opacity="${opac}"/>`);
     if (d.atual && d.valor > 0) {
       // rótulo direto só no mês em foco — nunca um número em cada barra
-      partes.push(`<text class="eixo-texto" x="${cx}" y="${y(d.valor) - 8}" text-anchor="middle" style="fill:#F2EFE8;font-size:11px;font-weight:600">${esc(num(d.valor, 0))}</text>`);
+      partes.push(`<text class="eixo-texto" x="${cx}" y="${y(d.valor) - 8}" text-anchor="middle" style="fill:var(--tinta);font-size:11px;font-weight:600">${esc(num(d.valor, 0))}</text>`);
     }
     partes.push(`<text class="eixo-texto" x="${cx}" y="${A - 8}" text-anchor="middle"${d.atual ? ' style="fill:#F2EFE8"' : ''}>${esc(d.rotulo)}</text>`);
   });
@@ -169,7 +173,7 @@ export function graficoMeses(caixa, dados, { cor = PALETA[0] } = {}) {
     },
     (d) => `<div class="dica-titulo">${esc(d.rotuloLongo || d.rotulo)}</div>`
       + `<div class="dica-linha"><span class="dica-ponto" style="background:${cor}"></span>${esc(money(d.valor))}</div>`
-      + `<div class="dica-linha" style="color:#c9c5b6">${esc(horas(d.horas))}</div>`);
+      + `<div class="dica-linha" style="color:var(--tinta-3)">${esc(horas(d.horas))}</div>`);
 }
 
 /* ==========================================================================
@@ -200,7 +204,7 @@ export function graficoTarefas(caixa, dados) {
       ${dados.map((d) => `
         <span class="legenda-item">
           <span class="legenda-cor" style="background:${d.cor}"></span>
-          <strong style="font-weight:600;color:#F2EFE8">${esc(d.nome)}</strong>
+          <strong style="font-weight:600;color:var(--tinta)">${esc(d.nome)}</strong>
           <span class="num">${esc(horas(d.horas))}</span>
           <span class="apagado num">${esc(money(d.valor))}</span>
         </span>`).join('')}
@@ -215,7 +219,7 @@ export function graficoTarefas(caixa, dados) {
     },
     (d) => `<div class="dica-titulo">${esc(d.nome)}</div>`
       + `<div class="dica-linha"><span class="dica-ponto" style="background:${d.cor}"></span>${esc(horas(d.horas))} · ${esc(Math.round((d.horas / total) * 100))}%</div>`
-      + `<div class="dica-linha" style="color:#c9c5b6">${esc(money(d.valor))}</div>`);
+      + `<div class="dica-linha" style="color:var(--tinta-3)">${esc(money(d.valor))}</div>`);
 }
 
 /* ==========================================================================
@@ -259,7 +263,95 @@ export function trilhaDoTurno(caixa, trechos, agora = new Date()) {
 }
 
 /* ==========================================================================
-   6. Tabela alternativa — todo gráfico tem como ser lido em números.
+   6. Pizza / donut — distribuição (horas ou valor).
+   dados: [{ nome, valor, cor }]
+   formato: 'horas' | 'money'
+   ========================================================================== */
+
+function polar(cx, cy, r, a) {
+  return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+}
+
+function fatiaDonut(cx, cy, rOut, rIn, a0, a1) {
+  const large = a1 - a0 > Math.PI ? 1 : 0;
+  const [x0, y0] = polar(cx, cy, rOut, a0);
+  const [x1, y1] = polar(cx, cy, rOut, a1);
+  const [x2, y2] = polar(cx, cy, rIn, a1);
+  const [x3, y3] = polar(cx, cy, rIn, a0);
+  return `M${x0} ${y0} A${rOut} ${rOut} 0 ${large} 1 ${x1} ${y1} L${x2} ${y2} A${rIn} ${rIn} 0 ${large} 0 ${x3} ${y3} Z`;
+}
+
+export function graficoPizza(caixa, dados, { formato = 'money', rotuloCentro = '' } = {}) {
+  caixa.innerHTML = '';
+  const limpos = (dados || []).filter((d) => (d.valor || 0) > 0.0001);
+  const total = limpos.reduce((s, d) => s + d.valor, 0);
+  if (!total) {
+    caixa.innerHTML = '<p class="apagado centro" style="padding:22px 0">Ainda sem dados para o gráfico.</p>';
+    return;
+  }
+
+  const W = 220, H = 220, cx = 110, cy = 110, rOut = 96, rIn = 58;
+  const fmt = formato === 'horas' ? horas : money;
+  let ang = -Math.PI / 2;
+  const fatias = limpos.map((d, i) => {
+    const fat = (d.valor / total) * Math.PI * 2;
+    const a0 = ang;
+    const a1 = ang + fat;
+    ang = a1;
+    return { ...d, i, a0, a1, pct: (d.valor / total) * 100 };
+  });
+
+  const anelCompleto = fatias.length === 1;
+  const svgFatias = anelCompleto
+    ? `<circle cx="${cx}" cy="${cy}" r="${(rOut + rIn) / 2}" fill="none"
+         stroke="${fatias[0].cor}" stroke-width="${rOut - rIn}" class="barra" data-k="0"/>`
+    : fatias.map((f) =>
+        `<path class="barra pizza-fatia" data-k="${f.i}" fill="${f.cor}" d="${fatiaDonut(cx, cy, rOut, rIn, f.a0, f.a1)}"/>`).join('');
+
+  caixa.innerHTML = `
+    <div class="pizza-wrap">
+      <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Distribuição em pizza" class="pizza-svg">
+        ${svgFatias}
+        <text x="${cx}" y="${cy - 6}" text-anchor="middle" class="pizza-centro-valor">${esc(fmt(total))}</text>
+        <text x="${cx}" y="${cy + 14}" text-anchor="middle" class="pizza-centro-rotulo">${esc(rotuloCentro)}</text>
+      </svg>
+      <div class="legenda pizza-legenda">
+        ${fatias.map((d) => `
+          <span class="legenda-item">
+            <span class="legenda-cor" style="background:${d.cor}"></span>
+            <strong style="font-weight:600;color:var(--tinta)">${esc(d.nome)}</strong>
+            <span class="num">${esc(fmt(d.valor))}</span>
+            <span class="apagado num">${esc(num(d.pct, 0))}%</span>
+          </span>`).join('')}
+      </div>
+    </div>`;
+
+  const svgEl = caixa.querySelector('svg');
+  const dica = document.createElement('div');
+  dica.className = 'dica';
+  caixa.appendChild(dica);
+  const mostraFatia = (f, ev) => {
+    if (!f) return;
+    dica.innerHTML = `<div class="dica-titulo">${esc(f.nome)}</div>`
+      + `<div class="dica-linha"><span class="dica-ponto" style="background:${f.cor}"></span>${esc(fmt(f.valor))} · ${esc(num(f.pct, 0))}%</div>`;
+    const cr = caixa.getBoundingClientRect();
+    dica.style.left = `${Math.max(70, Math.min(cr.width - 70, ev.clientX - cr.left))}px`;
+    dica.style.top = `${Math.max(28, ev.clientY - cr.top - 4)}px`;
+    dica.classList.add('on');
+    svgEl.querySelectorAll('.barra').forEach((b) => b.classList.toggle('ativa', b.dataset.k === String(f.i)));
+  };
+  svgEl.querySelectorAll('.barra').forEach((el) => {
+    const f = fatias[+el.dataset.k];
+    el.addEventListener('mousemove', (ev) => mostraFatia(f, ev));
+    el.addEventListener('mouseleave', () => {
+      dica.classList.remove('on');
+      svgEl.querySelectorAll('.barra.ativa').forEach((b) => b.classList.remove('ativa'));
+    });
+  });
+}
+
+/* ==========================================================================
+   7. Tabela alternativa — todo gráfico tem como ser lido em números.
    ========================================================================== */
 
 export function tabelaDeApoio(linhas, cabecalho) {
