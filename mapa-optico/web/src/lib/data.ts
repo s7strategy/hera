@@ -9,6 +9,17 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Municipio, Snapshot } from "./types";
 
+/**
+ * Build de arquivo unico (`npm run build:unico`) embute snapshot e malha aqui.
+ * Nesse formato o app abre sem servidor e sem rede — util para levar num
+ * notebook para a estrada, onde a conexao e o que for.
+ */
+interface DadosEmbutidos {
+  snapshot: Snapshot;
+  malhas: Record<string, GeoJSON.FeatureCollection>;
+}
+const EMBUTIDO = (globalThis as { __MAPA_OPTICO__?: DadosEmbutidos }).__MAPA_OPTICO__;
+
 const URL_SUPABASE = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const CHAVE_SUPABASE = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 
@@ -28,6 +39,7 @@ export interface DadosCarregados {
 }
 
 async function lerSnapshotEstatico(): Promise<Snapshot> {
+  if (EMBUTIDO) return EMBUTIDO.snapshot;
   const resp = await fetch(`${import.meta.env.BASE_URL}data/snapshot.json`);
   if (!resp.ok) {
     throw new Error(
@@ -39,6 +51,7 @@ async function lerSnapshotEstatico(): Promise<Snapshot> {
 }
 
 async function lerMalha(uf: string): Promise<GeoJSON.FeatureCollection | null> {
+  if (EMBUTIDO) return EMBUTIDO.malhas[uf] ?? null;
   try {
     const resp = await fetch(`${import.meta.env.BASE_URL}data/malha-${uf}.geojson`);
     if (!resp.ok) return null;

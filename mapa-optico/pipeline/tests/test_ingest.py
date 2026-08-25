@@ -5,9 +5,11 @@ import pytest
 
 from mapa_optico.geo import UF_CODIGO, area_km2, centroide, haversine_km
 from mapa_optico.ingest.cnes import CnesIndisponivel, _preparar, agregar_por_municipio
+from mapa_optico.ingest import ibge
 from mapa_optico.ingest.ibge import _mapa_colunas, _num, idade_inicial
 from mapa_optico.ingest.places import raio_metros
 from mapa_optico.logs import Contador
+from mapa_optico.transform import normalize
 
 
 class _CabecalhoSidra(dict):
@@ -122,3 +124,32 @@ def test_centroide_e_area_de_um_quadrado():
 def test_tabela_de_ufs_completa():
     assert len(UF_CODIGO) == 27
     assert UF_CODIGO["SC"] == 42
+
+
+# --------------------------------------------------------------------- UF
+def test_uf_sai_do_codigo_do_municipio():
+    assert normalize.uf_do_codigo("4200200") == "SC"
+    assert normalize.uf_do_codigo(4209102) == "SC"
+    assert normalize.uf_do_codigo("355030") == "SP"  # 6 digitos tambem
+    assert normalize.uf_do_codigo("lixo") is None
+
+
+def test_municipio_sem_microrregiao_aninhada_nao_some(monkeypatch):
+    """Regressao: o payload do IBGE nem sempre traz o bloco aninhado.
+
+    Confiar nele para descobrir a UF fez 171 dos 295 municipios de SC sumirem
+    no filtro de UF — sem erro, sem aviso, so um ranking pela metade.
+    """
+    payload = [
+        {"id": 4200051, "nome": "Abdon Batista"},  # sem microrregiao nenhuma
+        {
+            "id": 4200200,
+            "nome": "Agrolândia",
+            "microrregiao": {"nome": "Ituporanga", "mesorregiao": {"UF": {"sigla": "SC"}}},
+        },
+        {"id": 3550308, "nome": "São Paulo"},  # outra UF: tem que sair
+    ]
+    monkeypatch.setattr(ibge, "get_or_set", lambda *a, **k: payload)
+    df = ibge.municipios(["SC"])
+    assert sorted(df["nome"]) == ["Abdon Batista", "Agrolândia"]
+    assert set(df["uf"]) == {"SC"}

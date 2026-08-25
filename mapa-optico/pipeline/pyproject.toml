@@ -15,9 +15,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# CNES via DATASUS (.DBC). Instalar so quando for rodar a ingestao real do CNES:
+# CNES via DATASUS. `datasus-dbc` decodifica o .DBC (DBF comprimido com
+# algoritmo proprietario; dbfread puro NAO abre) e `dbfread` le o .DBF que sai.
+# `pysus` fica como quarto caminho, nao como alicerce: a API dela muda.
 #   uv sync --extra cnes
-cnes = ["pysus>=0.12"]
+cnes = ["datasus-dbc>=0.1", "dbfread>=2.0", "pysus>=0.12"]
 # Carga no Supabase. Sem isso o pipeline ainda roda e exporta CSV/JSON local.
 supabase = ["supabase>=2.4"]
 dev = ["pytest>=8.0", "ruff>=0.5"]

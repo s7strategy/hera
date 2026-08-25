@@ -111,3 +111,23 @@ def validar_join(
     validos = set(esquerda[chave].dropna().astype(str))
     orfaos = sorted({str(c) for c in direita[chave].dropna().astype(str)} - validos)
     return orfaos
+
+
+# Os dois primeiros digitos do codigo IBGE de municipio SAO o codigo da UF.
+# Isso e definicao da tabela de territorios, nao heuristica: nao muda entre
+# versoes da API nem depende de o payload trazer microrregiao aninhada.
+UF_POR_CODIGO = {
+    "11": "RO", "12": "AC", "13": "AM", "14": "RR", "15": "PA", "16": "AP", "17": "TO",
+    "21": "MA", "22": "PI", "23": "CE", "24": "RN", "25": "PB", "26": "PE", "27": "AL",
+    "28": "SE", "29": "BA",
+    "31": "MG", "32": "ES", "33": "RJ", "35": "SP",
+    "41": "PR", "42": "SC", "43": "RS",
+    "50": "MS", "51": "MT", "52": "GO", "53": "DF",
+}
+CODIGO_POR_UF = {sigla: codigo for codigo, sigla in UF_POR_CODIGO.items()}
+
+
+def uf_do_codigo(codigo: object) -> str | None:
+    """UF a partir do codigo do municipio. Devolve None se o codigo nao presta."""
+    codigo7 = para_codigo7(codigo)
+    return UF_POR_CODIGO.get(codigo7[:2]) if codigo7 else None

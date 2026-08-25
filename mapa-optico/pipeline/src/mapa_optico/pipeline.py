@@ -247,6 +247,17 @@ def montar_base(
         if col not in base.columns:
             base[col] = pd.NA
     base = base[COLUNAS_BASE]
+    # Contagem de preenchimento por coluna. Um merge que erra a chave nao
+    # levanta excecao — ele devolve tudo nulo e o pipeline segue. Este log e o
+    # que separa "a fonte falhou" de "a juncao falhou", e ja pegou uma vez os
+    # 295 municipios virando 124 sem ninguem notar.
+    preenchimento = {
+        col: int(base[col].notna().sum()) for col in COLUNAS_BASE if col != "codigo_ibge"
+    }
+    log("preenchimento da base", municipios=len(base), **preenchimento)
+    vazias = [col for col, n in preenchimento.items() if n == 0]
+    if vazias:
+        aviso("colunas inteiramente nulas na base", colunas=",".join(vazias))
     salvar_base(base, ufs, prov, oticas)
     registros_oticas = json.loads(oticas.to_json(orient="records")) if not oticas.empty else []
     return base, prov, registros_oticas

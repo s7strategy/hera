@@ -19,7 +19,7 @@ from ..cache import get_or_set
 from ..geo import UF_CODIGO, area_km2, centroide
 from ..http import FonteIndisponivel, get_json
 from ..logs import aviso, etapa
-from ..transform.normalize import para_codigo7
+from ..transform.normalize import para_codigo7, uf_do_codigo
 from .fontes import carregar
 
 FONTE = "ibge"
@@ -99,15 +99,19 @@ def municipios(ufs: list[str] | None = None, *, refresh: bool = False) -> pd.Dat
         c.entrada = len(bruto)
         linhas = []
         for m in bruto:
-            micro = (m.get("microrregiao") or {})
-            meso = (micro.get("mesorregiao") or {})
-            uf = ((meso.get("UF") or {}).get("sigla")) or _uf_por_regiao_imediata(m)
-            if ufs and (uf or "").upper() not in {u.upper() for u in ufs}:
-                c.descartar("fora das UFs pedidas")
-                continue
             codigo = para_codigo7(m.get("id"))
             if not codigo:
                 c.descartar("codigo invalido")
+                continue
+            micro = (m.get("microrregiao") or {})
+            meso = (micro.get("mesorregiao") or {})
+            # A UF sai dos dois primeiros digitos do codigo, que e definicao da
+            # tabela de territorios. O payload do IBGE as vezes vem sem o bloco
+            # microrregiao/mesorregiao aninhado, e confiar nele fazia sumir 171
+            # dos 295 municipios de SC — silenciosamente, no filtro de UF.
+            uf = uf_do_codigo(codigo) or ((meso.get("UF") or {}).get("sigla")) or _uf_por_regiao_imediata(m)
+            if ufs and (uf or "").upper() not in {u.upper() for u in ufs}:
+                c.descartar("fora das UFs pedidas")
                 continue
             linhas.append(
                 {
@@ -174,6 +178,16 @@ def populacao_por_idade(ufs: list[str] | None = None, *, refresh: bool = False) 
             df["populacao_total"] = df["populacao_total"].astype("Float64").astype("Int64")
             df["populacao_40mais"] = df["populacao_40mais"].astype("Float64").astype("Int64")
         c.saida = len(df)
+        # SIDRA respondendo 200 com um corpo que nao vira numero nenhum e o
+        # modo de falha mais perigoso: sem esta guarda o pipeline segue feliz e
+        # o ranking inteiro sai nulo sem ninguem ser avisado. Uma vez ja saiu.
+        uteis = int(df["populacao_total"].notna().sum()) if not df.empty else 0
+        if uteis == 0:
+            raise FonteIndisponivel(
+                FONTE,
+                f"SIDRA respondeu {len(bruto) - 1} linhas para populacao e nenhuma virou numero. "
+                f"Cabecalho: {bruto[0]}. Primeira linha: {bruto[1] if len(bruto) > 1 else '—'}",
+            )
         sem_40 = int(df["populacao_40mais"].isna().sum()) if not df.empty else 0
         if sem_40:
             aviso("municipios sem populacao 40+", quantidade=sem_40)

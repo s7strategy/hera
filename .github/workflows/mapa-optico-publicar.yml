@@ -67,13 +67,51 @@ jobs:
         working-directory: mapa-optico/web
         run: cp dist/index.html dist/404.html
 
-      - uses: actions/configure-pages@v5
+      # `enablement: true` so funciona se o Pages ja estiver ligado ou se o
+      # token puder liga-lo — e o GITHUB_TOKEN nao pode criar o site. Enquanto
+      # ninguem virar essa chave, o build continua valido e o job explica o que
+      # falta em vez de pintar de vermelho um passo que nao depende do codigo.
+      - id: pages
+        continue-on-error: true
+        uses: actions/configure-pages@v5
         with:
           enablement: true
 
       - uses: actions/upload-pages-artifact@v3
+        if: ${{ steps.pages.outcome == 'success' }}
         with:
           path: mapa-optico/web/dist
 
       - id: deploy
+        if: ${{ steps.pages.outcome == 'success' }}
         uses: actions/deploy-pages@v4
+
+      - name: Resumo
+        run: |
+          if [ "${{ steps.pages.outcome }}" = "success" ]; then
+            echo "App publicado em ${{ steps.deploy.outputs.page_url }}" >> "$GITHUB_STEP_SUMMARY"
+          else
+            {
+              echo "### O app foi montado, mas não foi publicado"
+              echo
+              echo "O GitHub Pages ainda não está ligado neste repositório, e o token"
+              echo "do Actions não tem permissão para ligá-lo sozinho."
+              echo
+              echo "Para ligar (uma vez só): **Settings → Pages → Build and deployment"
+              echo "→ Source: GitHub Actions**. Depois é só rodar este workflow de novo."
+              echo
+              echo "Enquanto isso o app está no artefato \`dashboard\`, abaixo:"
+              echo "baixe, descompacte e abra \`mapa-optico.html\`."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # Arquivo unico: abre com dois cliques, sem servidor e sem rede. E o que
+      # torna esta execucao util mesmo com o Pages desligado.
+      - name: Montar versão de arquivo único
+        working-directory: mapa-optico/web
+        run: npm run build:unico
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dashboard
+          path: mapa-optico/web/dist/mapa-optico.html
