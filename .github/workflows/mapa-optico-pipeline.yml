@@ -51,7 +51,9 @@ permissions:
 jobs:
   pipeline:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    # A base mensal do CNES sao centenas de MB vindas de um FTP lento; a
+    # primeira execucao de um mes leva ~20 minutos so nisso.
+    timeout-minutes: 90
     defaults:
       run:
         working-directory: mapa-optico/pipeline
@@ -88,9 +90,8 @@ jobs:
         continue-on-error: true
         run: uv pip install -e ".[cnes]"
 
-      # Antes da Fase 0 de proposito: a base do CNES leva ~10 minutos vindo do
-      # FTP do DATASUS, e com o cache restaurado depois dela o mesmo arquivo
-      # seria baixado duas vezes na mesma execucao.
+      # A base do CNES leva ~20 minutos vindo do FTP do DATASUS. Restaurada do
+      # cache, a execucao do mes seguinte nao paga esse preco de novo.
       - name: Cache das fontes externas
         uses: actions/cache@v4
         with:
@@ -102,10 +103,11 @@ jobs:
         continue-on-error: true
         run: mapa-optico checar-fontes --uf SC
 
-      - name: Fase 0 — provar a leitura do CNES
-        id: fase0
-        continue-on-error: true
-        run: mapa-optico fase0 --uf SC
+      # A Fase 0 NAO roda aqui. Ela le exatamente a mesma base que a ingestao
+      # logo abaixo, e baixar 200+ MB duas vezes na mesma execucao fez o
+      # DATASUS recusar a segunda conexao — o diagnostico derrubava o dado que
+      # ele existe para provar. Para rodar a Fase 0 sozinha: `mapa-optico
+      # fase0 --uf SC`.
 
       - name: Rodar pipeline
         run: |

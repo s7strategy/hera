@@ -34,7 +34,11 @@ _VALOR_AUSENTE = {"-", "..", "...", "X", "..X", None, ""}
 # devolve uma resposta truncada sem dizer que truncou: em SC vieram 171 dos 295,
 # e os que faltaram sumiram do ranking parecendo que nao existiam. Lotes
 # explicitos de codigo tornam a resposta determinstica e conferivel.
-MUNICIPIOS_POR_LOTE = 60
+#
+# 25 e nao 60: com 60 codigos a URL passa de 500 caracteres e o SIDRA derruba a
+# conexao antes de responder (ConnectTimeout nas cinco tentativas). O limite
+# nao esta documentado, entao o numero e conservador de proposito.
+MUNICIPIOS_POR_LOTE = 25
 
 
 def _lotes(codigos: list[str], tamanho: int | None = None) -> list[list[str]]:
