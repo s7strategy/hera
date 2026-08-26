@@ -56,9 +56,21 @@ export const horasEntre = (inicio, fim) =>
 
 export const hoje = () => new Date();
 
+/**
+ * `2026-08-01` (só o dia, como vem do banco) vira o dia 1 no fuso local.
+ * `new Date('2026-08-01')` é UTC e no Brasil aparece como 31/07.
+ */
+export function comoData(d) {
+  if (typeof d === 'string') {
+    const m = d.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+  }
+  return new Date(d);
+}
+
 /** Chave local 'AAAA-MM-DD' (nunca usar toISOString: ele joga pro UTC). */
 export function diaChave(d) {
-  const x = new Date(d);
+  const x = comoData(d);
   return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
 }
 export const mesChave = (d) => diaChave(d).slice(0, 7);
@@ -80,31 +92,32 @@ export function inicioDaSemana(d) {
 
 const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
   'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
-export const nomeMes      = (d) => MESES[new Date(d).getMonth()];
-export const mesAno       = (d) => `${nomeMes(d)} de ${new Date(d).getFullYear()}`;
-export const mesAnoCurto  = (d) => `${nomeMes(d).slice(0, 3)}/${String(new Date(d).getFullYear()).slice(2)}`;
+export const nomeMes      = (d) => MESES[comoData(d).getMonth()];
+export const mesAno       = (d) => `${nomeMes(d)} de ${comoData(d).getFullYear()}`;
+export const mesAnoCurto  = (d) => `${nomeMes(d).slice(0, 3)}/${String(comoData(d).getFullYear()).slice(2)}`;
 /** Chave AAAA-MM a partir de uma data (ou string já no formato). */
 export const chaveMes = (d) => {
   if (typeof d === 'string' && /^\d{4}-\d{2}$/.test(d)) return d;
-  const x = new Date(d);
+  if (typeof d === 'string' && /^\d{4}-\d{2}-\d{2}/.test(d)) return d.slice(0, 7);
+  const x = comoData(d);
   const m = String(x.getMonth() + 1).padStart(2, '0');
   return `${x.getFullYear()}-${m}`;
 };
 
 const DIAS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
-export const nomeDia    = (d) => DIAS[new Date(d).getDay()];
-export const letraDia   = (d) => ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'][new Date(d).getDay()];
+export const nomeDia    = (d) => DIAS[comoData(d).getDay()];
+export const letraDia   = (d) => ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'][comoData(d).getDay()];
 
 /** "seg, 12 de agosto" */
 export const dataLonga = (d) =>
-  `${nomeDia(d).slice(0, 3)}, ${new Date(d).getDate()} de ${nomeMes(d)}`;
+  `${nomeDia(d).slice(0, 3)}, ${comoData(d).getDate()} de ${nomeMes(d)}`;
 /** "12/08" */
 export const dataCurta = (d) => {
-  const x = new Date(d);
+  const x = comoData(d);
   return `${String(x.getDate()).padStart(2, '0')}/${String(x.getMonth() + 1).padStart(2, '0')}`;
 };
 /** "12/08/2026" */
-export const dataBR = (d) => `${dataCurta(d)}/${new Date(d).getFullYear()}`;
+export const dataBR = (d) => `${dataCurta(d)}/${comoData(d).getFullYear()}`;
 /** "08:15" */
 export const hora = (d) => {
   const x = new Date(d);
@@ -251,10 +264,7 @@ export const nomePeriodo = (id) =>
 export const pagamentoFixo = (modo) => modo === 'task' || modo === 'shift';
 
 /** `2026-08-25` → Date local, sem fuso atrapalhando. */
-export const deDiaChave = (k) => {
-  const [y, m, d] = String(k).split('-').map(Number);
-  return new Date(y, (m || 1) - 1, d || 1);
-};
+export const deDiaChave = (k) => comoData(k);
 
 /** Junta um dia com `08:00` no fuso do aparelho. */
 export function juntaDiaHora(dia, hhmm) {
