@@ -1571,7 +1571,7 @@ export async function telaDeAdmin(raiz, ctx) {
     alvo.innerHTML = carregando('Carregando números…');
     const ym = chaveMes(mesRef);
     const [turnosBrutos, bonusMes, pagamentos, bonusPessoa] = await Promise.all([
-      store.listaTurnos({ userId: p.id }),
+      store.listaTurnos({ userId: p.id, de: somaMeses(inicioDoMes(new Date()), -24) }),
       store.listaBonusMes({ userId: p.id, yearMonth: ym }),
       store.listaPagamentos({ userId: p.id }),
       store.listaBonusPessoa(p.id).catch(() => []),
@@ -1826,7 +1826,7 @@ export async function telaDeAdmin(raiz, ctx) {
       ]);
     } catch { /* bônus automático é extra; o saldo de turnos continua */ }
 
-    const de = somaMeses(inicioDoMes(agora), -36);
+    const de = somaMeses(inicioDoMes(agora), -18);
     const [turnosBrutos, pags, bonus] = await Promise.all([
       store.listaTurnos({ de }),
       store.listaPagamentos(),

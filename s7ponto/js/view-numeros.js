@@ -57,7 +57,10 @@ export async function telaDeNumeros(raiz, ctx) {
 
   async function desenha() {
     turnos = pintaTrechos(
-      await store.listaTurnos({ userId: usuario.id }),
+      await store.listaTurnos({
+        userId: usuario.id,
+        de: somaMeses(inicioDoMes(new Date()), -24),
+      }),
       await store.listaTarefas(true),
     );
     primeiroTurno = turnos.length

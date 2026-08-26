@@ -23,8 +23,8 @@ function traduzErro(e) {
   if (/row-level security|permission denied/i.test(msg)) return new Error('Sem permissão para esta ação.');
   if (/schema .* does not exist|Could not find the table/i.test(msg))
     return new Error(`O schema "${CONFIG.DB_SCHEMA}" não está exposto na API. Ver README, passo 3.`);
-  if (/Failed to fetch|NetworkError/i.test(msg))
-    return new Error('Não consegui falar com o servidor. Confira a internet e a URL do Supabase.');
+  if (/Failed to fetch|NetworkError|504|502|503|Gateway Time-?out|timeout/i.test(msg))
+    return new Error('O servidor está lento agora. Espere uns segundos e tente de novo.');
   return new Error(msg);
 }
 const ok = ({ data, error }) => { if (error) throw traduzErro(error); return data; };
@@ -505,25 +505,18 @@ export async function criaStoreSupabase() {
 
     /* ---- consultas ---- */
     async listaTurnos({ userId = null, de = null, ate = null } = {}) {
-      let q = sb.from('shifts').select('*').order('started_at', { ascending: false }).limit(5000);
+      let q = sb.from('shifts')
+        .select('*, segments(*)')
+        .order('started_at', { ascending: false })
+        .limit(5000);
       if (userId) q = q.eq('user_id', userId);
       if (de) q = q.gte('started_at', new Date(de).toISOString());
       if (ate) q = q.lte('started_at', new Date(ate).toISOString());
       const turnos = ok(await q);
-      if (!turnos.length) return [];
-      const ids = turnos.map((t) => t.id);
-      const segs = [];
-      const LOTE = 60;
-      for (let i = 0; i < ids.length; i += LOTE) {
-        segs.push(...ok(await sb.from('segments').select('*')
-          .in('shift_id', ids.slice(i, i + LOTE)).order('started_at')));
-      }
-      const porTurno = new Map();
-      segs.forEach((s) => {
-        if (!porTurno.has(s.shift_id)) porTurno.set(s.shift_id, []);
-        porTurno.get(s.shift_id).push(s);
-      });
-      return turnos.map((t) => ({ ...t, segments: porTurno.get(t.id) || [] }));
+      return (turnos || []).map((t) => ({
+        ...t,
+        segments: [...(t.segments || [])].sort((a, b) => new Date(a.started_at) - new Date(b.started_at)),
+      }));
     },
 
     async gravaTurnoManual({ user_id, started_at, ended_at, trechos, source = 'manual', note = null,
