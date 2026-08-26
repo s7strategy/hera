@@ -59,7 +59,6 @@ export async function telaDeNumeros(raiz, ctx) {
     turnos = pintaTrechos(
       await store.listaTurnos({
         userId: usuario.id,
-        de: somaMeses(inicioDoMes(new Date()), -24),
       }),
       await store.listaTarefas(true),
     );
@@ -88,13 +87,29 @@ export async function telaDeNumeros(raiz, ctx) {
       ? `<span class="ficha ficha-neutra">${esc(plural(r.turnos, usuario.pay_mode === 'shift' ? 'turno' : 'tarefa', usuario.pay_mode === 'shift' ? 'turnos' : 'tarefas'))}</span>`
       : `<span class="ficha ficha-neutra">${esc(horas(r.horas))} trabalhadas</span>`;
 
-    const falta = Math.max(0, total - pago);
-    const emDia = total > 0.004 && falta < 0.5;
+    const faltaMes = Math.max(0, total - pago);
     const ehMesCorrente = chaveMes(mesRef) === chaveMes(new Date());
     const saldoGeral = saldosPorPessoa({
       pessoas: [usuario], turnos, bonus: bonusTodos, pagamentos: pagsTodos,
     })[0];
-    const outrosAbertos = (saldoGeral?.abertoPassado || 0) + (saldoGeral?.abertoAntes || 0);
+    const disponivel = Math.max(0, saldoGeral?.saldo || 0);
+    const credito = (saldoGeral?.saldo || 0) < -0.5;
+    const falta = ehMesCorrente ? disponivel : faltaMes;
+    const emDia = ehMesCorrente
+      ? disponivel < 0.5 && !credito
+      : total > 0.004 && faltaMes < 0.5;
+    let heroiRotulo;
+    let heroiValor;
+    if (ehMesCorrente && credito) {
+      heroiRotulo = 'Você tem crédito';
+      heroiValor = -saldoGeral.saldo;
+    } else if (emDia) {
+      heroiRotulo = ehMesCorrente ? 'Tudo recebido neste mês' : `Tudo recebido em ${nomeMes(mesRef)}`;
+      heroiValor = total;
+    } else {
+      heroiRotulo = ehMesCorrente ? 'Você tem a receber' : `A receber de ${nomeMes(mesRef)}`;
+      heroiValor = falta;
+    }
     const cmp = comparaSaldo(turnos, bonusTodos, mesRef);
     const dv = cmp.variacao.total;
     const temAnt = cmp.diaLimite > 0 && (cmp.anterior.total > 0.004 || cmp.atual.total > 0.004);
@@ -128,13 +143,13 @@ export async function telaDeNumeros(raiz, ctx) {
 
       <section class="cartao">
         <div class="heroi">
-          <p class="heroi-rotulo">${emDia
-            ? (ehMesCorrente ? 'Tudo recebido neste mês' : `Tudo recebido em ${esc(nomeMes(mesRef))}`)
-            : (ehMesCorrente ? 'Você tem a receber' : `A receber de ${esc(nomeMes(mesRef))}`)}</p>
-          <p class="heroi-valor saldo">${esc(money(emDia ? total : falta))}</p>
+          <p class="heroi-rotulo">${esc(heroiRotulo)}</p>
+          <p class="heroi-valor saldo">${esc(money(heroiValor))}</p>
           <div class="heroi-nota">
             ${fichaTrabalho}
             ${total > 0.004 ? `<span class="ficha ficha-neutra">ganhou ${esc(money(total))}${pago > 0.004 ? ` · recebeu ${esc(money(pago))}` : ''}</span>` : ''}
+            ${ehMesCorrente && Math.abs(saldoGeral?.carregado || 0) > 0.5
+              ? `<span class="ficha ficha-neutra">já puxa ${esc(money(saldoGeral.carregado))} do mês anterior</span>` : ''}
             ${htmlRecadoExtraPessoa(bancoExtra, { compacto: true })}
             ${fichaVar}
           </div>
@@ -149,10 +164,10 @@ export async function telaDeNumeros(raiz, ctx) {
       </section>
 
       ${htmlRecadoExtraPessoa(bancoExtra, { nomeMes: nomeMes(mesRef) })}
-      ${ehMesCorrente && outrosAbertos > 0.5 ? `
+      ${ehMesCorrente && Math.abs(saldoGeral?.carregado || 0) > 0.5 && (disponivel > 0.5 || credito) ? `
         <div class="recado info" style="margin-top:14px">
-          <span class="recado-emoji">💸</span>
-          <span>Ainda tem <strong>${esc(money(outrosAbertos))}</strong> a receber de meses anteriores.</span>
+          <span class="recado-emoji">📒</span>
+          <span>O valor de cima já inclui o saldo do mês anterior, como o <strong>Disponível</strong> da última aba da planilha — não é a soma dos meses.</span>
         </div>` : ''}
 
       <section class="cartao" style="margin-top:16px">

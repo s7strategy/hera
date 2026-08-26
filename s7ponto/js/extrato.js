@@ -76,10 +76,10 @@ export function htmlBarraPago({ pago, total, falta }) {
       </div>
       <p class="barra-pago-nota ${aMais ? 'mais' : ''}">
         ${aMais
-          ? `Recebeu ${esc(money(-falta))} a mais que o total do mês.`
+          ? `Recebeu ${esc(money(-falta))} a mais que o total deste mês (abate o saldo anterior).`
           : Math.abs(falta) < 0.5
-            ? 'Tudo recebido neste mês.'
-            : `Ainda falta receber ${esc(money(falta))}.`}
+            ? 'Tudo o que entrou neste mês já foi pago.'
+            : `Deste mês ainda não pago: ${esc(money(falta))}.`}
       </p>
     </div>`;
 }

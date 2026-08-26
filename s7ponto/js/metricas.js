@@ -388,7 +388,8 @@ export function resumoDoDia(turnos, refData = new Date(), agora = new Date()) {
 }
 
 /* ==========================================================================
-   Saldos a pagar (ganho − já pago), por pessoa e por mês
+   Saldos a pagar — Disponível corrente (ganho − já pago na vida),
+   com o saldo do mês anterior puxado como na planilha.
    ========================================================================== */
 
 export const roundMoney = (n) => Math.round((Number(n) || 0) * 100) / 100;
@@ -410,8 +411,12 @@ function buracoMes() {
 }
 
 /**
- * De cada pessoa: o que ganhou, o que já recebeu, o que ainda falta,
- * separado por mês (para o botão Pagar baixar o mês certo).
+ * De cada pessoa: o que ganhou, o que já recebeu, o que ainda falta.
+ *
+ * O “a pagar” é o Disponível da última aba da planilha: cada mês puxa o
+ * saldo do anterior, então NÃO se somam os abertos de cada mês. Um
+ * pagamento de agosto que cobre julho baixa o saldo corrente — não deixa
+ * julho “aberto” para somar de novo.
  */
 export function saldosPorPessoa({
   pessoas = [], turnos = [], bonus = [], pagamentos = [], agora = new Date(),
@@ -460,16 +465,30 @@ export function saldosPorPessoa({
           horas: x.horas || 0,
           turnos: x.turnos || 0,
           aberto: roundMoney(ganhou - pagou),
+          saldoAnterior: 0,
+          disponivel: 0,
         };
       })
       .filter((m) => m.ganhou > 0.004 || m.pagou > 0.004)
-      .sort((a, b) => b.ym.localeCompare(a.ym));
+      .sort((a, b) => a.ym.localeCompare(b.ym));
+
+    let run = 0;
+    for (const m of meses) {
+      m.saldoAnterior = roundMoney(run);
+      run = roundMoney(run + m.aberto);
+      m.disponivel = run;
+    }
+    meses.sort((a, b) => b.ym.localeCompare(a.ym));
 
     const ganhou = roundMoney(meses.reduce((s, m) => s + m.ganhou, 0));
     const pagou = roundMoney(meses.reduce((s, m) => s + m.pagou, 0));
-    const devido = roundMoney(meses.reduce((s, m) => s + Math.max(0, m.aberto), 0));
+    const saldo = roundMoney(ganhou - pagou);
+    const devido = roundMoney(Math.max(0, saldo));
     const desteMes = meses.find((m) => m.ym === ymAtual) || null;
     const doPassado = meses.find((m) => m.ym === ymAnt) || null;
+    const carregado = desteMes
+      ? roundMoney(desteMes.saldoAnterior)
+      : roundMoney(meses[0]?.disponivel || 0);
 
     return {
       p,
@@ -477,7 +496,8 @@ export function saldosPorPessoa({
       ganhou,
       pagou,
       devido,
-      saldo: roundMoney(ganhou - pagou),
+      saldo,
+      carregado,
       desteMes,
       doPassado,
       abertoEste: roundMoney(Math.max(0, desteMes?.aberto || 0)),
@@ -492,31 +512,10 @@ export function saldosPorPessoa({
   });
 }
 
-/** Parte um valor nos meses em aberto, do mais antigo pro mais novo.
- *  `soYm` trava o lançamento num mês (atalho “este mês” / “mês passado”). */
+/** Um pagamento entra no mês da data (como na aba da planilha).
+ *  `soYm` só se quiser forçar o mês do lançamento. */
 export function repartePagamento(meses, valor, agora = new Date(), { soYm = null } = {}) {
   const qtd = roundMoney(valor);
   if (qtd < 0.005) return [];
-  if (soYm) return [{ ym: soYm, amount: qtd }];
-  const abertos = (meses || [])
-    .filter((m) => m.aberto > 0.004)
-    .slice()
-    .sort((a, b) => a.ym.localeCompare(b.ym));
-  let resto = roundMoney(valor);
-  const partes = [];
-  for (const m of abertos) {
-    if (resto < 0.005) break;
-    const q = roundMoney(Math.min(m.aberto, resto));
-    if (q > 0.004) {
-      partes.push({ ym: m.ym, amount: q });
-      resto = roundMoney(resto - q);
-    }
-  }
-  if (resto > 0.004) {
-    const ym = chaveMes(agora);
-    const ja = partes.find((x) => x.ym === ym);
-    if (ja) ja.amount = roundMoney(ja.amount + resto);
-    else partes.push({ ym, amount: resto });
-  }
-  return partes;
+  return [{ ym: soYm || chaveMes(agora), amount: qtd }];
 }

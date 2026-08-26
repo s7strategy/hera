@@ -18,7 +18,7 @@ import { PALETA, graficoDias, graficoPizza, graficoMeses, tabelaDeApoio } from '
 import {
   pintaTrechos, agrega, horasDoTurno, valorDoTurno, somaBonus, totalComBonus,
   somaPagamentos, resumoDoMes, serieDoMes, serieDeMeses, agrupaBonus, comparaSaldo,
-  saldosPorPessoa, repartePagamento, rotuloMesDevido, roundMoney,
+  saldosPorPessoa, rotuloMesDevido, roundMoney,
 } from './metricas.js';
 import {
   htmlRecibo, htmlReciboPessoa, htmlPizzas, pintaPizzas, htmlDetalheBonus, htmlGradeMetricas,
@@ -1578,7 +1578,7 @@ export async function telaDeAdmin(raiz, ctx) {
     alvo.innerHTML = carregando('Carregando números…');
     const ym = chaveMes(mesRef);
     const [turnosBrutos, bonusMes, pagamentos, bonusPessoa] = await Promise.all([
-      store.listaTurnos({ userId: p.id, de: somaMeses(inicioDoMes(new Date()), -24) }),
+      store.listaTurnos({ userId: p.id }),
       store.listaBonusMes({ userId: p.id, yearMonth: ym }),
       store.listaPagamentos({ userId: p.id }),
       store.listaBonusPessoa(p.id).catch(() => []),
@@ -1611,6 +1611,33 @@ export async function telaDeAdmin(raiz, ctx) {
              ${esc(money(Math.abs(dv.abs)))}${dv.pct !== null ? ` · ${esc(pct(dv.pct))}` : ''}
            </span>
            <span class="ficha ficha-neutra">${esc(nomeMes(somaMeses(mesRef, -1)))} ${esc(periodoTxt)}: ${esc(moneyShort(cmp.anterior.total))}</span>`;
+    const saldoGeral = saldosPorPessoa({
+      pessoas: [p], turnos, bonus: bonusTodos, pagamentos, agora: new Date(),
+    })[0];
+    const ehMesCorrente = ym === chaveMes(new Date());
+    const disponivel = Math.max(0, saldoGeral?.saldo || 0);
+    const credito = (saldoGeral?.saldo || 0) < -0.5;
+    const faltaMes = Math.max(0, total - pagoMes);
+    let heroiRotulo;
+    let heroiValor;
+    if (ehMesCorrente) {
+      if (credito) {
+        heroiRotulo = 'Tem crédito';
+        heroiValor = -saldoGeral.saldo;
+      } else if (disponivel < 0.5) {
+        heroiRotulo = `Tudo pago em ${nomeMes(mesRef)}`;
+        heroiValor = total;
+      } else {
+        heroiRotulo = 'Disponível agora';
+        heroiValor = disponivel;
+      }
+    } else if (pagoMes > 0.004 && faltaMes < 0.5) {
+      heroiRotulo = `Tudo pago em ${nomeMes(mesRef)}`;
+      heroiValor = total;
+    } else {
+      heroiRotulo = `A receber em ${nomeMes(mesRef)}`;
+      heroiValor = faltaMes;
+    }
     const planilha = (await store.listaTotaisPlanilha({ userId: p.id, yearMonth: ym }))[0];
     const esperado = planilha ? +planilha.expected_total : null;
     const diff = esperado != null ? total - esperado : null;
@@ -1639,14 +1666,14 @@ export async function telaDeAdmin(raiz, ctx) {
 
       <section class="cartao">
         <div class="heroi">
-          <p class="heroi-rotulo">${pagoMes > 0.004 && (total - pagoMes) < 0.5
-            ? `Tudo pago em ${esc(nomeMes(mesRef))}`
-            : `A receber em ${esc(nomeMes(mesRef))}`}</p>
-          <p class="heroi-valor saldo">${esc(money(Math.max(0, total - pagoMes)))}</p>
+          <p class="heroi-rotulo">${esc(heroiRotulo)}</p>
+          <p class="heroi-valor saldo">${esc(money(heroiValor))}</p>
           <div class="heroi-nota">
             <span class="ficha ficha-neutra">${fixo
               ? esc(plural(noMes.length, p.pay_mode === 'shift' ? 'turno' : 'tarefa', p.pay_mode === 'shift' ? 'turnos' : 'tarefas'))
               : `${esc(horas(r.horas))} · ${esc(plural(noMes.length, 'turno', 'turnos'))}`} · ganhou ${esc(money(total))}${pagoMes > 0.004 ? ` · já pago ${esc(money(pagoMes))}` : ''}</span>
+            ${ehMesCorrente && Math.abs(saldoGeral?.carregado || 0) > 0.5
+              ? `<span class="ficha ficha-neutra">já puxa ${esc(money(saldoGeral.carregado))} do mês anterior</span>` : ''}
             ${htmlRecadoExtraPessoa(fixo ? null : extraDoPeriodo(noMes), { compacto: true })}
             ${fichaVar}
           </div>
@@ -1852,9 +1879,8 @@ export async function telaDeAdmin(raiz, ctx) {
       ]);
     } catch { /* bônus automático é extra; o saldo de turnos continua */ }
 
-    const de = somaMeses(inicioDoMes(agora), -18);
     const [turnosBrutos, pags, bonus] = await Promise.all([
-      store.listaTurnos({ de }),
+      store.listaTurnos(),
       store.listaPagamentos(),
       store.listaBonusTodos().catch(() => []),
     ]);
@@ -1869,9 +1895,6 @@ export async function telaDeAdmin(raiz, ctx) {
       : linhas.filter((l) => l.devido > 0.5);
 
     const totalDevido = roundMoney(linhas.reduce((s, l) => s + l.devido, 0));
-    const desteMes = roundMoney(linhas.reduce((s, l) => s + l.abertoEste, 0));
-    const passado = roundMoney(linhas.reduce((s, l) => s + l.abertoPassado, 0));
-    const antes = roundMoney(linhas.reduce((s, l) => s + l.abertoAntes, 0));
     const qtd = linhas.filter((l) => l.devido > 0.5).length;
 
     alvo.innerHTML = `
@@ -1880,11 +1903,9 @@ export async function telaDeAdmin(raiz, ctx) {
         <p class="heroi-valor ${totalDevido > 0.5 ? 'saldo' : ''}">${esc(money(totalDevido))}</p>
         <div class="heroi-nota">
           <span class="ficha ficha-neutra">${esc(plural(qtd, 'pessoa', 'pessoas'))}</span>
-          ${desteMes > 0.5 ? `<span class="ficha ficha-neutra">este mês ${esc(money(desteMes))}</span>` : ''}
-          ${passado > 0.5 ? `<span class="ficha ficha-baixa">mês passado ${esc(money(passado))}</span>` : ''}
-          ${antes > 0.5 ? `<span class="ficha ficha-baixa">antes ${esc(money(antes))}</span>` : ''}
           ${totalDevido < 0.5 ? '<span class="ficha ficha-alta">ninguém em aberto</span>' : ''}
         </div>
+        <p class="apagado" style="margin:10px 0 0;font-size:12.5px">É o Disponível da última aba: cada mês já puxa o saldo do anterior, então não se soma o que ficou em aberto nos outros meses.</p>
       </section>
 
       <div class="pg-filtros" role="tablist" aria-label="Quem mostrar">
@@ -1897,7 +1918,7 @@ export async function telaDeAdmin(raiz, ctx) {
           emoji: filtroPagamentos === 'devem' ? '✨' : '💸',
           titulo: filtroPagamentos === 'devem' ? 'Ninguém tem saldo em aberto' : 'Nenhuma pessoa nesta lista',
           texto: filtroPagamentos === 'devem'
-            ? 'Quando alguém trabalhar e ainda não tiver sido pago, aparece aqui — com o mês certinho.'
+            ? 'Quando alguém trabalhar e ainda não tiver sido pago, aparece aqui. O valor é o saldo de agora (Disponível), não a soma dos meses.'
             : 'Cadastre a equipe para lançar pagamentos.',
         })}`;
 
@@ -1920,22 +1941,36 @@ export async function telaDeAdmin(raiz, ctx) {
   }
 
   function htmlCartaoPagamento(l) {
-    const chips = [];
-    if (l.abertoEste > 0.5) chips.push(`<span class="pg-chip">${esc(rotuloMesDevido(l.desteMes.ym))} <strong>${esc(money(l.abertoEste))}</strong></span>`);
-    if (l.abertoPassado > 0.5) chips.push(`<span class="pg-chip velho">${esc(rotuloMesDevido(l.doPassado.ym))} <strong>${esc(money(l.abertoPassado))}</strong></span>`);
-    if (l.abertoAntes > 0.5) {
-      const n = l.meses.filter((m) => m.aberto > 0.5 && m !== l.desteMes && m !== l.doPassado).length;
-      chips.push(`<span class="pg-chip velho">${n > 1 ? `${n} meses antes` : 'antes'} <strong>${esc(money(l.abertoAntes))}</strong></span>`);
-    }
     const emDia = l.devido < 0.5;
     const credito = l.saldo < -0.5;
+    const chips = [];
+    if (credito) chips.push(`<span class="pg-chip ok">crédito ${esc(money(-l.saldo))}</span>`);
+    else if (emDia) chips.push('<span class="pg-chip ok">em dia</span>');
+    else {
+      chips.push(`<span class="pg-chip">disponível <strong>${esc(money(l.devido))}</strong></span>`);
+      if (Math.abs(l.carregado || 0) > 0.5) {
+        chips.push(`<span class="pg-chip velho">já puxa ${esc(money(l.carregado))} do mês anterior</span>`);
+      }
+    }
     const mesesDetalhe = l.meses.length
-      ? l.meses.map((m) => `
-          <div class="pg-mes ${m.aberto > 0.5 ? 'aberto' : m.aberto < -0.5 ? 'credito' : 'ok'}">
+      ? l.meses.map((m) => {
+        const disp = m.disponivel;
+        const cls = disp > 0.5 ? 'aberto' : disp < -0.5 ? 'credito' : 'ok';
+        const veio = Math.abs(m.saldoAnterior) > 0.5
+          ? ` · veio ${esc(money(m.saldoAnterior))} do mês anterior`
+          : '';
+        const rotuloDisp = disp > 0.5
+          ? esc(money(disp))
+          : disp < -0.5
+            ? `+${esc(money(-disp))}`
+            : 'em dia';
+        return `
+          <div class="pg-mes ${cls}">
             <span class="pg-mes-nome">${esc(rotuloMesDevido(m.ym))}</span>
-            <span class="apagado">ganhou ${esc(money(m.ganhou))}${m.pagou > 0.004 ? ` · pago ${esc(money(m.pagou))}` : ''}</span>
-            <span class="num pg-mes-saldo">${m.aberto > 0.5 ? esc(money(m.aberto)) : m.aberto < -0.5 ? `+${esc(money(-m.aberto))}` : 'em dia'}</span>
-          </div>`).join('')
+            <span class="apagado">ganhou ${esc(money(m.ganhou))}${m.pagou > 0.004 ? ` · pago ${esc(money(m.pagou))}` : ''}${veio}</span>
+            <span class="num pg-mes-saldo">${rotuloDisp}</span>
+          </div>`;
+      }).join('')
       : '<p class="apagado" style="padding:8px 0">Sem movimento neste período.</p>';
     const hist = l.pagamentos.slice(0, 8).map((pg) => {
       const [y, mo] = String(pg.year_month || '').split('-').map(Number);
@@ -1956,7 +1991,9 @@ export async function telaDeAdmin(raiz, ctx) {
             <div class="pg-chips">${chips.length ? chips.join('') : `<span class="pg-chip ok">${credito ? `crédito ${esc(money(-l.saldo))}` : 'em dia'}</span>`}</div>
           </div>
           <div class="pg-lado">
-            <div class="num pg-devido ${emDia ? 'ok' : ''}">${esc(money(emDia ? 0 : l.devido))}</div>
+            <div class="num pg-devido ${emDia ? 'ok' : ''}">${credito
+              ? `+${esc(money(-l.saldo))}`
+              : esc(money(emDia ? 0 : l.devido))}</div>
             ${emDia
               ? ''
               : `<button type="button" class="btn btn-pequeno btn-verde" data-pagar="${esc(l.p.id)}">${ICONE.pagar}<span>Pagar</span></button>`}
@@ -1985,7 +2022,7 @@ export async function telaDeAdmin(raiz, ctx) {
           ]);
         } catch { /* segue com o que tiver */ }
         const [turnosBrutos, pags, bonus] = await Promise.all([
-          store.listaTurnos({ userId: p.id, de: somaMeses(inicioDoMes(agora), -36) }),
+          store.listaTurnos({ userId: p.id }),
           store.listaPagamentos({ userId: p.id }),
           store.listaBonusPessoa(p.id).catch(() => []),
         ]);
@@ -1997,36 +2034,17 @@ export async function telaDeAdmin(raiz, ctx) {
       }
 
       const devido = lin.devido;
-      const atalhos = [];
-      if (lin.abertoEste > 0.5) atalhos.push({ id: 'mes', rotulo: `Este mês · ${money(lin.abertoEste)}`, valor: lin.abertoEste });
-      if (lin.abertoPassado > 0.5) atalhos.push({ id: 'passado', rotulo: `Mês passado · ${money(lin.abertoPassado)}`, valor: lin.abertoPassado });
-      if (devido > 0.5) atalhos.push({ id: 'tudo', rotulo: `Tudo · ${money(devido)}`, valor: devido });
-      let modo = 'livre';
-
-      const pintaPartes = (valor) => {
-        if (!(valor > 0.004)) {
-          return '<p class="apagado">Digite quanto vai pagar agora. O resto do saldo continua em aberto.</p>';
-        }
-        const soYm = modo === 'mes' ? chaveMes(agora)
-          : modo === 'passado' ? chaveMes(somaMeses(agora, -1))
-          : null;
-        const partes = repartePagamento(lin.meses, valor, agora, { soYm });
-        if (!partes.length) return '<p class="apagado">Nada em aberto — o valor entra como pagamento deste mês.</p>';
-        return `<ul class="pg-partes">${partes.map((x) =>
-          `<li><span>baixa ${esc(rotuloMesDevido(x.ym, agora))}</span><span class="num">${esc(money(x.amount))}</span></li>`).join('')}</ul>`;
-      };
+      const atalhos = devido > 0.5
+        ? [{ id: 'tudo', rotulo: `Disponível · ${money(devido)}`, valor: devido }]
+        : [];
 
       caixa.innerHTML = `
         <p class="pg-pagar-saldo">${devido > 0.5
-          ? `Saldo em aberto: <strong>${esc(money(devido))}</strong>`
+          ? `Disponível agora: <strong>${esc(money(devido))}</strong>`
           : 'Nada em aberto — pode lançar um valor mesmo assim.'}</p>
-        ${lin.abertoEste > 0.5 || lin.abertoPassado > 0.5 || lin.abertoAntes > 0.5 ? `
-          <p class="apagado pg-pagar-quebra">
-            ${lin.abertoEste > 0.5 ? `este mês ${esc(money(lin.abertoEste))}` : ''}
-            ${lin.abertoPassado > 0.5 ? ` · mês passado ${esc(money(lin.abertoPassado))}` : ''}
-            ${lin.abertoAntes > 0.5 ? ` · antes ${esc(money(lin.abertoAntes))}` : ''}
-          </p>` : ''}
-        <p class="apagado" style="margin:0 0 12px;font-size:13px">Não precisa ser o total. Você marca o valor deste pagamento e o saldo desconta só isso.</p>
+        ${Math.abs(lin.carregado || 0) > 0.5 ? `
+          <p class="apagado pg-pagar-quebra">Já inclui ${esc(money(lin.carregado))} que veio do mês anterior, como na planilha.</p>` : ''}
+        <p class="apagado" style="margin:0 0 12px;font-size:13px">Não precisa ser o total. Você marca o valor deste pagamento e o disponível desconta só isso.</p>
         ${atalhos.length ? `
           <div class="pg-atalhos">
             ${atalhos.map((a) => `<button type="button" class="pg-atalho" data-atalho="${esc(a.id)}" data-valor="${esc(String(a.valor))}">${esc(a.rotulo)}</button>`).join('')}
@@ -2037,52 +2055,39 @@ export async function telaDeAdmin(raiz, ctx) {
           <input class="entrada" type="date" id="pg-data" value="${esc(diaChave(agora))}"></label>
         <label class="campo"><span class="campo-rotulo">Nota (opcional)</span>
           <input class="entrada" id="pg-nota" placeholder="pix, dinheiro, adiantamento…"></label>
-        <div id="pg-partes">${pintaPartes(0)}</div>
         <p class="campo-erro" id="pg-erro" hidden></p>
         <button class="btn btn-primario btn-largo" id="pg-salva" style="margin-top:8px">
           ${ICONE.pagar}<span>Descontar do saldo</span>
         </button>
-        <p class="apagado" style="margin-top:10px;font-size:12.5px;text-align:center">O que não pagar agora fica em aberto no painel dela.</p>`;
+        <p class="apagado" style="margin-top:10px;font-size:12.5px;text-align:center">O que não pagar agora continua no disponível.</p>`;
 
-      const valorAtual = () => roundMoney(+$('#pg-val', caixa).value || 0);
-      const atualizaPartes = () => { $('#pg-partes', caixa).innerHTML = pintaPartes(valorAtual()); };
       $('#pg-val', caixa).addEventListener('input', () => {
-        modo = 'livre';
         $$('[data-atalho]', caixa).forEach((b) => b.classList.remove('on'));
-        atualizaPartes();
       });
       $$('[data-atalho]', caixa).forEach((b) => b.addEventListener('click', () => {
-        modo = b.dataset.atalho;
         $$('[data-atalho]', caixa).forEach((x) => x.classList.toggle('on', x === b));
         $('#pg-val', caixa).value = b.dataset.valor;
-        atualizaPartes();
       }));
       requestAnimationFrame(() => $('#pg-val', caixa)?.focus());
       $('#pg-salva', caixa).addEventListener('click', async (ev) => {
         const erro = $('#pg-erro', caixa);
         erro.hidden = true;
-        const amount = valorAtual();
+        const amount = roundMoney(+$('#pg-val', caixa).value || 0);
         const paid_on = $('#pg-data', caixa).value;
         const note = $('#pg-nota', caixa).value.trim() || null;
         if (!(amount > 0.004)) { erro.textContent = 'Informe o valor.'; erro.hidden = false; return; }
         if (!paid_on) { erro.textContent = 'Informe a data.'; erro.hidden = false; return; }
-        const soYm = modo === 'mes' ? chaveMes(agora)
-          : modo === 'passado' ? chaveMes(somaMeses(agora, -1))
-          : null;
-        const partes = repartePagamento(lin.meses, amount, agora, { soYm });
-        const lote = partes.length ? partes : [{ ym: chaveMes(agora), amount }];
+        const ym = paid_on.slice(0, 7);
         try {
           await comBotaoOcupado(ev.currentTarget, 'Pagando…', async () => {
-            for (const parte of lote) {
-              await store.lancaPagamento({
-                user_id: p.id,
-                paid_on,
-                amount: parte.amount,
-                year_month: parte.ym,
-                title: `Pagamento · ${rotuloMesDevido(parte.ym, agora)}`,
-                note,
-              });
-            }
+            await store.lancaPagamento({
+              user_id: p.id,
+              paid_on,
+              amount,
+              year_month: ym,
+              title: `Pagamento · ${rotuloMesDevido(ym, agora)}`,
+              note,
+            });
           });
           fechar();
           aposMudarPagamento();
