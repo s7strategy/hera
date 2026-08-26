@@ -2,6 +2,8 @@
 -- Datas invertidas (10/10, 17/02, 08/02, 05/01, 05/12…) vão para o dia
 -- da aba. 31/03 na aba abril fica em março. Aquecimento R$10 é bônus.
 -- Aba agosto A PAGAR = R$ 501,53 (O5): puxa R$ 4,03 de julho.
+-- Conferência 26/08: jun R38 (R$1), jul R81 G=10 (não 14), sem
+-- aquecimento dia 4 (G=0), sem 3 aparelhos dez com G=0.
 begin;
 
 delete from s7ponto.shifts
@@ -128,14 +130,11 @@ insert into tmp_adr_shift (id, started_at, ended_at, period, note) values
   ('07574bba-3443-471e-8bff-70d72a899f9b', timestamptz '2025-12-12 18:51:00 America/Sao_Paulo', timestamptz '2025-12-12 20:53:00 America/Sao_Paulo', 'noite', 'conferencia-planilha-20260826-adriano'),
   ('28fc4db9-4472-412a-b823-34277f0d572a', timestamptz '2025-12-15 08:15:00 America/Sao_Paulo', timestamptz '2025-12-15 11:30:00 America/Sao_Paulo', 'manha', 'conferencia-planilha-20260826-adriano'),
   ('b40abaa0-3fd9-49ac-bccd-21dfe400b658', timestamptz '2025-12-16 08:23:00 America/Sao_Paulo', timestamptz '2025-12-16 08:58:00 America/Sao_Paulo', 'manha', 'conferencia-planilha-20260826-adriano'),
-  ('fbb53b52-187f-43c0-84cc-ff9b67e905fb', timestamptz '2025-12-16 08:23:00 America/Sao_Paulo', timestamptz '2025-12-16 09:00:00 America/Sao_Paulo', 'manha', 'conferencia-planilha-20260826-adriano'),
   ('44515c2d-52b1-4245-b35b-2e772768d4c6', timestamptz '2025-12-16 08:58:00 America/Sao_Paulo', timestamptz '2025-12-16 09:20:00 America/Sao_Paulo', 'manha', 'conferencia-planilha-20260826-adriano'),
-  ('ec32105c-9a42-4537-85b7-ed919b8e2bc1', timestamptz '2025-12-17 07:00:00 America/Sao_Paulo', timestamptz '2025-12-17 07:41:00 America/Sao_Paulo', 'manha', 'conferencia-planilha-20260826-adriano'),
   ('8b69a4d8-0901-49a4-b567-b2a3ac9da34b', timestamptz '2025-12-17 07:25:00 America/Sao_Paulo', timestamptz '2025-12-17 08:13:00 America/Sao_Paulo', 'manha', 'conferencia-planilha-20260826-adriano'),
   ('9476e2fa-b93d-48ce-bcf6-e40fa2e4fde8', timestamptz '2025-12-17 08:14:00 America/Sao_Paulo', timestamptz '2025-12-17 09:44:00 America/Sao_Paulo', 'manha', 'conferencia-planilha-20260826-adriano'),
   ('a9853e2d-e3b6-4730-981e-0c31161b8263', timestamptz '2025-12-18 07:44:00 America/Sao_Paulo', timestamptz '2025-12-18 08:08:00 America/Sao_Paulo', 'manha', 'conferencia-planilha-20260826-adriano'),
   ('f0ef665a-b765-44ba-bd27-68d9dcfd5fbb', timestamptz '2025-12-18 07:51:00 America/Sao_Paulo', timestamptz '2025-12-18 08:36:00 America/Sao_Paulo', 'manha', 'conferencia-planilha-20260826-adriano'),
-  ('6b4965f6-613d-4fde-87b3-8456d31681fe', timestamptz '2025-12-18 08:08:00 America/Sao_Paulo', timestamptz '2025-12-18 08:58:00 America/Sao_Paulo', 'manha', 'conferencia-planilha-20260826-adriano'),
   ('19e563c9-a1a5-4763-bd01-e922ffa2e067', timestamptz '2025-12-18 08:13:00 America/Sao_Paulo', timestamptz '2025-12-18 09:02:00 America/Sao_Paulo', 'manha', 'conferencia-planilha-20260826-adriano'),
   ('7eaad46a-10de-43e1-9b42-01c77ed0309f', timestamptz '2025-12-18 09:55:00 America/Sao_Paulo', timestamptz '2025-12-18 10:21:00 America/Sao_Paulo', 'manha', 'conferencia-planilha-20260826-adriano'),
   ('e8289b20-0ec2-4ee6-a9d7-2a7c741978e2', timestamptz '2025-12-18 10:54:00 America/Sao_Paulo', timestamptz '2025-12-18 11:01:00 America/Sao_Paulo', 'manha', 'conferencia-planilha-20260826-adriano'),
@@ -442,6 +441,7 @@ insert into tmp_adr_shift (id, started_at, ended_at, period, note) values
   ('34f655ab-f226-4221-abea-f86a3e914cf5', timestamptz '2026-06-10 22:50:00 America/Sao_Paulo', timestamptz '2026-06-11 00:30:00 America/Sao_Paulo', 'noite', 'conferencia-planilha-20260826-adriano'),
   ('71f3fb42-f9a1-4d35-bbb5-8d2a12115e10', timestamptz '2026-06-11 20:55:00 America/Sao_Paulo', timestamptz '2026-06-11 21:40:00 America/Sao_Paulo', 'noite', 'conferencia-planilha-20260826-adriano'),
   ('35494d1c-9ab9-42da-8b0d-8bcab2da919d', timestamptz '2026-06-11 22:52:00 America/Sao_Paulo', timestamptz '2026-06-11 22:57:00 America/Sao_Paulo', 'noite', 'conferencia-planilha-20260826-adriano'),
+  ('c4e91a38-0611-4a23-9288-00000000a038', timestamptz '2026-06-11 23:23:00 America/Sao_Paulo', timestamptz '2026-06-11 23:28:00 America/Sao_Paulo', 'noite', 'conferencia-planilha-20260826-adriano'),
   ('0d3f3553-6bbd-4c39-9dae-004cd5a56214', timestamptz '2026-06-12 15:00:00 America/Sao_Paulo', timestamptz '2026-06-12 15:05:00 America/Sao_Paulo', 'tarde', 'conferencia-planilha-20260826-adriano'),
   ('f47c93d2-3edd-4bbe-bbf1-acf8f5b0de9f', timestamptz '2026-06-13 22:07:00 America/Sao_Paulo', timestamptz '2026-06-14 00:05:00 America/Sao_Paulo', 'noite', 'conferencia-planilha-20260826-adriano'),
   ('7de8d128-4119-4caf-8731-17b423e8e6d6', timestamptz '2026-06-15 13:47:00 America/Sao_Paulo', timestamptz '2026-06-15 15:40:00 America/Sao_Paulo', 'tarde', 'conferencia-planilha-20260826-adriano'),
@@ -633,9 +633,7 @@ insert into tmp_adr_seg (shift_id, task_name, hourly_rate, started_at, ended_at,
 
 insert into tmp_adr_seg (shift_id, task_name, hourly_rate, started_at, ended_at, period) values
   ('b40abaa0-3fd9-49ac-bccd-21dfe400b658', 'Cadastramento', 18.00, timestamptz '2025-12-16 08:23:00 America/Sao_Paulo', timestamptz '2025-12-16 08:58:00 America/Sao_Paulo', 'manha'),
-  ('fbb53b52-187f-43c0-84cc-ff9b67e905fb', 'Aparelhos', 30.00, timestamptz '2025-12-16 08:23:00 America/Sao_Paulo', timestamptz '2025-12-16 09:00:00 America/Sao_Paulo', 'manha'),
   ('44515c2d-52b1-4245-b35b-2e772768d4c6', 'Cadastramento', 18.00, timestamptz '2025-12-16 08:58:00 America/Sao_Paulo', timestamptz '2025-12-16 09:20:00 America/Sao_Paulo', 'manha'),
-  ('ec32105c-9a42-4537-85b7-ed919b8e2bc1', 'Aparelhos', 30.00, timestamptz '2025-12-17 07:00:00 America/Sao_Paulo', timestamptz '2025-12-17 07:41:00 America/Sao_Paulo', 'manha'),
   ('8b69a4d8-0901-49a4-b567-b2a3ac9da34b', 'Cadastramento', 18.00, timestamptz '2025-12-17 07:25:00 America/Sao_Paulo', timestamptz '2025-12-17 08:03:00 America/Sao_Paulo', 'manha'),
   ('8b69a4d8-0901-49a4-b567-b2a3ac9da34b', 'Cadastramento', 18.00, timestamptz '2025-12-17 08:03:00 America/Sao_Paulo', timestamptz '2025-12-17 08:13:00 America/Sao_Paulo', 'manha'),
   ('9476e2fa-b93d-48ce-bcf6-e40fa2e4fde8', 'Aparelhos', 30.00, timestamptz '2025-12-17 08:14:00 America/Sao_Paulo', timestamptz '2025-12-17 09:10:00 America/Sao_Paulo', 'manha'),
@@ -643,7 +641,6 @@ insert into tmp_adr_seg (shift_id, task_name, hourly_rate, started_at, ended_at,
   ('9476e2fa-b93d-48ce-bcf6-e40fa2e4fde8', 'Aparelhos', 30.00, timestamptz '2025-12-17 09:36:00 America/Sao_Paulo', timestamptz '2025-12-17 09:44:00 America/Sao_Paulo', 'manha'),
   ('a9853e2d-e3b6-4730-981e-0c31161b8263', 'Aparelhos', 30.00, timestamptz '2025-12-18 07:44:00 America/Sao_Paulo', timestamptz '2025-12-18 08:08:00 America/Sao_Paulo', 'manha'),
   ('f0ef665a-b765-44ba-bd27-68d9dcfd5fbb', 'Cadastramento', 18.00, timestamptz '2025-12-18 07:51:00 America/Sao_Paulo', timestamptz '2025-12-18 08:36:00 America/Sao_Paulo', 'manha'),
-  ('6b4965f6-613d-4fde-87b3-8456d31681fe', 'Aparelhos', 30.00, timestamptz '2025-12-18 08:08:00 America/Sao_Paulo', timestamptz '2025-12-18 08:58:00 America/Sao_Paulo', 'manha'),
   ('19e563c9-a1a5-4763-bd01-e922ffa2e067', 'Financeiro', 18.00, timestamptz '2025-12-18 08:13:00 America/Sao_Paulo', timestamptz '2025-12-18 08:23:00 America/Sao_Paulo', 'manha'),
   ('19e563c9-a1a5-4763-bd01-e922ffa2e067', 'Cadastramento', 18.00, timestamptz '2025-12-18 08:23:00 America/Sao_Paulo', timestamptz '2025-12-18 08:54:00 America/Sao_Paulo', 'manha'),
   ('19e563c9-a1a5-4763-bd01-e922ffa2e067', 'Cadastramento', 18.00, timestamptz '2025-12-18 08:54:00 America/Sao_Paulo', timestamptz '2025-12-18 09:02:00 America/Sao_Paulo', 'manha'),
@@ -1299,6 +1296,7 @@ insert into tmp_adr_seg (shift_id, task_name, hourly_rate, started_at, ended_at,
   ('71f3fb42-f9a1-4d35-bbb5-8d2a12115e10', 'Financeiro', 18.00, timestamptz '2026-06-11 21:07:00 America/Sao_Paulo', timestamptz '2026-06-11 21:25:00 America/Sao_Paulo', 'noite'),
   ('71f3fb42-f9a1-4d35-bbb5-8d2a12115e10', 'Usuários vencidos', 12.00, timestamptz '2026-06-11 21:25:00 America/Sao_Paulo', timestamptz '2026-06-11 21:40:00 America/Sao_Paulo', 'noite'),
   ('35494d1c-9ab9-42da-8b0d-8bcab2da919d', 'Planilha créditos', 12.00, timestamptz '2026-06-11 22:52:00 America/Sao_Paulo', timestamptz '2026-06-11 22:57:00 America/Sao_Paulo', 'noite'),
+  ('c4e91a38-0611-4a23-9288-00000000a038', 'Planilha créditos', 12.00, timestamptz '2026-06-11 23:23:00 America/Sao_Paulo', timestamptz '2026-06-11 23:28:00 America/Sao_Paulo', 'noite'),
   ('0d3f3553-6bbd-4c39-9dae-004cd5a56214', 'Planilha créditos', 12.00, timestamptz '2026-06-12 15:00:00 America/Sao_Paulo', timestamptz '2026-06-12 15:05:00 America/Sao_Paulo', 'tarde'),
   ('f47c93d2-3edd-4bbe-bbf1-acf8f5b0de9f', 'Aparelhos', 30.00, timestamptz '2026-06-13 22:07:00 America/Sao_Paulo', timestamptz '2026-06-13 22:26:00 America/Sao_Paulo', 'noite'),
   ('f47c93d2-3edd-4bbe-bbf1-acf8f5b0de9f', 'Financeiro', 18.00, timestamptz '2026-06-13 22:26:00 America/Sao_Paulo', timestamptz '2026-06-13 22:49:00 America/Sao_Paulo', 'noite'),
@@ -1489,6 +1487,11 @@ select t.shift_id, tk.id, t.task_name, t.hourly_rate, t.period,
   from tmp_adr_seg t
   join s7ponto.tasks tk on tk.name = t.task_name;
 
+-- Julho R81: na planilha o G foi colado 10 (28 min × 30 daria 14).
+update s7ponto.segments
+   set hourly_rate = 0, flat_amount = 10.00
+ where shift_id = '7251c43c-ac95-4503-8915-40c714639c48';
+
 insert into s7ponto.bonus_entries (
   user_id, year_month, title, amount, source, note, bonus_on
 )
@@ -1509,7 +1512,6 @@ select pr.id, v.ym, v.title, v.amount, 'import', v.note, v.bonus_on
     ('2026-07', 'Aquecimento', 10.00, 'conferencia-planilha-20260826-adriano · Aquecimento dia 1', date '2026-07-24'),
     ('2026-07', 'Aquecimento', 10.00, 'conferencia-planilha-20260826-adriano · Aquecimento dia 2', date '2026-07-25'),
     ('2026-07', 'Aquecimento', 10.00, 'conferencia-planilha-20260826-adriano · Aquecimento dia 3', date '2026-07-26'),
-    ('2026-07', 'Aquecimento', 10.00, 'conferencia-planilha-20260826-adriano · Aquecimento dia 4', date '2026-07-27'),
     ('2026-07', 'Aquecimento', 10.00, 'conferencia-planilha-20260826-adriano · Aquecimento dia 5', date '2026-07-28'),
     ('2026-07', 'Aquecimento', 10.00, 'conferencia-planilha-20260826-adriano · Aquecimento dia 6', date '2026-07-29'),
     ('2026-07', 'Aquecimento', 10.00, 'conferencia-planilha-20260826-adriano · Aquecimento dia 7', date '2026-07-30'),
@@ -1557,14 +1559,14 @@ select pr.id, v.ym, v.total, v.note, 'import'
   from s7ponto.profiles pr
   cross join (values
     ('2025-11', 467.90, 'conferencia-planilha-20260826-adriano trabalho+bônus'),
-    ('2025-12', 1010.00, 'conferencia-planilha-20260826-adriano trabalho+bônus'),
+    ('2025-12', 946.00, 'conferencia-planilha-20260826-adriano trabalho+bônus'),
     ('2026-01', 1026.10, 'conferencia-planilha-20260826-adriano trabalho+bônus'),
     ('2026-02', 771.30, 'conferencia-planilha-20260826-adriano trabalho+bônus'),
     ('2026-03', 865.00, 'conferencia-planilha-20260826-adriano trabalho+bônus'),
     ('2026-04', 877.10, 'conferencia-planilha-20260826-adriano trabalho+bônus'),
     ('2026-05', 592.85, 'conferencia-planilha-20260826-adriano trabalho+bônus'),
-    ('2026-06', 638.20, 'conferencia-planilha-20260826-adriano trabalho+bônus'),
-    ('2026-07', 944.03, 'conferencia-planilha-20260826-adriano trabalho+bônus'),
+    ('2026-06', 639.20, 'conferencia-planilha-20260826-adriano trabalho+bônus'),
+    ('2026-07', 930.03, 'conferencia-planilha-20260826-adriano trabalho+bônus'),
     ('2026-08', 572.50, 'conferencia-planilha-20260826-adriano trabalho+bônus')
   ) as v(ym, total, note)
  where pr.username = 'adriano'
