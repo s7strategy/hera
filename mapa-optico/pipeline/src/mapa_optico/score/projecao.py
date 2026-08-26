@@ -150,6 +150,24 @@ def cmv_fracao(ticket: float, venda: dict[str, Any]) -> float:
     return _clamp(custo_do_par(ticket, venda) / ticket, 0.0, 0.95)
 
 
+def elasticidade_efetiva(venda: dict[str, Any]) -> float:
+    """Quanto a renda local ainda puxa o ticket, depois do crediario.
+
+    Sem crediario, quem ganha pouco compra o par barato: a renda do mes decide
+    a compra. O crediario existe justamente para quebrar esse vinculo — a
+    decisao passa a ser sobre a parcela, nao sobre o preco. Nao anula o efeito
+    (renda baixa ainda limita), mas reduz muito.
+
+    `alcance_crediario` vai de 0 (nao vendo a prazo) a 1 (praticamente todo
+    mundo leva no crediario).
+    """
+    elasticidade = _num(venda.get("elasticidade_renda")) or 0.0
+    alcance = _clamp(_num(venda.get("alcance_crediario")) or 0.0, 0.0, 1.0)
+    residual = _clamp(_num(venda.get("elasticidade_residual_crediario")) or 0.25, 0.0, 1.0)
+    # Com alcance total, sobra so a fracao residual da sensibilidade a renda.
+    return elasticidade * (1.0 - alcance * (1.0 - residual))
+
+
 def ticket_da_cidade(renda: float | None, venda: dict[str, Any]) -> tuple[float, bool]:
     """Ticket modulado pela renda mediana. Retorna (ticket, foi_imputado)."""
     base = _num(venda.get("ticket_medio")) or 0.0
@@ -158,7 +176,7 @@ def ticket_da_cidade(renda: float | None, venda: dict[str, Any]) -> tuple[float,
     referencia = _num(venda.get("renda_referencia")) or 0.0
     if referencia <= 0:
         return base, False
-    elasticidade = _num(venda.get("elasticidade_renda")) or 0.0
+    elasticidade = elasticidade_efetiva(venda)
     ajustado = base * (1.0 + elasticidade * (renda / referencia - 1.0))
     piso = _num(venda.get("ticket_min")) or 0.0
     teto = _num(venda.get("ticket_max")) or base
@@ -250,10 +268,28 @@ def forca_concorrencia(
     return conversao, detalhe
 
 
+def medicos_no_evento(evento: dict[str, Any]) -> float:
+    """Quantos medicos atendem ao mesmo tempo. Dobra a agenda e dobra o custo."""
+    return max(1.0, _num(evento.get("medicos")) or 1.0)
+
+
+def capacidade_da_agenda(evento: dict[str, Any]) -> float:
+    """Teto fisico de consultas do evento: dias x consultas por dia x medicos.
+
+    E o que impede o ranking de virar "ordene por populacao": por maior que
+    seja a cidade, ninguem atende mais do que cabe na agenda.
+    """
+    dias = _num(evento.get("dias")) or 1.0
+    por_dia = _num(evento.get("consultas_por_dia")) or 1.0
+    return dias * por_dia * medicos_no_evento(evento)
+
+
 def custo_do_evento(evento: dict[str, Any]) -> dict[str, float]:
     """Custo de rodar o evento numa cidade, com o deslocamento diluido no circuito."""
     dias = _num(evento.get("dias")) or 1.0
-    medico = (_num(evento.get("custo_medico_dia")) or 0.0) * dias
+    # O medico e o unico custo que escala com quantos vao: estrutura e midia
+    # sao os mesmos para um ou para tres.
+    medico = (_num(evento.get("custo_medico_dia")) or 0.0) * dias * medicos_no_evento(evento)
     estrutura = (_num(evento.get("custo_estrutura_dia")) or 0.0) * dias
     cidades = max(1.0, _num(evento.get("cidades_por_circuito")) or 1.0)
     deslocamento = (_num(evento.get("custo_deslocamento")) or 0.0) / cidades
@@ -274,7 +310,7 @@ def teto_faturamento(negocio: dict[str, Any]) -> float:
     municipios, o percentual e comparavel entre cidades.
     """
     evento = negocio.get("evento", {})
-    capacidade = (_num(evento.get("dias")) or 1.0) * (_num(evento.get("consultas_por_dia")) or 1.0)
+    capacidade = capacidade_da_agenda(evento)
     conv_max = _num(negocio.get("conversao", {}).get("maximo")) or 1.0
     ticket_max = _num(negocio.get("venda", {}).get("ticket_max")) or 1.0
     return max(1e-9, capacidade * conv_max * ticket_max)
@@ -320,9 +356,7 @@ def projetar(df: pd.DataFrame, negocio: dict[str, Any]) -> pd.DataFrame:
         mediana_distancia = _mediana(saida.get("distancia_km", pd.Series(dtype="float64")))
 
         custos = custo_do_evento(evento)
-        capacidade_evento = (_num(evento.get("dias")) or 1.0) * (
-            _num(evento.get("consultas_por_dia")) or 1.0
-        )
+        capacidade_evento = capacidade_da_agenda(evento)
         midia = _num(evento.get("investimento_midia")) or 0.0
         alcance = min(
             _num(captacao.get("alcance_maximo")) or 1.0,

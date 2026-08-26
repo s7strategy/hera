@@ -10,6 +10,7 @@
  * por isso que existe a aba de parâmetros do negócio.
  */
 import type { Municipio, Negocio } from "../lib/types";
+import { leituraDaCidade } from "../lib/leitura";
 import { moeda, moedaCurta, num, pct, pontos, VAZIO } from "../lib/format";
 import { ROTULO_IMPUTADO } from "../lib/projecao";
 
@@ -77,8 +78,21 @@ export default function BlocoProjecao({ municipio: m, negocio }: Props) {
   const topo = Math.max(funil.populacao_40mais, 1);
   const larg = (v: number) => Math.sqrt(Math.max(v, 0) / topo) * 100;
 
+  const leitura = leituraDaCidade(m);
+
   return (
     <>
+      {/* Antes de qualquer número: a cidade dita em português. Doze colunas e
+          um percentual não dizem por que a cidade está onde está. */}
+      <section className={`secao leitura leitura-${leitura.veredito}`}>
+        <div className="leitura-titulo">{leitura.titulo}</div>
+        <ul className="leitura-motivos">
+          {leitura.motivos.map((linha) => (
+            <li key={linha}>{linha}</li>
+          ))}
+        </ul>
+      </section>
+
       <section className="secao">
         <div className="projecao-cabeca">
           <div>

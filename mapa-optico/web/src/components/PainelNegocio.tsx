@@ -81,6 +81,19 @@ const GRUPOS: { titulo: string; nota: string; campos: Campo[] }[] = [
         passo: 0.05,
         formato: "num",
       },
+      {
+        caminho: ["venda", "alcance_crediario"],
+        rotulo: "Vendas no crediário",
+        origem: "calibravel",
+        ajuda:
+          "Quanto do que você vende sai a prazo. É o que solta o ticket da renda local: " +
+          "a decisão do cliente vira “cabe a parcela?” em vez de “tenho o valor hoje?”. " +
+          "Em 0 o crediário não existe e a cidade pobre compra o par barato.",
+        min: 0,
+        max: 1,
+        passo: 0.05,
+        formato: "pct",
+      },
     ],
   },
   {
@@ -138,12 +151,25 @@ const GRUPOS: { titulo: string; nota: string; campos: Campo[] }[] = [
       },
       {
         caminho: ["evento", "consultas_por_dia"],
-        rotulo: "Consultas por dia",
+        rotulo: "Consultas por dia, por médico",
         origem: "estimado",
         ajuda: "Teto físico de refrações que um oftalmologista faz num dia.",
         min: 15,
         max: 80,
         passo: 5,
+        formato: "num",
+      },
+      {
+        caminho: ["evento", "medicos"],
+        rotulo: "Médicos no evento",
+        origem: "informado",
+        ajuda:
+          "Dois médicos atendem o dobro no mesmo evento — e é o único custo que dobra junto. " +
+          "Sala e mídia são as mesmas para um ou para três. Onde a agenda aparece com asterisco, " +
+          "é aqui que se ganha.",
+        min: 1,
+        max: 4,
+        passo: 1,
         formato: "num",
       },
       {

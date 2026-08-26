@@ -19,6 +19,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from mapa_optico.score import projecao
 from mapa_optico.score.projecao import (
     atrito_deslocamento,
     capacidade_local_anual,
@@ -424,3 +425,59 @@ def test_cidade_sem_otica_nao_herda_a_reputacao_mediana_do_estado():
     assert "reputacao_oticas" not in (virgem["projecao"]["imputados"] or [])
     assert virgem["projecao_confianca"] == 1.0
     assert virgem["projecao"]["concorrencia"]["reputacao"]["fator"] == 0.0
+
+
+# --------------------------------------------------------------- médicos
+def test_dois_medicos_dobram_a_agenda():
+    """Dois médicos atendendo juntos atendem o dobro no mesmo evento."""
+    um = dict(NEGOCIO["evento"], medicos=1)
+    dois = dict(NEGOCIO["evento"], medicos=2)
+    assert projecao.capacidade_da_agenda(dois) == 2 * projecao.capacidade_da_agenda(um)
+
+
+def test_medico_a_mais_custa_a_mais_mas_estrutura_nao_dobra():
+    """Só o médico escala com quantos vão; sala e mídia são as mesmas."""
+    um = projecao.custo_do_evento(dict(NEGOCIO["evento"], medicos=1))
+    dois = projecao.custo_do_evento(dict(NEGOCIO["evento"], medicos=2))
+    assert dois["medico"] == 2 * um["medico"]
+    assert dois["estrutura"] == um["estrutura"]
+    assert dois["midia"] == um["midia"]
+    assert dois["total"] < 2 * um["total"], "dobrar médico não dobra o custo do evento"
+
+
+def test_medicos_ausente_ou_zero_vale_um():
+    assert projecao.medicos_no_evento({}) == 1.0
+    assert projecao.medicos_no_evento({"medicos": 0}) == 1.0
+
+
+# -------------------------------------------------------------- crediário
+def test_crediario_solta_o_ticket_da_renda_local():
+    """É para isso que o crediário serve: a decisão vira a parcela, não o preço."""
+    renda_baixa = 700.0
+    sem = dict(NEGOCIO["venda"], alcance_crediario=0.0)
+    com = dict(NEGOCIO["venda"], alcance_crediario=1.0, elasticidade_residual_crediario=0.25)
+
+    ticket_sem, _ = projecao.ticket_da_cidade(renda_baixa, sem)
+    ticket_com, _ = projecao.ticket_da_cidade(renda_baixa, com)
+
+    assert ticket_com > ticket_sem, "com crediário a renda baixa derruba menos o ticket"
+    # E não anula: renda baixa ainda pesa alguma coisa.
+    assert ticket_com < NEGOCIO["venda"]["ticket_medio"]
+
+
+def test_crediario_nao_inventa_ticket_em_cidade_rica():
+    """Onde a renda já é alta, o crediário não deveria mudar quase nada."""
+    sem = dict(NEGOCIO["venda"], alcance_crediario=0.0)
+    com = dict(NEGOCIO["venda"], alcance_crediario=1.0)
+    t_sem, _ = projecao.ticket_da_cidade(NEGOCIO["venda"]["renda_referencia"], sem)
+    t_com, _ = projecao.ticket_da_cidade(NEGOCIO["venda"]["renda_referencia"], com)
+    assert t_sem == pytest.approx(t_com), "na renda de referência o ajuste é nulo dos dois jeitos"
+
+
+def test_alcance_do_crediario_e_monotonico():
+    renda = 700.0
+    tickets = [
+        projecao.ticket_da_cidade(renda, dict(NEGOCIO["venda"], alcance_crediario=a))[0]
+        for a in (0.0, 0.25, 0.5, 0.75, 1.0)
+    ]
+    assert tickets == sorted(tickets), "mais crediário nunca pode reduzir o ticket"

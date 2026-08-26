@@ -75,6 +75,21 @@ export function cmvFracao(ticket: number, venda: Negocio["venda"]): number {
   return ticket > 0 ? limitar(custoDoPar(ticket, venda) / ticket, 0, 0.95) : 0;
 }
 
+/**
+ * Quanto a renda local ainda puxa o ticket, depois do crediário.
+ *
+ * Sem crediário, quem ganha pouco compra o par barato: a renda do mês decide a
+ * compra. O crediário existe justamente para quebrar esse vínculo — a decisão
+ * passa a ser sobre a parcela, não sobre o preço. Não anula o efeito (renda
+ * baixa ainda limita), mas reduz muito.
+ */
+export function elasticidadeEfetiva(venda: Negocio["venda"]): number {
+  const elasticidade = num(venda?.elasticidade_renda) ?? 0;
+  const alcance = limitar(num(venda?.alcance_crediario) ?? 0, 0, 1);
+  const residual = limitar(num(venda?.elasticidade_residual_crediario) ?? 0.25, 0, 1);
+  return elasticidade * (1 - alcance * (1 - residual));
+}
+
 export function ticketDaCidade(
   renda: number | null,
   venda: Negocio["venda"],
@@ -83,7 +98,7 @@ export function ticketDaCidade(
   if (!ehNum(renda)) return { ticket: base, imputado: true };
   const referencia = num(venda?.renda_referencia) ?? 0;
   if (referencia <= 0) return { ticket: base, imputado: false };
-  const elasticidade = num(venda?.elasticidade_renda) ?? 0;
+  const elasticidade = elasticidadeEfetiva(venda);
   const ajustado = base * (1 + elasticidade * (renda / referencia - 1));
   return {
     ticket: limitar(ajustado, num(venda?.ticket_min) ?? 0, num(venda?.ticket_max) ?? base),
@@ -156,9 +171,28 @@ export function forcaConcorrencia(
   };
 }
 
+/** Quantos médicos atendem ao mesmo tempo. Dobra a agenda e dobra o custo. */
+export function medicosNoEvento(evento: Negocio["evento"]): number {
+  return Math.max(1, num(evento?.medicos) ?? 1);
+}
+
+/**
+ * Teto físico de consultas do evento: dias × consultas por dia × médicos.
+ *
+ * É o que impede o ranking de virar "ordene por população": por maior que seja
+ * a cidade, ninguém atende mais do que cabe na agenda.
+ */
+export function capacidadeDaAgenda(evento: Negocio["evento"]): number {
+  const dias = num(evento?.dias) ?? 1;
+  const porDia = num(evento?.consultas_por_dia) ?? 1;
+  return dias * porDia * medicosNoEvento(evento);
+}
+
 export function custoDoEvento(evento: Negocio["evento"]) {
   const dias = num(evento?.dias) ?? 1;
-  const medico = (num(evento?.custo_medico_dia) ?? 0) * dias;
+  // O médico é o único custo que escala com quantos vão: estrutura e mídia são
+  // as mesmas para um ou para três.
+  const medico = (num(evento?.custo_medico_dia) ?? 0) * dias * medicosNoEvento(evento);
   const estrutura = (num(evento?.custo_estrutura_dia) ?? 0) * dias;
   const cidades = Math.max(1, num(evento?.cidades_por_circuito) ?? 1);
   const deslocamento = (num(evento?.custo_deslocamento) ?? 0) / cidades;
@@ -168,7 +202,7 @@ export function custoDoEvento(evento: Negocio["evento"]) {
 
 /** Faturamento de uma cidade perfeita — o denominador do "% de possibilidade". */
 export function tetoFaturamento(n: Negocio): number {
-  const capacidade = (num(n.evento?.dias) ?? 1) * (num(n.evento?.consultas_por_dia) ?? 1);
+  const capacidade = capacidadeDaAgenda(n.evento);
   const convMax = num(n.conversao?.maximo) ?? 1;
   const ticketMax = num(n.venda?.ticket_max) ?? 1;
   return Math.max(1e-9, capacidade * convMax * ticketMax);
@@ -203,7 +237,7 @@ export function projetar(municipios: Municipio[], n: Negocio): MunicipioProjetad
   const custos = custoDoEvento(evento);
   const porDia = num(evento.consultas_por_dia) ?? 1;
   const diasCfg = num(evento.dias) ?? 1;
-  const capacidadeEvento = diasCfg * porDia;
+  const capacidadeEvento = capacidadeDaAgenda(evento);
   const midia = num(evento.investimento_midia) ?? 0;
   const alcance = Math.min(
     num(captacao.alcance_maximo) ?? 1,

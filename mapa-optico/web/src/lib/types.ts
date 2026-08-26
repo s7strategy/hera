@@ -71,11 +71,18 @@ export interface NegocioVenda {
   custo_produto?: number;
   renda_referencia?: number;
   elasticidade_renda?: number;
+  /** 0 = não vendo a prazo · 1 = praticamente todo mundo leva no crediário. */
+  alcance_crediario?: number;
+  /** Quanto da sensibilidade à renda sobra quando o crediário pega todo mundo. */
+  elasticidade_residual_crediario?: number;
 }
 
 export interface NegocioEvento {
   dias?: number;
+  /** Por médico. */
   consultas_por_dia?: number;
+  /** Quantos médicos atendem ao mesmo tempo. */
+  medicos?: number;
   custo_medico_dia?: number;
   custo_estrutura_dia?: number;
   custo_deslocamento?: number;

@@ -786,3 +786,32 @@ textarea.nota {
 .tela-erro h1 { font-size: 20px; color: var(--txt-1); margin: 0 0 12px; }
 .tela-erro p { font-size: 14px; line-height: 1.6; margin: 0 0 12px; }
 .tela-erro-dica { color: var(--txt-3); font-size: 13px !important; }
+
+/* --------------------------------------------------- leitura da cidade
+   A cidade dita em portugues, antes de qualquer numero. A cor da borda diz o
+   veredito de longe; o texto explica. */
+.leitura { border-left: 3px solid var(--linha); padding-left: 14px; }
+.leitura-vale { border-left-color: #4ea87a; }
+.leitura-talvez { border-left-color: #d9a441; }
+.leitura-nao { border-left-color: #c4614a; }
+.leitura-sem-dado { border-left-color: var(--txt-3); }
+
+.leitura-titulo {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: .01em;
+  margin-bottom: 8px;
+  color: var(--txt-1);
+}
+.leitura-vale .leitura-titulo { color: #6fc79a; }
+.leitura-talvez .leitura-titulo { color: #e8bc63; }
+.leitura-nao .leitura-titulo { color: #e08a72; }
+
+.leitura-motivos { margin: 0; padding-left: 16px; }
+.leitura-motivos li {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--txt-2);
+  margin-bottom: 6px;
+}
+.leitura-motivos li::marker { color: var(--txt-3); }
