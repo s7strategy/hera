@@ -1,0 +1,25 @@
+# dados e cache
+pipeline/data/
+pipeline/out/
+*.csv
+*.xlsx
+!pipeline/tests/fixtures/*.csv
+
+# segredos
+.env
+.env.local
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# node
+node_modules/
+web/dist/
+
+# artefatos de build do TS
+*.tsbuildinfo

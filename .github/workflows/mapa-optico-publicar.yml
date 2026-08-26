@@ -1,0 +1,128 @@
+# Monta o dashboard e envia para o site.
+#
+# O app vai para https://s7strategy.com.br/mapaoftalmo, que mora na Hostinger.
+# Um caminho nao se aponta por DNS — quem serve o dominio precisa servir a
+# pasta —, entao o arquivo vai por FTP para dentro do public_html. Como o app
+# e um arquivo unico, isso e um upload de 1,8 MB, nao um deploy.
+#
+# Aqui houve GitHub Pages e nao ha mais: o app tem endereco proprio no dominio
+# do dono, e o `environment: github-pages` ainda recusava o job de qualquer
+# branch que nao a principal, derrubando a publicacao inteira por causa de uma
+# saida que ninguem mais usava.
+name: Mapa Óptico — publicar
+
+on:
+  push:
+    branches:
+      - main
+      - claude/app-development-p8hrwg
+    paths:
+      - "mapa-optico/web/**"
+      - ".github/workflows/mapa-optico-publicar.yml"
+  # Um workflow reutilizavel PRECISA declarar os segredos que usa; sem esta
+  # secao o GitHub rejeita o arquivo inteiro na validacao.
+  workflow_call:
+    secrets:
+      HOSTINGER_FTP_HOST:
+        required: false
+      HOSTINGER_FTP_USER:
+        required: false
+      HOSTINGER_FTP_PASSWORD:
+        required: false
+      HOSTINGER_FTP_DIR:
+        required: false
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Uma publicacao por vez; a mais nova vence.
+concurrency:
+  group: mapa-optico-publicar
+  cancel-in-progress: true
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    # No nivel do job porque o contexto `secrets` nao existe dentro de `if`,
+    # mas `env` existe.
+    env:
+      HOSTINGER_FTP_HOST: ${{ secrets.HOSTINGER_FTP_HOST }}
+    steps:
+      # ref_name e nao github.sha: quando o pipeline de dados chama este
+      # workflow, o snapshot novo esta na ponta da branch, nao no commit que
+      # disparou a execucao.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mapa-optico/web/package-lock.json
+
+      - name: Instalar dependências
+        working-directory: mapa-optico/web
+        run: npm ci
+
+      - name: Conferir tipos
+        working-directory: mapa-optico/web
+        run: npm run typecheck
+
+      # O arquivo unico e o que vai para o ar: abre sem servidor e sem rede.
+      - name: Montar o app
+        working-directory: mapa-optico/web
+        run: npm run build:unico
+
+      # index.html de proposito: e o que faz o endereco abrir sem o nome do
+      # arquivo no fim.
+      - name: Preparar a pasta que vai para o site
+        working-directory: mapa-optico/web
+        run: |
+          mkdir -p dist/hostinger
+          cp dist/mapa-optico.html dist/hostinger/index.html
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dashboard
+          path: mapa-optico/web/dist/hostinger/index.html
+
+      # curl e nao uma acao de terceiros: e um arquivo so, e a credencial em
+      # jogo e a senha do site do dono do repositorio. Menos codigo de estranho
+      # no caminho dela, melhor.
+      #
+      # --ssl-reqd exige TLS e ABORTA se o servidor nao oferecer, em vez de
+      # cair para FTP puro e mandar a senha em texto aberto sem avisar.
+      - name: Publicar em s7strategy.com.br/mapaoftalmo
+        if: ${{ env.HOSTINGER_FTP_HOST != '' }}
+        env:
+          FTP_USER: ${{ secrets.HOSTINGER_FTP_USER }}
+          FTP_PASSWORD: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
+          FTP_DIR: ${{ secrets.HOSTINGER_FTP_DIR }}
+        run: |
+          destino="${FTP_DIR:-/public_html/mapaoftalmo}"
+          curl --fail --show-error --silent \
+               --ssl-reqd --ftp-create-dirs \
+               --user "$FTP_USER:$FTP_PASSWORD" \
+               --upload-file mapa-optico/web/dist/hostinger/index.html \
+               "ftp://$HOSTINGER_FTP_HOST${destino%/}/index.html"
+
+      - name: Resumo
+        run: |
+          if [ -n "$HOSTINGER_FTP_HOST" ]; then
+            echo "App publicado em https://s7strategy.com.br/mapaoftalmo" >> "$GITHUB_STEP_SUMMARY"
+          else
+            {
+              echo "### O app foi montado, mas não foi enviado para o site"
+              echo
+              echo "Faltam as credenciais de FTP da Hostinger. Em"
+              echo "**Settings → Secrets and variables → Actions → New repository secret**,"
+              echo "crie três segredos com os dados que a Hostinger mostra em"
+              echo "*Arquivos → Contas de FTP*: \`HOSTINGER_FTP_HOST\`,"
+              echo "\`HOSTINGER_FTP_USER\` e \`HOSTINGER_FTP_PASSWORD\`."
+              echo
+              echo "Enquanto isso o app está no artefato \`dashboard\` desta execução:"
+              echo "baixe e suba o \`index.html\` na pasta \`mapaoftalmo\` do site."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi

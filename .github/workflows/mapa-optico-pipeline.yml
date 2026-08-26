@@ -1,0 +1,163 @@
+# Reprocessa o ranking e commita o snapshot que o dashboard le.
+#
+# POR QUE ESTE WORKFLOW EXISTE E NAO E SO CONVENIENCIA: o ambiente de
+# desenvolvimento nao alcanca IBGE, DATASUS nem OSRM (o proxy nega o CONNECT).
+# O runner do GitHub alcanca. Entao a ingestao real acontece aqui, e o
+# resultado volta commitado para o repositorio.
+#
+# O CNES publica uma competencia por mes, entao rodar mais que isso so gasta
+# quota. O Places NAO roda aqui por padrao: e a unica fonte que custa dinheiro e
+# ela merece uma decisao consciente, nao um agendamento.
+name: Mapa Óptico — pipeline
+
+on:
+  schedule:
+    - cron: "0 9 5 * *" # dia 5 de cada mês, 09:00 UTC
+  push:
+    branches:
+      - main
+      - claude/app-development-p8hrwg
+    paths:
+      - "mapa-optico/pipeline/**"
+      - ".github/workflows/mapa-optico-pipeline.yml"
+  workflow_dispatch:
+    inputs:
+      ufs:
+        description: "UFs separadas por vírgula"
+        default: "SC"
+      com_places:
+        description: "Consultar o Google Places (custa dinheiro)"
+        type: boolean
+        default: false
+      com_osrm:
+        description: "Recalcular distância até o polo (gratuito, mas lento)"
+        type: boolean
+        default: true
+      refresh:
+        description: "Ignorar o cache em disco e buscar tudo de novo"
+        type: boolean
+        default: false
+
+# Duas ingestoes simultaneas commitariam o mesmo arquivo e uma perderia.
+concurrency:
+  group: mapa-optico-pipeline-${{ github.ref }}
+  # Um push novo supera a ingestao antiga: ela so commita no fim, entao nao ha
+  # trabalho a perder, e uma execucao travada nao pode bloquear a fila.
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    # A base mensal do CNES sao centenas de MB vindas de um FTP lento; a
+    # primeira execucao de um mes leva ~20 minutos so nisso.
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: mapa-optico/pipeline
+    # No nivel do job para que o `if` do passo do Supabase enxergue: o contexto
+    # `secrets` nao existe dentro de `if`, mas `env` existe.
+    env:
+      GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      # O Python do runner e o do Debian, que recusa instalacao direta
+      # (PEP 668). Um venv proprio resolve e ainda fixa a versao.
+      - name: Instalar dependências
+        run: |
+          uv venv --python 3.12
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+          uv pip install -e ".[dev]"
+
+      - name: Testes
+        run: pytest -q
+
+      # O extra `cnes` traz o decodificador de .DBC, que e wheel nativa e as
+      # vezes nao existe para a plataforma do runner. Se nao instalar, o
+      # pipeline ainda tem o caminho da base completa em CSV, que nao depende
+      # de nada compilado — entao isto nao pode derrubar o job, so registrar.
+      - name: Instalar leitores do CNES
+        id: leitores_cnes
+        continue-on-error: true
+        run: uv pip install -e ".[cnes]"
+
+      # A base do CNES leva ~20 minutos vindo do FTP do DATASUS. Restaurada do
+      # cache, a execucao do mes seguinte nao paga esse preco de novo.
+      - name: Cache das fontes externas
+        uses: actions/cache@v4
+        with:
+          path: mapa-optico/pipeline/data/cache
+          key: mapa-optico-cache-${{ github.run_id }}
+          restore-keys: mapa-optico-cache-
+
+      - name: Diagnóstico das fontes externas
+        continue-on-error: true
+        run: mapa-optico checar-fontes --uf SC
+
+      # A Fase 0 NAO roda aqui. Ela le exatamente a mesma base que a ingestao
+      # logo abaixo, e baixar 200+ MB duas vezes na mesma execucao fez o
+      # DATASUS recusar a segunda conexao — o diagnostico derrubava o dado que
+      # ele existe para provar. Para rodar a Fase 0 sozinha: `mapa-optico
+      # fase0 --uf SC`.
+
+      - name: Rodar pipeline
+        run: |
+          UFS="${{ inputs.ufs || 'SC' }}"
+          FLAGS=""
+          # O padrao de cada flag e o mais barato: sem Places e com cache. Quem
+          # quer gastar (dinheiro ou tempo) pede explicitamente na tela.
+          [ "${{ inputs.com_places }}" = "true" ] || FLAGS="$FLAGS --sem-places"
+          [ "${{ inputs.com_osrm }}" = "false" ] && FLAGS="$FLAGS --sem-osrm"
+          [ "${{ inputs.refresh }}" = "true" ] && FLAGS="$FLAGS --refresh"
+          echo "mapa-optico ingest --uf $UFS$FLAGS"
+          mapa-optico ingest --uf "$UFS" $FLAGS
+
+      - name: Carregar no Supabase
+        if: ${{ env.SUPABASE_URL != '' }}
+        run: uv pip install -e ".[supabase]" && mapa-optico carregar --uf "${{ inputs.ufs || 'SC' }}"
+
+      - name: Publicar planilhas do ranking
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ranking
+          path: mapa-optico/pipeline/out/
+          if-no-files-found: warn
+
+      - name: Commitar snapshot do dashboard
+        run: |
+          cd "$GITHUB_WORKSPACE"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add mapa-optico/web/public/data/
+          if git diff --staged --quiet; then
+            echo "snapshot sem mudança"
+          else
+            git commit -m "chore(mapa-optico): atualiza snapshot do ranking com dados reais"
+            # Outro push pode ter entrado enquanto a ingestao rodava.
+            git pull --rebase origin "${{ github.ref_name }}"
+            git push origin "HEAD:${{ github.ref_name }}"
+          fi
+
+  # O snapshot acabou de mudar: republica o app com o dado novo no site. Como o
+  # push do passo acima usa o GITHUB_TOKEN, ele NAO dispara workflows sozinho —
+  # por isso a publicacao e chamada aqui explicitamente.
+  publicar:
+    needs: pipeline
+    if: ${{ always() && needs.pipeline.result == 'success' }}
+    uses: ./.github/workflows/mapa-optico-publicar.yml
+    # O workflow chamado nao enxerga os segredos do repositorio sozinho; sem
+    # isto a publicacao no site seria pulada justamente na execucao mensal,
+    # que e a unica que tem dado novo para publicar.
+    secrets: inherit
+    permissions:
+      contents: read
