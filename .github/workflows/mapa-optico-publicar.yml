@@ -1,8 +1,14 @@
-# Publica o dashboard no GitHub Pages.
+# Monta o dashboard e envia para o site.
 #
-# Por que Pages e nao Vercel: o projeto da Vercel deste repositorio (o site de
-# apresentacao da HERA) nao esta conectado ao Git — nenhum commit recebe status
-# de deploy. Pages sai do proprio Actions, sem conta nova e sem CLI.
+# O app vai para https://s7strategy.com.br/mapaoftalmo, que mora na Hostinger.
+# Um caminho nao se aponta por DNS — quem serve o dominio precisa servir a
+# pasta —, entao o arquivo vai por FTP para dentro do public_html. Como o app
+# e um arquivo unico, isso e um upload de 1,8 MB, nao um deploy.
+#
+# Aqui houve GitHub Pages e nao ha mais: o app tem endereco proprio no dominio
+# do dono, e o `environment: github-pages` ainda recusava o job de qualquer
+# branch que nao a principal, derrubando a publicacao inteira por causa de uma
+# saida que ninguem mais usava.
 name: Mapa Óptico — publicar
 
 on:
@@ -13,9 +19,8 @@ on:
     paths:
       - "mapa-optico/web/**"
       - ".github/workflows/mapa-optico-publicar.yml"
-  # Um workflow reutilizavel PRECISA declarar os segredos que usa. Sem esta
-  # secao o GitHub rejeita o arquivo inteiro na validacao — o job morre em dois
-  # segundos, sem passo nenhum e sem mensagem.
+  # Um workflow reutilizavel PRECISA declarar os segredos que usa; sem esta
+  # secao o GitHub rejeita o arquivo inteiro na validacao.
   workflow_call:
     secrets:
       HOSTINGER_FTP_HOST:
@@ -30,20 +35,15 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
-# Um deploy de Pages por vez; o mais novo vence.
+# Uma publicacao por vez; a mais nova vence.
 concurrency:
-  group: mapa-optico-pages
+  group: mapa-optico-publicar
   cancel-in-progress: true
 
 jobs:
   publicar:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
     # No nivel do job porque o contexto `secrets` nao existe dentro de `if`,
     # mas `env` existe.
     env:
@@ -70,87 +70,27 @@ jobs:
         working-directory: mapa-optico/web
         run: npm run typecheck
 
-      - name: Build
-        working-directory: mapa-optico/web
-        env:
-          # Pages serve em /<repo>/, entao os assets precisam desse prefixo.
-          APP_BASE: /hera/
-        run: npm run build
-
-      # 404.html identico ao index: o app nao tem rotas, mas link errado
-      # devolvendo a tela em vez do 404 do GitHub e mais gentil.
-      - name: Rede de segurança para URL errada
-        working-directory: mapa-optico/web
-        run: cp dist/index.html dist/404.html
-
-      # `enablement: true` so funciona se o Pages ja estiver ligado ou se o
-      # token puder liga-lo — e o GITHUB_TOKEN nao pode criar o site. Enquanto
-      # ninguem virar essa chave, o build continua valido e o job explica o que
-      # falta em vez de pintar de vermelho um passo que nao depende do codigo.
-      - id: pages
-        continue-on-error: true
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
-
-      - uses: actions/upload-pages-artifact@v3
-        if: ${{ steps.pages.outcome == 'success' }}
-        with:
-          path: mapa-optico/web/dist
-
-      - id: deploy
-        if: ${{ steps.pages.outcome == 'success' }}
-        uses: actions/deploy-pages@v4
-
-      - name: Resumo
-        run: |
-          if [ "${{ steps.pages.outcome }}" = "success" ]; then
-            echo "App publicado em ${{ steps.deploy.outputs.page_url }}" >> "$GITHUB_STEP_SUMMARY"
-          else
-            {
-              echo "### O app foi montado, mas não foi publicado"
-              echo
-              echo "O GitHub Pages ainda não está ligado neste repositório, e o token"
-              echo "do Actions não tem permissão para ligá-lo sozinho."
-              echo
-              echo "Para ligar (uma vez só): **Settings → Pages → Build and deployment"
-              echo "→ Source: GitHub Actions**. Depois é só rodar este workflow de novo."
-              echo
-              echo "Enquanto isso o app está no artefato \`dashboard\`, abaixo:"
-              echo "baixe, descompacte e abra \`mapa-optico.html\`."
-            } >> "$GITHUB_STEP_SUMMARY"
-          fi
-
-      # Arquivo unico: abre com dois cliques, sem servidor e sem rede. E o que
-      # torna esta execucao util mesmo com o Pages desligado.
-      - name: Montar versão de arquivo único
+      # O arquivo unico e o que vai para o ar: abre sem servidor e sem rede.
+      - name: Montar o app
         working-directory: mapa-optico/web
         run: npm run build:unico
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: dashboard
-          path: mapa-optico/web/dist/mapa-optico.html
-
-      # ------------------------------------------------- Hostinger (o site real)
-      #
-      # O dominio s7strategy.com.br mora na Hostinger, e o app tem que aparecer
-      # em /mapaoftalmo. Um caminho nao se aponta por DNS — quem serve o
-      # dominio precisa servir a pasta —, entao o arquivo vai por FTP para
-      # dentro do public_html.
-      #
-      # Nome index.html de proposito: e o que faz o endereco abrir sem o nome
-      # do arquivo no fim.
+      # index.html de proposito: e o que faz o endereco abrir sem o nome do
+      # arquivo no fim.
       - name: Preparar a pasta que vai para o site
-        if: ${{ env.HOSTINGER_FTP_HOST != '' }}
         working-directory: mapa-optico/web
         run: |
           mkdir -p dist/hostinger
           cp dist/mapa-optico.html dist/hostinger/index.html
 
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dashboard
+          path: mapa-optico/web/dist/hostinger/index.html
+
       # curl e nao uma acao de terceiros: e um arquivo so, e a credencial em
-      # jogo e a senha do site do dono do repositorio. Menos codigo de
-      # estranho no caminho dela, melhor.
+      # jogo e a senha do site do dono do repositorio. Menos codigo de estranho
+      # no caminho dela, melhor.
       #
       # --ssl-reqd exige TLS e ABORTA se o servidor nao oferecer, em vez de
       # cair para FTP puro e mandar a senha em texto aberto sem avisar.
@@ -167,28 +107,22 @@ jobs:
                --user "$FTP_USER:$FTP_PASSWORD" \
                --upload-file mapa-optico/web/dist/hostinger/index.html \
                "ftp://$HOSTINGER_FTP_HOST${destino%/}/index.html"
-          echo "enviado para ${destino%/}/index.html"
 
-      - name: Resumo da publicação no site
+      - name: Resumo
         run: |
           if [ -n "$HOSTINGER_FTP_HOST" ]; then
-            echo "App enviado para https://s7strategy.com.br/mapaoftalmo" >> "$GITHUB_STEP_SUMMARY"
+            echo "App publicado em https://s7strategy.com.br/mapaoftalmo" >> "$GITHUB_STEP_SUMMARY"
           else
             {
-              echo "### O app não foi enviado para o site"
+              echo "### O app foi montado, mas não foi enviado para o site"
               echo
-              echo "Faltam as credenciais de FTP da Hostinger. Para ligar, em"
+              echo "Faltam as credenciais de FTP da Hostinger. Em"
               echo "**Settings → Secrets and variables → Actions → New repository secret**,"
               echo "crie três segredos com os dados que a Hostinger mostra em"
-              echo "*Arquivos → Contas de FTP*:"
+              echo "*Arquivos → Contas de FTP*: \`HOSTINGER_FTP_HOST\`,"
+              echo "\`HOSTINGER_FTP_USER\` e \`HOSTINGER_FTP_PASSWORD\`."
               echo
-              echo "| Nome do segredo | O que colocar |"
-              echo "| --- | --- |"
-              echo "| \`HOSTINGER_FTP_HOST\` | o endereço do servidor FTP |"
-              echo "| \`HOSTINGER_FTP_USER\` | o usuário de FTP |"
-              echo "| \`HOSTINGER_FTP_PASSWORD\` | a senha de FTP |"
-              echo
-              echo "Enquanto isso, o app está no artefato \`dashboard\` desta execução:"
-              echo "baixe, renomeie para \`index.html\` e suba na pasta \`mapaoftalmo\`."
+              echo "Enquanto isso o app está no artefato \`dashboard\` desta execução:"
+              echo "baixe e suba o \`index.html\` na pasta \`mapaoftalmo\` do site."
             } >> "$GITHUB_STEP_SUMMARY"
           fi

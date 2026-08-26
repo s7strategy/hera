@@ -148,9 +148,9 @@ jobs:
             git push origin "HEAD:${{ github.ref_name }}"
           fi
 
-  # O snapshot acabou de mudar: republica o app com o dado novo. Como o push do
-  # passo acima usa o GITHUB_TOKEN, ele NAO dispara workflows sozinho — por isso
-  # a publicacao e chamada aqui explicitamente.
+  # O snapshot acabou de mudar: republica o app com o dado novo no site. Como o
+  # push do passo acima usa o GITHUB_TOKEN, ele NAO dispara workflows sozinho —
+  # por isso a publicacao e chamada aqui explicitamente.
   publicar:
     needs: pipeline
     if: ${{ always() && needs.pipeline.result == 'success' }}
@@ -161,5 +161,3 @@ jobs:
     secrets: inherit
     permissions:
       contents: read
-      pages: write
-      id-token: write
