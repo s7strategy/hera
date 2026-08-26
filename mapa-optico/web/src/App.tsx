@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import MapaChoropleth from "./components/MapaChoropleth";
+import LimiteDeErro from "./components/LimiteDeErro";
+import MapaChoropleth, { MapaIndisponivel } from "./components/MapaChoropleth";
 import TabelaRanking from "./components/TabelaRanking";
 import FiltrosBar from "./components/FiltrosBar";
 import FichaMunicipio from "./components/FichaMunicipio";
@@ -212,19 +213,21 @@ export default function App() {
           <div className="corpo">
             <div className="split" ref={splitRef}>
               <div className="painel-mapa" style={{ flex: `0 0 ${larguraMapa}%` }}>
-                <MapaChoropleth
-                  malha={dados.malha}
-                  municipios={ranking}
-                  visiveis={visiveis}
-                  metrica={modo}
-                  selecionado={selecionado}
-                  destacado={destacado}
-                  onSelecionar={setSelecionado}
-                  onDestacar={setDestacado}
-                  onSelecionarArea={(codigos) =>
-                    setFiltros((f) => ({ ...f, area: codigos.length ? codigos : null }))
-                  }
-                />
+                <LimiteDeErro aoFalhar={(erro) => <MapaIndisponivel motivo={erro} />}>
+                  <MapaChoropleth
+                    malha={dados.malha}
+                    municipios={ranking}
+                    visiveis={visiveis}
+                    metrica={modo}
+                    selecionado={selecionado}
+                    destacado={destacado}
+                    onSelecionar={setSelecionado}
+                    onDestacar={setDestacado}
+                    onSelecionarArea={(codigos) =>
+                      setFiltros((f) => ({ ...f, area: codigos.length ? codigos : null }))
+                    }
+                  />
+                </LimiteDeErro>
               </div>
               <div
                 className="divisor"

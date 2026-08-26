@@ -19,6 +19,23 @@ import { num } from "../lib/format";
 
 const ESTILO_BASE = import.meta.env.VITE_BASEMAP_STYLE as string | undefined;
 
+/**
+ * O navegador entrega contexto WebGL?
+ *
+ * O MapLibre precisa de WebGL e lanca excecao quando nao consegue. Perguntar
+ * antes e mais barato que tratar depois: sem suporte, nem montamos o mapa.
+ * Placa antiga, aceleracao de hardware desligada e politica de TI corporativa
+ * sao os tres casos comuns, e nenhum deles e culpa de quem esta olhando.
+ */
+export function temWebGL(): boolean {
+  try {
+    const tela = document.createElement("canvas");
+    return Boolean(tela.getContext("webgl2") || tela.getContext("webgl"));
+  } catch {
+    return false;
+  }
+}
+
 export const CORES = ["#33253f", "#5c2a5e", "#93334f", "#cc5a2b", "#f2a03c"];
 const COR_SEM_DADO = "#1b2228";
 
@@ -59,6 +76,7 @@ export default function MapaChoropleth({
   onDestacar,
   onSelecionarArea,
 }: Props) {
+  const [webgl] = useState(temWebGL);
   const container = useRef<HTMLDivElement>(null);
   const mapa = useRef<maplibregl.Map | null>(null);
   const [pronto, setPronto] = useState(false);
@@ -88,7 +106,7 @@ export default function MapaChoropleth({
 
   /* ------------------------------------------------------------- mapa base */
   useEffect(() => {
-    if (!container.current || mapa.current) return;
+    if (!webgl || !container.current || mapa.current) return;
     const estilo: maplibregl.StyleSpecification | string = ESTILO_BASE
       ? ESTILO_BASE
       : {
@@ -315,6 +333,10 @@ export default function MapaChoropleth({
     m.setFilter("municipios-selecionado", ["==", ["get", "codigo_ibge"], selecionado ?? ""]);
   }, [selecionado, pronto]);
 
+  // Sem WebGL o mapa nao existe, mas o resto da tela continua inteiro: a
+  // tabela ao lado responde a mesma pergunta, so que em numeros.
+  if (!webgl) return <MapaIndisponivel motivo="Este navegador não tem WebGL disponível." />;
+
   return (
     <div className="mapa" ref={container} role="application" aria-label="Mapa de municípios por score">
       {caixa && (
@@ -351,6 +373,24 @@ export default function MapaChoropleth({
         <div className="legenda-nota">
           Quintis do conjunto filtrado. Cinza = fora do filtro ou sem score.
         </div>
+      </div>
+    </div>
+  );
+}
+
+
+/** O lugar do mapa quando ele nao pode ser desenhado. */
+export function MapaIndisponivel({ motivo }: { motivo: string }) {
+  return (
+    <div className="mapa mapa-indisponivel">
+      <div className="mapa-aviso">
+        <strong>O mapa não pôde ser desenhado</strong>
+        <p>{motivo}</p>
+        <p className="mapa-aviso-secundario">
+          O ranking ao lado continua funcionando normalmente — ele responde à mesma pergunta em
+          números. Para ter o mapa de volta, ligue a aceleração de hardware nas configurações do
+          navegador, ou abra esta página em outro navegador.
+        </p>
       </div>
     </div>
   );

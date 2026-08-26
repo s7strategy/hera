@@ -288,6 +288,14 @@ td.score { font-weight: 600; }
 
 /* ------------------------------------------------------------------- mapa */
 .mapa { position: absolute; inset: 0; background: var(--bg); }
+
+/* O lugar do mapa quando ele nao pode ser desenhado — WebGL indisponivel ou
+   qualquer erro do MapLibre. Ocupa o mesmo espaco para o layout nao pular. */
+.mapa-indisponivel { display: grid; place-items: center; padding: 24px; }
+.mapa-aviso { max-width: 44ch; text-align: center; color: var(--txt-2); }
+.mapa-aviso strong { display: block; margin-bottom: 8px; color: var(--txt-1); }
+.mapa-aviso p { margin: 0 0 10px; font-size: 13px; line-height: 1.5; }
+.mapa-aviso-secundario { color: var(--txt-3); font-size: 12px !important; }
 .maplibregl-ctrl-attrib { font-size: 9px !important; background: rgba(13,17,20,0.7) !important; }
 .maplibregl-ctrl-attrib a { color: var(--txt-3) !important; }
 
@@ -772,3 +780,9 @@ textarea.nota {
   }
   .pesos-grade { grid-template-columns: 1fr; }
 }
+
+/* Ultimo recurso: a aplicacao inteira falhou. Melhor uma frase que um vazio. */
+.tela-erro { max-width: 52ch; margin: 18vh auto; padding: 0 24px; color: var(--txt-2); }
+.tela-erro h1 { font-size: 20px; color: var(--txt-1); margin: 0 0 12px; }
+.tela-erro p { font-size: 14px; line-height: 1.6; margin: 0 0 12px; }
+.tela-erro-dica { color: var(--txt-3); font-size: 13px !important; }
