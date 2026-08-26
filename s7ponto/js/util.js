@@ -59,11 +59,15 @@ export const hoje = () => new Date();
 /**
  * `2026-08-01` (só o dia, como vem do banco) vira o dia 1 no fuso local.
  * `new Date('2026-08-01')` é UTC e no Brasil aparece como 31/07.
+ * Timestamp com hora (turno 22:25 BRT → 01:25 UTC) NÃO entra aqui: senão o
+ * ponto da noite aparece no dia seguinte.
  */
 export function comoData(d) {
   if (typeof d === 'string') {
-    const m = d.match(/^(\d{4})-(\d{2})-(\d{2})/);
-    if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+    const soDia = d.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (soDia) return new Date(+soDia[1], +soDia[2] - 1, +soDia[3]);
+    const meiaNoite = d.match(/^(\d{4})-(\d{2})-(\d{2})[T ]00:00:00/);
+    if (meiaNoite) return new Date(+meiaNoite[1], +meiaNoite[2] - 1, +meiaNoite[3]);
   }
   return new Date(d);
 }
@@ -98,7 +102,6 @@ export const mesAnoCurto  = (d) => `${nomeMes(d).slice(0, 3)}/${String(comoData(
 /** Chave AAAA-MM a partir de uma data (ou string já no formato). */
 export const chaveMes = (d) => {
   if (typeof d === 'string' && /^\d{4}-\d{2}$/.test(d)) return d;
-  if (typeof d === 'string' && /^\d{4}-\d{2}-\d{2}/.test(d)) return d.slice(0, 7);
   const x = comoData(d);
   const m = String(x.getMonth() + 1).padStart(2, '0');
   return `${x.getFullYear()}-${m}`;
