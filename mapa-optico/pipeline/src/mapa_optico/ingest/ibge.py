@@ -58,6 +58,13 @@ def _filtro_n6(ufs: list[str] | None) -> str:
     return "n6/in n3 " + ",".join(codigos)
 
 
+# Rotulos que contem "idade" mas NAO sao a faixa etaria. A tabela 9514 traz
+# "Idade" e "Forma de declaracao da idade" lado a lado; casar por substring
+# fazia a segunda sobrescrever a primeira, e a coluna lida passava a valer
+# "Total" em toda linha — populacao 40+ zerada em todos os municipios, sem erro.
+_IDADE_IMPOSTORA = ("forma de declara", "declaração da idade", "declaracao da idade")
+
+
 def _mapa_colunas(cabecalho: dict[str, str]) -> dict[str, str]:
     """Do cabecalho do SIDRA ({'D1C': 'Municipio (Codigo)'}) para {papel: chave}."""
     mapa: dict[str, str] = {}
@@ -70,8 +77,10 @@ def _mapa_colunas(cabecalho: dict[str, str]) -> dict[str, str]:
             mapa.setdefault("nome", chave)
         elif r == "valor":
             mapa["valor"] = chave
-        elif "idade" in r and not e_codigo:
-            mapa["idade"] = chave
+        elif "idade" in r and not e_codigo and not any(i in r for i in _IDADE_IMPOSTORA):
+            # setdefault e nao atribuicao: o primeiro rotulo de idade e o mais
+            # direto ("Idade", "Grupo de idade"); o que vier depois e adorno.
+            mapa.setdefault("idade", chave)
         elif "variável" in r or "variavel" in r:
             # Com v/all o SIDRA devolve varias variaveis por municipio; sem
             # saber o rotulo de cada linha nao da para escolher a certa.
@@ -106,6 +115,10 @@ def idade_inicial(rotulo: str) -> int | None:
     if r.startswith("total") or "não" in r or "nao" in r:
         return None
     if "menos de" in r:
+        return 0
+    # A classificacao por ano simples traz "2 meses", "27 dias". O numero ali
+    # nao e idade em anos: sao bebes, e todos entram na faixa zero.
+    if "mes" in r or "mês" in r or "dia" in r or "semana" in r:
         return 0
     m = re.search(r"(\d+)", r)
     return int(m.group(1)) if m else None
@@ -178,10 +191,21 @@ def _classificacao_de_idade(tabela: str, *, refresh: bool = False) -> str | None
     except FonteIndisponivel as exc:
         aviso("metadados da tabela indisponiveis", tabela=tabela, erro=str(exc)[:120])
         return None
-    for classificacao in meta.get("classificacoes") or []:
-        if "idade" in str(classificacao.get("nome", "")).lower():
-            log("classificacao de idade descoberta", tabela=tabela, id=classificacao.get("id"))
-            return f"c{classificacao['id']}"
+    candidatas = [
+        c for c in (meta.get("classificacoes") or [])
+        if "idade" in str(c.get("nome", "")).lower()
+    ]
+    # "Grupo de idade" antes de "Idade": a segunda e por ano simples e devolve
+    # uma linha por ano de vida por municipio, resposta muito maior para a
+    # mesma informacao.
+    candidatas.sort(key=lambda c: 0 if "grupo" in str(c.get("nome", "")).lower() else 1)
+    if candidatas:
+        escolhida = candidatas[0]
+        log(
+            "classificacao de idade descoberta",
+            tabela=tabela, id=escolhida.get("id"), nome=escolhida.get("nome"),
+        )
+        return f"c{escolhida['id']}"
     aviso("tabela sem classificacao de idade", tabela=tabela)
     return None
 

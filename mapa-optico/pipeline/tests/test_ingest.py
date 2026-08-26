@@ -191,3 +191,28 @@ def test_populacao_vai_ao_sidra_em_lotes_de_codigo(monkeypatch):
     pedidos_juntos = " ".join(pedidos)
     for codigo in codigos:
         assert codigo in pedidos_juntos, f"{codigo} ficou de fora dos lotes"
+
+
+def test_coluna_de_idade_nao_e_a_forma_de_declaracao():
+    """Regressão: a tabela 9514 traz duas colunas com a palavra "idade".
+
+    "Forma de declaração da idade" sobrescrevia "Idade" e o pipeline passava a
+    ler uma coluna que vale "Total" em toda linha — população 40+ zerada em
+    todos os municípios, sem erro nenhum.
+    """
+    cabecalho = {
+        "V": "Valor",
+        "D1C": "Município (Código)",
+        "D1N": "Município",
+        "D4C": "Idade (Código)",
+        "D4N": "Idade",
+        "D6C": "Forma de declaração da idade (Código)",
+        "D6N": "Forma de declaração da idade",
+    }
+    assert _mapa_colunas(cabecalho)["idade"] == "D4N"
+
+
+@pytest.mark.parametrize("rotulo", ["2 meses", "27 dias", "3 semanas"])
+def test_bebe_nao_vira_adulto_pelo_numero_do_rotulo(rotulo):
+    """"2 meses" tem um 2 no rótulo, mas não é alguém de 2 anos."""
+    assert idade_inicial(rotulo) == 0

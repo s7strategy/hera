@@ -149,6 +149,8 @@ HOST_DATASUS = "ftp.datasus.gov.br"
 TRANSPORTES = ("ftp", "http", "https")
 # Transferir a base completa leva minutos; o socket nao pode desistir no meio.
 TIMEOUT_FTP_S = 900
+# Quantas vezes retomar um download que caiu no meio.
+TENTATIVAS_FTP = 4
 # Generoso porque a base completa passa de 200 MB, mas nao infinito: uma
 # competencia que nao existe nao pode segurar o pipeline por meia hora.
 _TIMEOUT_DOWNLOAD = httpx.Timeout(connect=15.0, read=120.0, write=60.0, pool=15.0)
@@ -212,7 +214,10 @@ def _baixar(caminho: str, destino: Path) -> Path:
     erros: list[str] = []
     ausente = False
     for transporte in TRANSPORTES:
-        parcial = destino.with_suffix(destino.suffix + ".parcial")
+        # Um .parcial por transporte: so o FTP retoma de onde parou, e retomar
+        # de bytes escritos por outro transporte produziria um arquivo
+        # corrompido que so apareceria la na frente, ao abrir o ZIP.
+        parcial = destino.with_suffix(f"{destino.suffix}.{transporte}.parcial")
         try:
             if transporte == "ftp":
                 _baixar_ftp(caminho, parcial, destino.name)
@@ -226,7 +231,10 @@ def _baixar(caminho: str, destino: Path) -> Path:
             erros.append(f"{transporte}: {exc}")
             continue
         except (OSError, httpx.HTTPError) as exc:
-            parcial.unlink(missing_ok=True)
+            # O pedaco ja gravado NAO e apagado: o FTP retoma de onde parou, e
+            # apagar aqui faria a proxima execucao recomecar os 200 MB do zero.
+            # Um .parcial de um transporte que nao retoma custa disco, nao
+            # correcao — a renomeacao so acontece com o arquivo inteiro.
             erros.append(f"{transporte}: {type(exc).__name__}: {exc}")
             continue
         parcial.rename(destino)
@@ -276,8 +284,42 @@ def _fechar(ftp: ftplib.FTP) -> None:
 
 
 def _baixar_ftp(caminho: str, parcial: Path, nome: str) -> None:
+    """Baixa por FTP, retomando de onde parou.
+
+    Sao 200+ MB de um servidor que ja derrubou a conexao no meio do caminho
+    ("Connection reset by peer"). Recomecar do zero a cada queda pode nunca
+    terminar; o FTP tem REST justamente para isso, e o pedaco ja gravado fica
+    no arquivo .parcial entre uma tentativa e outra.
+    """
+    ultimo_erro: Exception | None = None
+    for tentativa in range(1, TENTATIVAS_FTP + 1):
+        ja_baixado = parcial.stat().st_size if parcial.exists() else 0
+        try:
+            _retomar_ftp(caminho, parcial, nome, ja_baixado)
+        except ftplib.error_perm as exc:
+            # 550 e "arquivo nao existe"; o resto e problema de servidor.
+            if str(exc).startswith("550"):
+                raise FileNotFoundError(f"FTP 550 em {caminho}") from exc
+            raise OSError(str(exc)) from exc
+        except (OSError, EOFError) as exc:
+            ultimo_erro = exc
+            agora = parcial.stat().st_size if parcial.exists() else 0
+            aviso(
+                "download do CNES caiu; vai retomar",
+                arquivo=nome, tentativa=tentativa, mb=agora >> 20, erro=str(exc)[:80],
+            )
+            if agora <= ja_baixado:
+                # Nao avancou um byte: insistir so gasta tempo.
+                break
+            continue
+        return
+    raise OSError(f"{nome}: {TENTATIVAS_FTP} tentativas de FTP falharam ({ultimo_erro})")
+
+
+def _retomar_ftp(caminho: str, parcial: Path, nome: str, deslocamento: int) -> None:
     ftp = _conectar_ftp()
-    baixado = proximo_aviso = 0
+    baixado = deslocamento
+    proximo_aviso = baixado
 
     def escrever(bloco: bytes, saida) -> None:
         nonlocal baixado, proximo_aviso
@@ -288,13 +330,15 @@ def _baixar_ftp(caminho: str, parcial: Path, nome: str) -> None:
             proximo_aviso = baixado + (64 << 20)
 
     try:
-        with parcial.open("wb") as saida:
-            ftp.retrbinary(f"RETR {caminho}", lambda b: escrever(b, saida), blocksize=1 << 20)
-    except ftplib.error_perm as exc:
-        # 550 e "arquivo nao existe"; o resto e problema de servidor.
-        if str(exc).startswith("550"):
-            raise FileNotFoundError(f"FTP 550 em {caminho}") from exc
-        raise OSError(str(exc)) from exc
+        if deslocamento:
+            log("retomando download", arquivo=nome, de_mb=deslocamento >> 20)
+        with parcial.open("ab" if deslocamento else "wb") as saida:
+            ftp.retrbinary(
+                f"RETR {caminho}",
+                lambda b: escrever(b, saida),
+                blocksize=1 << 20,
+                rest=deslocamento or None,
+            )
     finally:
         _fechar(ftp)
 
