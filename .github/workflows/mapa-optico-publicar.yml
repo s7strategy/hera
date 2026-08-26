@@ -13,7 +13,19 @@ on:
     paths:
       - "mapa-optico/web/**"
       - ".github/workflows/mapa-optico-publicar.yml"
+  # Um workflow reutilizavel PRECISA declarar os segredos que usa. Sem esta
+  # secao o GitHub rejeita o arquivo inteiro na validacao — o job morre em dois
+  # segundos, sem passo nenhum e sem mensagem.
   workflow_call:
+    secrets:
+      HOSTINGER_FTP_HOST:
+        required: false
+      HOSTINGER_FTP_USER:
+        required: false
+      HOSTINGER_FTP_PASSWORD:
+        required: false
+      HOSTINGER_FTP_DIR:
+        required: false
   workflow_dispatch:
 
 permissions:
@@ -136,17 +148,26 @@ jobs:
           mkdir -p dist/hostinger
           cp dist/mapa-optico.html dist/hostinger/index.html
 
+      # curl e nao uma acao de terceiros: e um arquivo so, e a credencial em
+      # jogo e a senha do site do dono do repositorio. Menos codigo de
+      # estranho no caminho dela, melhor.
+      #
+      # --ssl-reqd exige TLS e ABORTA se o servidor nao oferecer, em vez de
+      # cair para FTP puro e mandar a senha em texto aberto sem avisar.
       - name: Publicar em s7strategy.com.br/mapaoftalmo
         if: ${{ env.HOSTINGER_FTP_HOST != '' }}
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.HOSTINGER_FTP_HOST }}
-          username: ${{ secrets.HOSTINGER_FTP_USER }}
-          password: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
-          # FTPS e nao FTP puro: a senha do site nao viaja em texto aberto.
-          protocol: ftps
-          local-dir: mapa-optico/web/dist/hostinger/
-          server-dir: ${{ secrets.HOSTINGER_FTP_DIR || '/public_html/mapaoftalmo/' }}
+        env:
+          FTP_USER: ${{ secrets.HOSTINGER_FTP_USER }}
+          FTP_PASSWORD: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
+          FTP_DIR: ${{ secrets.HOSTINGER_FTP_DIR }}
+        run: |
+          destino="${FTP_DIR:-/public_html/mapaoftalmo}"
+          curl --fail --show-error --silent \
+               --ssl-reqd --ftp-create-dirs \
+               --user "$FTP_USER:$FTP_PASSWORD" \
+               --upload-file mapa-optico/web/dist/hostinger/index.html \
+               "ftp://$HOSTINGER_FTP_HOST${destino%/}/index.html"
+          echo "enviado para ${destino%/}/index.html"
 
       - name: Resumo da publicação no site
         run: |

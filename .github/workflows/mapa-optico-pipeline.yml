@@ -155,6 +155,10 @@ jobs:
     needs: pipeline
     if: ${{ always() && needs.pipeline.result == 'success' }}
     uses: ./.github/workflows/mapa-optico-publicar.yml
+    # O workflow chamado nao enxerga os segredos do repositorio sozinho; sem
+    # isto a publicacao no site seria pulada justamente na execucao mensal,
+    # que e a unica que tem dado novo para publicar.
+    secrets: inherit
     permissions:
       contents: read
       pages: write
