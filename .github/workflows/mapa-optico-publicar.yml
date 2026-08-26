@@ -32,6 +32,10 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
+    # No nivel do job porque o contexto `secrets` nao existe dentro de `if`,
+    # mas `env` existe.
+    env:
+      HOSTINGER_FTP_HOST: ${{ secrets.HOSTINGER_FTP_HOST }}
     steps:
       # ref_name e nao github.sha: quando o pipeline de dados chama este
       # workflow, o snapshot novo esta na ponta da branch, nao no commit que
@@ -115,3 +119,55 @@ jobs:
         with:
           name: dashboard
           path: mapa-optico/web/dist/mapa-optico.html
+
+      # ------------------------------------------------- Hostinger (o site real)
+      #
+      # O dominio s7strategy.com.br mora na Hostinger, e o app tem que aparecer
+      # em /mapaoftalmo. Um caminho nao se aponta por DNS — quem serve o
+      # dominio precisa servir a pasta —, entao o arquivo vai por FTP para
+      # dentro do public_html.
+      #
+      # Nome index.html de proposito: e o que faz o endereco abrir sem o nome
+      # do arquivo no fim.
+      - name: Preparar a pasta que vai para o site
+        if: ${{ env.HOSTINGER_FTP_HOST != '' }}
+        working-directory: mapa-optico/web
+        run: |
+          mkdir -p dist/hostinger
+          cp dist/mapa-optico.html dist/hostinger/index.html
+
+      - name: Publicar em s7strategy.com.br/mapaoftalmo
+        if: ${{ env.HOSTINGER_FTP_HOST != '' }}
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.HOSTINGER_FTP_HOST }}
+          username: ${{ secrets.HOSTINGER_FTP_USER }}
+          password: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
+          # FTPS e nao FTP puro: a senha do site nao viaja em texto aberto.
+          protocol: ftps
+          local-dir: mapa-optico/web/dist/hostinger/
+          server-dir: ${{ secrets.HOSTINGER_FTP_DIR || '/public_html/mapaoftalmo/' }}
+
+      - name: Resumo da publicação no site
+        run: |
+          if [ -n "$HOSTINGER_FTP_HOST" ]; then
+            echo "App enviado para https://s7strategy.com.br/mapaoftalmo" >> "$GITHUB_STEP_SUMMARY"
+          else
+            {
+              echo "### O app não foi enviado para o site"
+              echo
+              echo "Faltam as credenciais de FTP da Hostinger. Para ligar, em"
+              echo "**Settings → Secrets and variables → Actions → New repository secret**,"
+              echo "crie três segredos com os dados que a Hostinger mostra em"
+              echo "*Arquivos → Contas de FTP*:"
+              echo
+              echo "| Nome do segredo | O que colocar |"
+              echo "| --- | --- |"
+              echo "| \`HOSTINGER_FTP_HOST\` | o endereço do servidor FTP |"
+              echo "| \`HOSTINGER_FTP_USER\` | o usuário de FTP |"
+              echo "| \`HOSTINGER_FTP_PASSWORD\` | a senha de FTP |"
+              echo
+              echo "Enquanto isso, o app está no artefato \`dashboard\` desta execução:"
+              echo "baixe, renomeie para \`index.html\` e suba na pasta \`mapaoftalmo\`."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
