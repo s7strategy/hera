@@ -58,11 +58,16 @@ def _filtro_n6(ufs: list[str] | None) -> str:
     return "n6/in n3 " + ",".join(codigos)
 
 
-# Rotulos que contem "idade" mas NAO sao a faixa etaria. A tabela 9514 traz
-# "Idade" e "Forma de declaracao da idade" lado a lado; casar por substring
-# fazia a segunda sobrescrever a primeira, e a coluna lida passava a valer
-# "Total" em toda linha — populacao 40+ zerada em todos os municipios, sem erro.
-_IDADE_IMPOSTORA = ("forma de declara", "declaração da idade", "declaracao da idade")
+# Achar a coluna de faixa etaria por substring de "idade" errou duas vezes
+# seguidas, de dois jeitos diferentes:
+#
+#   "Forma de declaração da idade"  — casa, mas vale "Total" em toda linha
+#   "Unidade de Medida"             — casa dentro de "UNidade", e vale "Pessoas"
+#
+# Nenhuma das duas levantou erro: a populacao 40+ so saiu zerada nos 295
+# municipios. Dai a palavra inteira mais uma lista de impostoras conhecidas.
+_IDADE = re.compile(r"\b(idade|et[áa]ri[ao])\b")
+_IDADE_IMPOSTORA = ("forma de declara", "unidade de medida")
 
 
 def _mapa_colunas(cabecalho: dict[str, str]) -> dict[str, str]:
@@ -77,7 +82,7 @@ def _mapa_colunas(cabecalho: dict[str, str]) -> dict[str, str]:
             mapa.setdefault("nome", chave)
         elif r == "valor":
             mapa["valor"] = chave
-        elif "idade" in r and not e_codigo and not any(i in r for i in _IDADE_IMPOSTORA):
+        elif _IDADE.search(r) and not e_codigo and not any(i in r for i in _IDADE_IMPOSTORA):
             # setdefault e nao atribuicao: o primeiro rotulo de idade e o mais
             # direto ("Idade", "Grupo de idade"); o que vier depois e adorno.
             mapa.setdefault("idade", chave)

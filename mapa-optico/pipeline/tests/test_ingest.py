@@ -4,8 +4,8 @@ import pandas as pd
 import pytest
 
 from mapa_optico.geo import UF_CODIGO, area_km2, centroide, haversine_km
-from mapa_optico.ingest.cnes import CnesIndisponivel, _preparar, agregar_por_municipio
 from mapa_optico.ingest import ibge
+from mapa_optico.ingest.cnes import CnesIndisponivel, _preparar, agregar_por_municipio
 from mapa_optico.ingest.ibge import _mapa_colunas, _num, idade_inicial
 from mapa_optico.ingest.places import raio_metros
 from mapa_optico.logs import Contador
@@ -201,6 +201,10 @@ def test_coluna_de_idade_nao_e_a_forma_de_declaracao():
     todos os municípios, sem erro nenhum.
     """
     cabecalho = {
+        # A ordem é a que o SIDRA devolve: a unidade de medida vem ANTES da
+        # coluna de idade, e "UNidade" contém "idade" como substring — foi
+        # assim que a coluna lida virou "Pessoas".
+        "MN": "Unidade de Medida",
         "V": "Valor",
         "D1C": "Município (Código)",
         "D1N": "Município",
@@ -210,6 +214,14 @@ def test_coluna_de_idade_nao_e_a_forma_de_declaracao():
         "D6N": "Forma de declaração da idade",
     }
     assert _mapa_colunas(cabecalho)["idade"] == "D4N"
+
+
+@pytest.mark.parametrize(
+    "rotulo",
+    ["Unidade de Medida", "Unidade da Federação", "Valor", "Município"],
+)
+def test_coluna_sem_idade_de_verdade_nao_vira_coluna_de_idade(rotulo):
+    assert "idade" not in _mapa_colunas({"X": rotulo})
 
 
 @pytest.mark.parametrize("rotulo", ["2 meses", "27 dias", "3 semanas"])
