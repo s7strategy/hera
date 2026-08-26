@@ -247,6 +247,9 @@ export const HORARIOS_PERIODO = {
 export const nomePeriodo = (id) =>
   PERIODOS.find((p) => p.id === id)?.nome || id || '—';
 
+/** Por hora cronometra; por tarefa ou por turno o valor é fixo, sem início/fim. */
+export const pagamentoFixo = (modo) => modo === 'task' || modo === 'shift';
+
 /** `2026-08-25` → Date local, sem fuso atrapalhando. */
 export const deDiaChave = (k) => {
   const [y, m, d] = String(k).split('-').map(Number);

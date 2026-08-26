@@ -1,18 +1,17 @@
 /* ==========================================================================
-   S7 PONTO — a tela principal: começar turno, trocar tarefa, fechar turno.
-   Tudo aqui é grande, direto e em português de gente.
+   S7 PONTO — a tela principal do ponto.
 
    3 modos de pagamento (definidos pelo admin na ficha da pessoa):
-     hourly — horas × R$/h da tarefa
-     task   — valor FIXO por tarefa (não multiplica pelas horas)
-     shift  — valor FIXO por período manhã / tarde / noite
+     hourly — inicia e fecha turno; horas × R$/h da tarefa
+     task   — um toque marca a tarefa como concluída (valor fixo, sem cronômetro)
+     shift  — um toque marca manhã/tarde/noite (valor fixo, sem cronômetro)
    ========================================================================== */
 import { CONFIG } from './config.js';
 import { store } from './store.js';
 import {
   esc, saudacao, dataLonga, hora, cronometro, horas, money, plural, maiuscula,
-  paraInputLocal, deInputLocal, somaDias, horasEntre, chaveMes,
-  PERIODOS, nomePeriodo,
+  paraInputLocal, deInputLocal, somaDias, horasEntre, chaveMes, diaChave,
+  PERIODOS, nomePeriodo, pagamentoFixo, sugerePeriodo,
 } from './util.js';
 import { $, ICONE, abreFolha, confirma, torrada, comBotaoOcupado, carregando } from './ui.js';
 import { trilhaDoTurno, tirasDaSemana } from './charts.js';
@@ -27,6 +26,7 @@ import {
 export async function telaDePonto(raiz, ctx) {
   const { usuario } = ctx;
   const modo = () => usuario.pay_mode || 'hourly';
+  const ehFixo = () => pagamentoFixo(modo());
   let turno = null;
   let tarefas = [];
   let empresas = [];
@@ -56,6 +56,13 @@ export async function telaDePonto(raiz, ctx) {
     recentes = pintaTrechos(rec, tf);
     turno = t;
     if (turno) pintaTrechos([turno], tf);
+    // modo tarefa/turno não deixa turno aberto: se sobrou um do fluxo antigo, fecha sem contar hora
+    if (turno && ehFixo()) {
+      try { await store.fechaTurno(turno.id, turno.started_at); } catch { /* já fechou */ }
+      turno = null;
+      const rec2 = await store.listaTurnos({ userId: usuario.id, de: desde });
+      recentes = pintaTrechos(rec2, tf);
+    }
   }
 
   const trechoAtual = () => turno?.segments?.find((s) => !s.ended_at) || null;
@@ -126,19 +133,50 @@ export async function telaDePonto(raiz, ctx) {
   /* ---------- ações ---------- */
 
   async function comecar({ taskId = null, companyId = null, period = null }, botao) {
+    if (!(await avisaSeRepete({ taskId, period }))) return;
     try {
-      await comBotaoOcupado(botao || null, 'Começando…',
+      await comBotaoOcupado(botao || null, ehFixo() ? 'Marcando…' : 'Começando…',
         () => store.iniciaTurno(usuario.id, { taskId, companyId, period }));
       await buscar();
       desenha();
       const t = tarefas.find((x) => x.id === taskId);
       const e = empresas.find((x) => x.id === companyId);
       const onde = e ? ` em ${e.name}` : '';
-      const oque = modo() === 'shift'
-        ? ` · ${nomePeriodo(period)}`
-        : (t ? ` · ${t.name}` : '');
-      torrada(`Turno aberto${onde}${oque}. Bom trabalho!`, 'bom');
+      if (ehFixo()) {
+        const oque = modo() === 'shift' ? `Turno ${nomePeriodo(period)}` : (t?.name || 'Tarefa');
+        const preco = modo() === 'shift'
+          ? precoPeriodo({ id: period })
+          : (t ? precoTarefa(t) : '');
+        torrada(`${oque} concluída${onde}${preco ? ` · ${preco}` : ''}.`, 'bom');
+      } else {
+        torrada(`Turno aberto${onde}${t ? ` · ${t.name}` : ''}. Bom trabalho!`, 'bom');
+      }
     } catch (e) { torrada(e.message, 'ruim', 6); }
+  }
+
+  async function avisaSeRepete({ taskId, period }) {
+    const hoje = diaChave(new Date());
+    const doDia = recentes.filter((x) => diaChave(x.started_at) === hoje);
+    if (modo() === 'shift' && period) {
+      const n = doDia.filter((x) => x.period === period).length;
+      if (!n) return true;
+      return confirma({
+        titulo: `Já tem ${nomePeriodo(period).toLowerCase()} hoje`,
+        texto: `Você já marcou o turno da ${nomePeriodo(period).toLowerCase()} hoje. Registrar de novo?`,
+        ok: 'Sim, registrar',
+      });
+    }
+    if (modo() === 'task' && taskId) {
+      const n = doDia.filter((x) => (x.segments || []).some((s) => s.task_id === taskId)).length;
+      if (!n) return true;
+      const t = tarefas.find((x) => x.id === taskId);
+      return confirma({
+        titulo: 'Já marcou esta tarefa hoje',
+        texto: `“${t?.name || 'Esta tarefa'}” já está no dia de hoje. Marcar de novo?`,
+        ok: 'Sim, marcar',
+      });
+    }
+    return true;
   }
 
   function escolheLista({ titulo, sub, itens, rotuloPreco, aoEscolher }) {
@@ -179,12 +217,16 @@ export async function telaDePonto(raiz, ctx) {
   }
 
   function escolhePeriodo({ companyId, botao }) {
+    const agora = sugerePeriodo();
     const itens = PERIODOS.map((p) => ({
-      id: p.id, name: p.nome, color: 'var(--salvia)', dica: p.dica,
+      id: p.id,
+      name: agora === p.id ? `${p.nome} · agora` : p.nome,
+      color: 'var(--salvia)',
+      dica: p.dica,
     }));
     escolheLista({
-      titulo: 'Qual turno?',
-      sub: 'Manhã, tarde ou noite — o valor é fixo, não conta por hora.',
+      titulo: 'Qual turno você fez?',
+      sub: 'Toque no período — o valor é fixo, não conta hora de início e fim.',
       itens,
       rotuloPreco: precoPeriodo,
       aoEscolher: (id) => comecar({ companyId, period: id }, botao),
@@ -199,9 +241,9 @@ export async function telaDePonto(raiz, ctx) {
       return comecar({ taskId: tarefas[0].id, companyId }, botao);
     }
     escolheTarefa({
-      titulo: 'O que você vai fazer agora?',
-      sub: modo() === 'task'
-        ? 'Toque na tarefa — o valor é fixo, não multiplica pelas horas.'
+      titulo: ehFixo() ? 'Qual tarefa você concluiu?' : 'O que você vai fazer agora?',
+      sub: ehFixo()
+        ? 'Toque na tarefa para marcar como concluída — o valor é fixo, sem cronômetro.'
         : 'Toque na tarefa para começar o turno.',
       aoEscolher: (id) => comecar({ taskId: id, companyId }),
     });
@@ -226,8 +268,8 @@ export async function telaDePonto(raiz, ctx) {
   }
 
   function aoClicarTrocar() {
-    if (modo() === 'shift' || turno?.pay_mode === 'shift') {
-      torrada('Quem recebe por turno não troca de tarefa no meio.', 'ruim', 5);
+    if (ehFixo() || turno?.pay_mode && pagamentoFixo(turno.pay_mode)) {
+      torrada('Quem recebe por tarefa ou turno marca cada uma como concluída — não troca no meio.', 'ruim', 5);
       return;
     }
     const atual = trechoAtual();
@@ -349,7 +391,7 @@ export async function telaDePonto(raiz, ctx) {
   function reiniciaLembrete() {
     clearInterval(lembrete);
     lembrete = null;
-    if (!turno || modo() === 'shift' || turno.pay_mode === 'shift') return;
+    if (!turno || ehFixo() || pagamentoFixo(turno.pay_mode)) return;
     if (tarefas.length < 2 || !CONFIG.REMINDER_MINUTES) return;
     lembrete = setInterval(() => {
       const atual = trechoAtual();
@@ -378,8 +420,12 @@ export async function telaDePonto(raiz, ctx) {
           <span class="ficha ficha-neutra">${esc(plural(semanaR.dias, 'dia', 'dias'))}</span></div>
         <div id="tiras-semana"></div>
         <div class="grade-metricas" style="margin-top:16px">
-          <div class="metrica"><div class="metrica-rotulo">Horas na semana</div>
-            <div class="metrica-valor">${esc(horas(semanaR.horas))}</div></div>
+          <div class="metrica"><div class="metrica-rotulo">${ehFixo()
+            ? (modo() === 'shift' ? 'Turnos na semana' : 'Tarefas na semana')
+            : 'Horas na semana'}</div>
+            <div class="metrica-valor">${ehFixo()
+              ? esc(String(semanaR.qtd || 0))
+              : esc(horas(semanaR.horas))}</div></div>
           <div class="metrica"><div class="metrica-rotulo">A receber na semana</div>
             <div class="metrica-valor" style="color:var(--salvia-alt)">${esc(money(semanaR.valor))}</div></div>
         </div>
@@ -389,7 +435,8 @@ export async function telaDePonto(raiz, ctx) {
     turno ? desenhaEmTurno(area, hojeR) : desenhaParado(area, hojeR);
 
     tirasDaSemana($('#tiras-semana', raiz), serieDaSemana(new Date(),
-      agrega(turno ? [...recentes.filter((t) => t.id !== turno.id), turno] : recentes).porDia));
+      agrega(turno ? [...recentes.filter((t) => t.id !== turno.id), turno] : recentes).porDia),
+    { metrica: ehFixo() ? 'qtd' : 'horas' });
   }
 
   function desenhaParado(area, hojeR) {
@@ -399,26 +446,46 @@ export async function telaDePonto(raiz, ctx) {
     const bloqueado = semEmpresa || semTarefa;
     const umaEmpresa = empresas.length === 1;
     const umaTarefa = tarefas.length === 1;
+    const porTurno = modo() === 'shift';
+    let acao = 'Iniciar turno';
     let legenda = 'você escolhe empresa e tarefa';
-    if (modo() === 'shift') {
-      legenda = 'você escolhe empresa e o turno (manhã/tarde/noite)';
+    if (ehFixo()) {
+      acao = porTurno ? 'Marcar turno concluído' : 'Marcar tarefa concluída';
+      legenda = porTurno
+        ? 'escolhe o período (manhã, tarde ou noite) — sem cronômetro'
+        : 'escolhe a tarefa e marca como feita — sem cronômetro';
     }
     if (bloqueado) {
       legenda = semEmpresa ? 'nenhuma empresa liberada ainda' : 'nenhuma tarefa liberada ainda';
-    } else if (modo() === 'shift' && umaEmpresa) {
-      legenda = `em ${empresas[0].name} — você escolhe manhã, tarde ou noite`;
+    } else if (porTurno && umaEmpresa) {
+      legenda = ehFixo()
+        ? `em ${empresas[0].name} — toque e escolha manhã, tarde ou noite`
+        : `em ${empresas[0].name} — você escolhe manhã, tarde ou noite`;
     } else if (umaEmpresa && umaTarefa) {
-      legenda = `em ${empresas[0].name} · ${tarefas[0].name}`;
+      legenda = ehFixo()
+        ? `em ${empresas[0].name} · ${tarefas[0].name}`
+        : `em ${empresas[0].name} · ${tarefas[0].name}`;
     } else if (umaEmpresa) {
-      legenda = `em ${empresas[0].name} — você escolhe a tarefa`;
+      legenda = ehFixo()
+        ? `em ${empresas[0].name} — toque e escolha a tarefa`
+        : `em ${empresas[0].name} — você escolhe a tarefa`;
     } else if (umaTarefa) {
       legenda = `você escolhe a empresa · ${tarefas[0].name}`;
+    } else if (porTurno) {
+      legenda = 'você escolhe empresa e o turno (manhã/tarde/noite)';
     }
+
+    const hojeChave = diaChave(new Date());
+    const feitosHoje = recentes.filter((t) => diaChave(t.started_at) === hojeChave);
+    const rotuloFeito = (t) => {
+      if (t.period) return `Turno ${nomePeriodo(t.period)}`;
+      return [...new Set((t.segments || []).map((s) => s.task_name))].filter(Boolean).join(', ') || 'registro';
+    };
 
     area.innerHTML = `
       <button class="btn-gigante ${bloqueado ? '' : 'pulsa'}" id="btn-comecar" ${bloqueado ? 'disabled' : ''}>
-        ${ICONE.play}
-        <span>Iniciar turno</span>
+        ${ehFixo() ? ICONE.check : ICONE.play}
+        <span>${esc(acao)}</span>
         <span class="btn-legenda">${esc(legenda)}</span>
       </button>
 
@@ -432,17 +499,65 @@ export async function telaDePonto(raiz, ctx) {
 
       <div class="grade-metricas" style="margin-top:18px">
         <div class="metrica"><div class="metrica-rotulo">Você fez hoje</div>
-          <div class="metrica-valor">${esc(hojeR.horas ? horas(hojeR.horas) : '—')}</div>
-          <div class="metrica-nota">${hojeR.turnos ? esc(plural(hojeR.turnos, 'turno', 'turnos')) : 'nenhum turno ainda'}</div></div>
+          <div class="metrica-valor">${ehFixo()
+            ? (hojeR.turnos ? esc(String(hojeR.turnos)) : '—')
+            : esc(hojeR.horas ? horas(hojeR.horas) : '—')}</div>
+          <div class="metrica-nota">${hojeR.turnos
+            ? esc(plural(hojeR.turnos, ehFixo() ? (porTurno ? 'turno' : 'tarefa') : 'turno', ehFixo() ? (porTurno ? 'turnos' : 'tarefas') : 'turnos'))
+            : 'nada ainda hoje'}</div></div>
         <div class="metrica"><div class="metrica-rotulo">Valor de hoje</div>
           <div class="metrica-valor" style="color:var(--salvia-alt)">${esc(money(hojeR.valor))}</div></div>
-      </div>`;
+      </div>
+
+      ${ehFixo() && feitosHoje.length ? `
+        <section class="cartao" style="margin-top:16px">
+          <div class="cartao-topo"><h2 class="cartao-titulo">Concluído hoje</h2>
+            <span class="apagado">${esc(plural(feitosHoje.length, porTurno ? 'turno' : 'tarefa', porTurno ? 'turnos' : 'tarefas'))}</span></div>
+          <div class="lista">${feitosHoje.map((t) => `
+            <div class="item">
+              <span class="item-faixa" style="background:${esc(t.segments?.[0]?.cor || 'var(--salvia)')}"></span>
+              <div class="item-corpo">
+                <div class="item-titulo">${esc(rotuloFeito(t))}</div>
+                <div class="item-sub">${esc(hora(t.started_at))}${t.company_name ? ` · ${esc(t.company_name)}` : ''}</div>
+              </div>
+              <div class="item-fim">
+                <div class="num" style="font-weight:600;color:var(--salvia-alt)">${esc(money(valorDoTurno(t)))}</div>
+              </div>
+            </div>`).join('')}</div>
+        </section>` : ''}`;
 
     const b = $('#btn-comecar', area);
     if (b && !bloqueado) b.addEventListener('click', () => aoClicarComecar(b));
   }
 
   function desenhaEmTurno(area, hojeR) {
+    if (ehFixo()) {
+      const atual = trechoAtual();
+      const nome = turno.period
+        ? `Turno ${nomePeriodo(turno.period)}`
+        : (atual?.task_name || 'registro');
+      area.innerHTML = `
+        <div class="recado" style="margin-bottom:14px">
+          <span class="recado-emoji">📝</span>
+          <span>Havia um registro em aberto: <strong>${esc(nome)}</strong>.
+                Quem recebe por ${modo() === 'shift' ? 'turno' : 'tarefa'} não cronometra horas —
+                toque para marcar como concluído.</span>
+        </div>
+        <button class="btn-gigante pulsa" id="btn-concluir-aberto">
+          ${ICONE.check}
+          <span>Marcar como concluído</span>
+          <span class="btn-legenda">sem contar hora de início e fim</span>
+        </button>`;
+      $('#btn-concluir-aberto', area).addEventListener('click', async (ev) => {
+        try {
+          await comBotaoOcupado(ev.currentTarget, 'Marcando…',
+            () => store.fechaTurno(turno.id, turno.started_at));
+          await buscar(); desenha();
+          torrada(`${nome} marcada como concluída.`, 'bom');
+        } catch (e) { torrada(e.message, 'ruim', 6); }
+      });
+      return;
+    }
     const atual = trechoAtual();
     const modoTurno = turno.pay_mode || modo();
     const podeTrocar = modoTurno !== 'shift' && tarefas.length > 1;

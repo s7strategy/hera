@@ -4,7 +4,7 @@
 import { esc, money, horas, iniciais, dataBR, plural } from './util.js';
 import { $ } from './ui.js';
 import { graficoPizza, PALETA } from './charts.js';
-import { agrupaBonus, fatiasHoras, fatiasSalario } from './metricas.js';
+import { agrupaBonus, fatiasHoras, fatiasQtd, fatiasSalario } from './metricas.js';
 
 export { agrupaBonus };
 
@@ -115,28 +115,49 @@ export function htmlReciboPessoa({
     </article>`;
 }
 
-export function htmlPizzas({ porTurno = false } = {}) {
+export function htmlPizzas({ porTurno = false, payMode = 'hourly' } = {}) {
+  const porTarefa = payMode === 'task';
+  const tituloQtd = porTurno || payMode === 'shift' ? 'Turnos no mês'
+    : porTarefa ? 'Tarefas no mês'
+    : 'Horas por tarefa';
+  const subQtd = porTurno || payMode === 'shift' ? 'Manhã, tarde e noite'
+    : porTarefa ? 'Quantas vezes cada uma'
+    : 'Onde o tempo foi';
+  const tituloVal = porTurno || payMode === 'shift' ? 'Valor por turno'
+    : porTarefa ? 'Valor por tarefa'
+    : 'De onde vem o valor';
+  const subVal = porTurno || payMode === 'shift' ? 'Quanto cada período rende'
+    : porTarefa ? 'Valor fixo de cada uma'
+    : 'Trabalho + bônus';
   return `
     <div class="grade-pizzas">
       <div class="pizza-bloco">
-        <h3 class="pizza-titulo">${porTurno ? 'Horas por turno' : 'Horas por tarefa'}</h3>
-        <p class="pizza-sub">${porTurno ? 'Manhã, tarde e noite' : 'Onde o tempo foi'}</p>
+        <h3 class="pizza-titulo">${tituloQtd}</h3>
+        <p class="pizza-sub">${subQtd}</p>
         <div class="grafico" id="g-pizza-horas"></div>
       </div>
       <div class="pizza-bloco">
-        <h3 class="pizza-titulo">${porTurno ? 'Valor por turno' : 'De onde vem o valor'}</h3>
-        <p class="pizza-sub">${porTurno ? 'Quanto cada período rende' : 'Trabalho + bônus'}</p>
+        <h3 class="pizza-titulo">${tituloVal}</h3>
+        <p class="pizza-sub">${subVal}</p>
         <div class="grafico" id="g-pizza-valor"></div>
       </div>
     </div>`;
 }
 
-export function pintaPizzas(raiz, porTarefa, grupos, { porTurno = false } = {}) {
-  const horasFat = fatiasHoras(porTarefa);
+export function pintaPizzas(raiz, porTarefa, grupos, { porTurno = false, payMode = 'hourly' } = {}) {
+  const fixo = payMode === 'task' || payMode === 'shift' || porTurno;
+  const qtdFat = fixo ? fatiasQtd(porTarefa) : fatiasHoras(porTarefa);
   const valorFat = fatiasSalario(porTarefa, grupos);
   const gH = $('#g-pizza-horas', raiz);
   const gV = $('#g-pizza-valor', raiz);
-  if (gH) graficoPizza(gH, horasFat, { formato: 'horas', rotuloCentro: porTurno ? 'nos turnos' : 'nas tarefas' });
+  if (gH) {
+    graficoPizza(gH, qtdFat, {
+      formato: fixo ? 'qtd' : 'horas',
+      rotuloCentro: payMode === 'shift' || porTurno ? 'nos turnos'
+        : payMode === 'task' ? 'tarefas'
+        : 'nas tarefas',
+    });
+  }
   if (gV) graficoPizza(gV, valorFat, { formato: 'money', rotuloCentro: 'do mês' });
 }
 
@@ -176,11 +197,6 @@ export function htmlGradeMetricas({
           <div class="metrica-nota">${esc(partesPer)}</div>
         </div>
         <div class="metrica">
-          <div class="metrica-rotulo">Horas no mês</div>
-          <div class="metrica-valor">${esc(horas(r.horas))}</div>
-          ${notaHoras}
-        </div>
-        <div class="metrica">
           <div class="metrica-rotulo">Dias trabalhados</div>
           <div class="metrica-valor">${esc(String(r.diasTrabalhados))}</div>
           ${notaDias}
@@ -189,6 +205,38 @@ export function htmlGradeMetricas({
           <div class="metrica-rotulo">Média por turno</div>
           <div class="metrica-valor saldo">${esc(money(media))}</div>
           <div class="metrica-nota">valor fixo do período, não por hora</div>
+        </div>
+        <div class="metrica">
+          <div class="metrica-rotulo">Média por dia</div>
+          <div class="metrica-valor">${esc(money(r.mediaValorPorDia))}</div>
+          <div class="metrica-nota">só o que entrou de trabalho</div>
+        </div>
+      </section>`;
+  }
+
+  if (payMode === 'task') {
+    const media = noMes.length ? r.valor / noMes.length : 0;
+    return `
+      <section class="grade-metricas" style="margin-top:16px">
+        <div class="metrica">
+          <div class="metrica-rotulo">Tarefas no mês</div>
+          <div class="metrica-valor">${esc(String(noMes.length))}</div>
+          <div class="metrica-nota">cada uma com valor fixo</div>
+        </div>
+        <div class="metrica">
+          <div class="metrica-rotulo">Dias trabalhados</div>
+          <div class="metrica-valor">${esc(String(r.diasTrabalhados))}</div>
+          ${notaDias}
+        </div>
+        <div class="metrica">
+          <div class="metrica-rotulo">Média por tarefa</div>
+          <div class="metrica-valor saldo">${esc(money(media))}</div>
+          <div class="metrica-nota">não multiplica pelas horas</div>
+        </div>
+        <div class="metrica">
+          <div class="metrica-rotulo">Média por dia</div>
+          <div class="metrica-valor">${esc(money(r.mediaValorPorDia))}</div>
+          <div class="metrica-nota">só o que entrou de trabalho</div>
         </div>
       </section>`;
   }

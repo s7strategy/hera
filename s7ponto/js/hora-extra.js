@@ -108,9 +108,11 @@ export function extraPorPessoa(turnos, pessoas = [], agora = new Date()) {
   const out = [];
   for (const id of ids) {
     const ts = porUser.get(id) || [];
+    const p = porId.get(id);
+    const modo = p?.pay_mode || ts.find((t) => t.pay_mode)?.pay_mode;
+    if (modo === 'task' || modo === 'shift') continue;
     if (!ts.length) continue;
     const banco = extraDoPeriodo(ts, agora);
-    const p = porId.get(id);
     out.push({
       user_id: id,
       nome: p?.full_name || 'Alguém',

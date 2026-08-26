@@ -425,6 +425,8 @@ export async function criaStoreSupabase() {
       }
 
       const inicio = new Date(quando).toISOString();
+      const fechaJa = modo === 'task' || modo === 'shift';
+      const fim = fechaJa ? inicio : null;
       let flatTurno = null;
       let periodo = period || null;
       let trecho;
@@ -435,7 +437,7 @@ export async function criaStoreSupabase() {
         const rotulo = { manha: 'Manhã', tarde: 'Tarde', noite: 'Noite' }[periodo] || periodo;
         trecho = {
           task_id: null, task_name: `Turno ${rotulo}`,
-          hourly_rate: 0, flat_amount: null, period: periodo, started_at: inicio,
+          hourly_rate: 0, flat_amount: null, period: periodo, started_at: inicio, ended_at: fim,
         };
       } else {
         if (!taskId) throw new Error('Escolha uma tarefa para começar.');
@@ -444,7 +446,7 @@ export async function criaStoreSupabase() {
           const fixo = +ok(await sb.rpc('taxa_tarefa', { p_user: userId, p_task: taskId })) || 0;
           trecho = {
             task_id: tarefa.id, task_name: tarefa.name,
-            hourly_rate: 0, flat_amount: fixo, period: periodo, started_at: inicio,
+            hourly_rate: 0, flat_amount: fixo, period: periodo, started_at: inicio, ended_at: fim,
           };
         } else {
           const taxa = +ok(await sb.rpc('taxa_hora', { p_user: userId, p_task: taskId })) || 0;
@@ -456,7 +458,7 @@ export async function criaStoreSupabase() {
       }
 
       const turno = ok(await sb.from('shifts').insert({
-        user_id: userId, started_at: inicio, source: 'app',
+        user_id: userId, started_at: inicio, ended_at: fim, source: 'app',
         company_id: empresa?.id ?? null, company_name: empresa?.name ?? null,
         period: periodo, pay_mode: modo, flat_amount: flatTurno,
       }).select().single());
@@ -470,8 +472,8 @@ export async function criaStoreSupabase() {
     },
     async trocaTarefa(shiftId, taskId, period = null, quando = new Date()) {
       const turno = ok(await sb.from('shifts').select('*').eq('id', shiftId).single());
-      if ((turno.pay_mode || 'hourly') === 'shift') {
-        throw new Error('Quem recebe por turno não troca de tarefa no meio.');
+      if ((turno.pay_mode || 'hourly') !== 'hourly') {
+        throw new Error('Quem recebe por tarefa ou turno marca cada uma como concluída — não troca no meio.');
       }
       const tarefa = ok(await sb.from('tasks').select('*').eq('id', taskId).single());
       const agora = new Date(quando).toISOString();

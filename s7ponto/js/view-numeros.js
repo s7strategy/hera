@@ -6,7 +6,7 @@ import { store } from './store.js';
 import {
   esc, money, moneyShort, horas, horasCurto, pct, mesAno, dataLonga,
   dataCurta, hora, somaMeses, inicioDoMes, fimDoMes, plural,
-  dataBR, maiuscula, nomeMes, chaveMes, nomePeriodo,
+  dataBR, maiuscula, nomeMes, chaveMes, nomePeriodo, pagamentoFixo,
 } from './util.js';
 import { $, $$, ICONE, carregando, vazio } from './ui.js';
 import { graficoDias, graficoMeses, tabelaDeApoio, PALETA } from './charts.js';
@@ -81,8 +81,12 @@ export async function telaDeNumeros(raiz, ctx) {
       const d = new Date(t.started_at);
       return d >= inicioDoMes(mesRef) && d <= fimDoMes(mesRef);
     });
-    const bancoExtra = extraDoPeriodo(noMes);
     const porTurno = usuario.pay_mode === 'shift' || noMes.some((t) => t.period);
+    const fixo = pagamentoFixo(usuario.pay_mode);
+    const bancoExtra = fixo ? { temExtra: false } : extraDoPeriodo(noMes);
+    const fichaTrabalho = fixo
+      ? `<span class="ficha ficha-neutra">${esc(plural(r.turnos, usuario.pay_mode === 'shift' ? 'turno' : 'tarefa', usuario.pay_mode === 'shift' ? 'turnos' : 'tarefas'))}</span>`
+      : `<span class="ficha ficha-neutra">${esc(horas(r.horas))} trabalhadas</span>`;
 
     const falta = Math.max(0, total - pago);
     const emDia = total > 0.004 && falta < 0.5;
@@ -129,14 +133,18 @@ export async function telaDeNumeros(raiz, ctx) {
             : (ehMesCorrente ? 'Você tem a receber' : `A receber de ${esc(nomeMes(mesRef))}`)}</p>
           <p class="heroi-valor saldo">${esc(money(emDia ? total : falta))}</p>
           <div class="heroi-nota">
-            <span class="ficha ficha-neutra">${esc(horas(r.horas))} trabalhadas</span>
+            ${fichaTrabalho}
             ${total > 0.004 ? `<span class="ficha ficha-neutra">ganhou ${esc(money(total))}${pago > 0.004 ? ` · recebeu ${esc(money(pago))}` : ''}</span>` : ''}
             ${htmlRecadoExtraPessoa(bancoExtra, { compacto: true })}
             ${fichaVar}
           </div>
           ${cmp.parcial ? `<p class="apagado" style="font-size:12.5px;margin-top:10px">Comparado até o dia ${esc(String(cmp.diaLimite))} (ontem), com bônus e extras — o dia de hoje fica de fora enquanto puder estar em aberto.</p>` : ''}
         </div>
-        ${htmlRecibo({ horasMes: r.horas, trabalho: r.valor, grupos, total, pago, partes: r.porTarefa })}
+        ${htmlRecibo({
+          horasMes: fixo ? 0 : r.horas,
+          trabalho: r.valor, grupos, total, pago,
+          partes: fixo ? r.porTarefa.map((p) => ({ ...p, horas: 0 })) : r.porTarefa,
+        })}
         ${htmlDetalheBonus(bonusMes)}
       </section>
 
@@ -148,7 +156,7 @@ export async function telaDeNumeros(raiz, ctx) {
         </div>` : ''}
 
       <section class="cartao" style="margin-top:16px">
-        ${htmlPizzas({ porTurno })}
+        ${htmlPizzas({ porTurno, payMode: usuario.pay_mode })}
       </section>
 
       ${htmlGradeMetricas({
@@ -160,8 +168,8 @@ export async function telaDeNumeros(raiz, ctx) {
 
       <section class="cartao" style="margin-top:16px">
         <div class="cartao-topo">
-          <h2 class="cartao-titulo">Horas por dia</h2>
-          <span class="apagado" style="font-size:13px">${esc(plural(r.turnos, 'turno', 'turnos'))} no mês</span>
+          <h2 class="cartao-titulo">${fixo ? (usuario.pay_mode === 'shift' ? 'Turnos por dia' : 'Tarefas por dia') : 'Horas por dia'}</h2>
+          <span class="apagado" style="font-size:13px">${esc(plural(r.turnos, usuario.pay_mode === 'shift' ? 'turno' : (fixo ? 'tarefa' : 'turno'), usuario.pay_mode === 'shift' ? 'turnos' : (fixo ? 'tarefas' : 'turnos')))} no mês</span>
         </div>
         <div class="grafico" id="g-dias"></div>
         <div id="t-dias"></div>
@@ -210,13 +218,18 @@ export async function telaDeNumeros(raiz, ctx) {
     `;
 
     const serieD = serieDoMes(mesRef, r.porDia);
-    try { graficoDias($('#g-dias', raiz), serieD, { cor: PALETA[0] }); } catch { /* gráfico opcional */ }
+    const metricaDia = fixo ? 'qtd' : 'horas';
+    try { graficoDias($('#g-dias', raiz), serieD, { cor: PALETA[0], metrica: metricaDia }); } catch { /* gráfico opcional */ }
     $('#t-dias', raiz).innerHTML = tabelaDeApoio(
-      serieD.filter((d) => d.horas > 0).map((d) => [dataCurta(d.data), horasCurto(d.horas), money(d.valor)]),
-      ['Dia', 'Horas', 'Valor'],
+      serieD.filter((d) => (fixo ? d.qtd : d.horas) > 0).map((d) => [
+        dataCurta(d.data),
+        fixo ? String(d.qtd || 0) : horasCurto(d.horas),
+        money(d.valor),
+      ]),
+      ['Dia', fixo ? (usuario.pay_mode === 'shift' ? 'Turnos' : 'Tarefas') : 'Horas', 'Valor'],
     );
     try { graficoMeses($('#g-meses', raiz), serieDeMeses(turnos, mesRef, 6, new Date(), bonusTodos)); } catch { /* gráfico opcional */ }
-    try { pintaPizzas(raiz, r.porTarefa, grupos, { porTurno }); } catch { /* gráfico opcional */ }
+    try { pintaPizzas(raiz, r.porTarefa, grupos, { porTurno, payMode: usuario.pay_mode }); } catch { /* gráfico opcional */ }
 
     const recarregaMes = async () => {
       raiz.innerHTML = carregando('Somando suas horas…');
@@ -249,25 +262,31 @@ export async function telaDeNumeros(raiz, ctx) {
   function linhaDoTurno(t) {
     const h = horasDoTurno(t);
     const v = valorDoTurno(t);
+    const fixo = pagamentoFixo(t.pay_mode);
     const nomes = t.period
       ? `Turno ${nomePeriodo(t.period)}`
       : ([...new Set((t.segments || []).map((s) => s.task_name))].join(', ') || 'sem tarefa');
     const cor = t.segments?.[0]?.cor || PALETA[0];
+    const quando = fixo
+      ? `${hora(t.started_at)} · concluído`
+      : `${hora(t.started_at)} → ${t.ended_at ? hora(t.ended_at) : 'em aberto'}`;
     return `
       <div class="item">
         <span class="item-faixa" style="background:${esc(cor)}"></span>
         <div class="item-corpo">
           <div class="item-titulo">${esc(maiuscula(dataLonga(t.started_at)))}</div>
           <div class="item-sub">
-            ${esc(hora(t.started_at))} → ${t.ended_at ? esc(hora(t.ended_at)) : '<em>em aberto</em>'}
+            ${esc(quando)}
             ${t.company_name ? ` · ${esc(t.company_name)}` : ''}
             · ${esc(nomes)}
             ${t.source === 'import' ? ' · importado' : t.source === 'manual' ? ' · lançado na mão' : ''}
           </div>
         </div>
         <div class="item-fim">
-          <div class="num" style="font-weight:600">${esc(horasCurto(h))}</div>
-          <div class="num apagado" style="font-size:13px">${esc(money(v))}</div>
+          ${fixo
+            ? `<div class="num" style="font-weight:600">${esc(money(v))}</div>`
+            : `<div class="num" style="font-weight:600">${esc(horasCurto(h))}</div>
+               <div class="num apagado" style="font-size:13px">${esc(money(v))}</div>`}
         </div>
       </div>`;
   }

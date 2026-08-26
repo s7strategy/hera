@@ -6,19 +6,24 @@
 import {
   diaChave, inicioDoMes, fimDoMes, somaMeses, inicioDaSemana, somaDias,
   inicioDoDia, mesAno, nomeMes, horasEntre, chaveMes, deDiaChave,
+  pagamentoFixo,
 } from './util.js';
 import { corDaSerie, PALETA } from './charts.js';
 
 /** Um trecho vale (horas × R$/h) — ou o valor FIXO se flat_amount estiver preenchido. */
-export const horasDoTrecho = (t, agora = new Date()) =>
-  horasEntre(t.started_at, t.ended_at || agora);
+export const horasDoTrecho = (t, agora = new Date()) => {
+  if (t.flat_amount != null && t.flat_amount !== '') return 0;
+  return horasEntre(t.started_at, t.ended_at || agora);
+};
 export const valorDoTrecho = (t, agora = new Date()) => {
   if (t.flat_amount != null && t.flat_amount !== '') return +t.flat_amount || 0;
   return horasDoTrecho(t, agora) * (+t.hourly_rate || 0);
 };
 
-export const horasDoTurno = (turno, agora = new Date()) =>
-  (turno.segments || []).reduce((s, t) => s + horasDoTrecho(t, agora), 0);
+export const horasDoTurno = (turno, agora = new Date()) => {
+  if (pagamentoFixo(turno?.pay_mode)) return 0;
+  return (turno.segments || []).reduce((s, t) => s + horasDoTrecho(t, agora), 0);
+};
 export const valorDoTurno = (turno, agora = new Date()) => {
   // pago por turno (manhã/tarde/noite): valor fixo do turno inteiro
   if ((turno.pay_mode === 'shift' || turno.flat_amount != null) && turno.flat_amount != null && turno.flat_amount !== '') {
@@ -61,6 +66,13 @@ export function fatiasHoras(porTarefa = []) {
     .map((t) => ({ nome: t.nome, valor: t.horas, cor: t.cor }));
 }
 
+/** Fatias de pizza: quantas tarefas/turnos (modo de valor fixo). */
+export function fatiasQtd(porTarefa = []) {
+  return (porTarefa || [])
+    .filter((t) => (t.qtd || 0) > 0 || (t.valor || 0) > 0.004)
+    .map((t) => ({ nome: t.nome, valor: t.qtd || 1, cor: t.cor }));
+}
+
 /** Fatias de pizza: de onde veio o dinheiro (tarefas + grupos de bônus). */
 export function fatiasSalario(porTarefa = [], grupos = []) {
   const fatias = [];
@@ -95,12 +107,14 @@ export function agrega(turnos, agora = new Date()) {
 
   for (const turno of turnos) {
     const dia = diaChave(turno.started_at);
-    if (!porDia.has(dia)) porDia.set(dia, { horas: 0, valor: 0, data: inicioDoDia(turno.started_at) });
+    if (!porDia.has(dia)) porDia.set(dia, { horas: 0, valor: 0, qtd: 0, data: inicioDoDia(turno.started_at) });
     if (!porPessoa.has(turno.user_id)) porPessoa.set(turno.user_id, { horas: 0, valor: 0, turnos: 0 });
     porPessoa.get(turno.user_id).turnos += 1;
+    porDia.get(dia).qtd += 1;
 
+    const semHora = pagamentoFixo(turno.pay_mode);
     for (const trecho of turno.segments || []) {
-      const h = horasDoTrecho(trecho, agora);
+      const h = semHora ? 0 : horasDoTrecho(trecho, agora);
       const v = valorDoTrecho(trecho, agora);
       // em pay_mode=shift o valor vem do turno, não dos trechos
       const vConta = (turno.pay_mode === 'shift') ? 0 : v;
@@ -110,8 +124,8 @@ export function agrega(turnos, agora = new Date()) {
       const p = porPessoa.get(turno.user_id); p.horas += h; p.valor += vConta;
 
       const nome = trecho.task_name || 'Sem tarefa';
-      if (!porTarefa.has(nome)) porTarefa.set(nome, { nome, horas: 0, valor: 0, cor: null });
-      const t = porTarefa.get(nome); t.horas += h; t.valor += vConta;
+      if (!porTarefa.has(nome)) porTarefa.set(nome, { nome, horas: 0, valor: 0, qtd: 0, cor: null });
+      const t = porTarefa.get(nome); t.horas += h; t.valor += vConta; t.qtd += 1;
       if (!t.cor && trecho.cor) t.cor = trecho.cor;
     }
     if ((turno.pay_mode === 'shift' || (turno.period && turno.flat_amount != null))
@@ -123,7 +137,7 @@ export function agrega(turnos, agora = new Date()) {
       const nome = turno.period === 'manha' ? 'Turno Manhã'
         : turno.period === 'tarde' ? 'Turno Tarde'
         : turno.period === 'noite' ? 'Turno Noite' : 'Turno';
-      if (!porTarefa.has(nome)) porTarefa.set(nome, { nome, horas: 0, valor: 0, cor: null });
+      if (!porTarefa.has(nome)) porTarefa.set(nome, { nome, horas: 0, valor: 0, qtd: 0, cor: null });
       porTarefa.get(nome).valor += v;
     }
   }
@@ -165,11 +179,12 @@ export function resumoDoMes(turnos, mesRef, agora = new Date()) {
   const mes = agrega(noPeriodo(ini, fim), agora);
   const ant = agrega(noPeriodo(iniAnt, fimAnt), agora);
 
-  const diasTrabalhados = [...mes.porDia.values()].filter((d) => d.horas > 0).length;
-  const diasAnt = [...ant.porDia.values()].filter((d) => d.horas > 0).length;
+  const diaComTrabalho = (d) => (d.horas || 0) > 0.001 || (d.valor || 0) > 0.004 || (d.qtd || 0) > 0;
+  const diasTrabalhados = [...mes.porDia.values()].filter(diaComTrabalho).length;
+  const diasAnt = [...ant.porDia.values()].filter(diaComTrabalho).length;
 
   // semanas efetivamente cobertas pelo mês — pra média de dias por semana
-  const semanas = new Set([...mes.porDia.values()].filter((d) => d.horas > 0)
+  const semanas = new Set([...mes.porDia.values()].filter(diaComTrabalho)
     .map((d) => diaChave(inicioDaSemana(d.data)))).size || 1;
 
   const varia = (novo, velho) => {
@@ -259,14 +274,14 @@ export function comparaSaldo(turnos, bonusEntries, mesRef, agora = new Date()) {
     bonus: somaBonus(bonusAtual),
     total: atualAg.valor + somaBonus(bonusAtual),
     horas: atualAg.horas,
-    dias: [...atualAg.porDia.values()].filter((d) => d.horas > 0).length,
+    dias: [...atualAg.porDia.values()].filter((d) => d.horas > 0.001 || d.valor > 0.004 || d.qtd > 0).length,
   };
   const anterior = {
     trabalho: antAg.valor,
     bonus: somaBonus(bonusAnt),
     total: antAg.valor + somaBonus(bonusAnt),
     horas: antAg.horas,
-    dias: [...antAg.porDia.values()].filter((d) => d.horas > 0).length,
+    dias: [...antAg.porDia.values()].filter((d) => d.horas > 0.001 || d.valor > 0.004 || d.qtd > 0).length,
   };
 
   const varia = (novo, velho) => {
@@ -299,7 +314,7 @@ export function serieDoMes(mesRef, porDia) {
   const saida = [];
   for (let d = new Date(ini); d <= fimReal; d = somaDias(d, 1)) {
     const reg = porDia.get(diaChave(d));
-    saida.push({ data: new Date(d), horas: reg?.horas || 0, valor: reg?.valor || 0 });
+    saida.push({ data: new Date(d), horas: reg?.horas || 0, valor: reg?.valor || 0, qtd: reg?.qtd || 0 });
   }
   return saida;
 }
@@ -349,7 +364,7 @@ export function serieDaSemana(refData, porDia) {
   return Array.from({ length: 7 }, (_, i) => {
     const d = somaDias(ini, i);
     const reg = porDia.get(diaChave(d));
-    return { data: d, horas: reg?.horas || 0, valor: reg?.valor || 0 };
+    return { data: d, horas: reg?.horas || 0, valor: reg?.valor || 0, qtd: reg?.qtd || 0 };
   });
 }
 
@@ -361,15 +376,15 @@ export function resumoDaSemana(turnos, refData = new Date(), agora = new Date())
     const d = new Date(t.started_at);
     return d >= ini && d < fim;
   }), agora);
-  const dias = [...a.porDia.values()].filter((d) => d.horas > 0).length;
-  return { horas: a.horas, valor: a.valor, dias, inicio: ini };
+  const dias = [...a.porDia.values()].filter((d) => d.horas > 0.001 || d.valor > 0.004 || d.qtd > 0).length;
+  return { horas: a.horas, valor: a.valor, dias, qtd: a.turnos, inicio: ini };
 }
 
 /** Total do dia — o "e hoje?" da tela inicial. */
 export function resumoDoDia(turnos, refData = new Date(), agora = new Date()) {
   const chave = diaChave(refData);
   const a = agrega(turnos.filter((t) => diaChave(t.started_at) === chave), agora);
-  return { horas: a.horas, valor: a.valor, turnos: a.turnos };
+  return { horas: a.horas, valor: a.valor, turnos: a.turnos, qtd: a.turnos };
 }
 
 /* ==========================================================================

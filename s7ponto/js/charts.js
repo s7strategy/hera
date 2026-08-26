@@ -79,36 +79,49 @@ function ligaDica(caixa, svgEl, achaAlvo, montaHtml) {
    dados: [{ data: Date, horas: Number, valor: Number }]
    ========================================================================== */
 
-export function graficoDias(caixa, dados, { cor = PALETA[0] } = {}) {
+export function graficoDias(caixa, dados, { cor = PALETA[0], metrica = 'horas' } = {}) {
   caixa.innerHTML = '';
   if (!dados.length) { caixa.innerHTML = '<p class="apagado centro" style="padding:26px 0">Sem dias registrados.</p>'; return; }
 
+  const chave = metrica === 'valor' ? 'valor' : metrica === 'qtd' ? 'qtd' : 'horas';
   const L = 30, R = 6, T = 12, B = 24, A = 168;
   const larguraBarra = 13, vao = 4;
   const W = L + R + dados.length * larguraBarra + (dados.length - 1) * vao;
   const alturaPlot = A - T - B;
-  const teto = tetoBonito(Math.max(...dados.map((d) => d.horas), 1));
+  const teto = tetoBonito(Math.max(...dados.map((d) => d[chave] || 0), 1));
   const y = (v) => T + alturaPlot - (v / teto) * alturaPlot;
 
   const hoje = diaChave(new Date());
   const grades = [0, teto / 2, teto];
+  const rotuloEixo = (g) => {
+    if (g === 0) return '0';
+    if (metrica === 'valor') return money(g).replace(/\s/g, '\u00a0');
+    if (metrica === 'qtd') return String(Math.round(g));
+    return `${num(g, g % 1 ? 1 : 0)}h`;
+  };
+  const rotuloDica = (d) => {
+    const v = d[chave] || 0;
+    if (metrica === 'valor') return v ? money(v) : 'não trabalhou';
+    if (metrica === 'qtd') return v ? `${v} ${v === 1 ? 'registro' : 'registros'}` : 'não trabalhou';
+    return v ? horas(v) : 'não trabalhou';
+  };
 
   const partes = [];
-  partes.push(`<svg viewBox="0 0 ${W} ${A}" role="img" aria-label="Horas trabalhadas por dia">`);
+  partes.push(`<svg viewBox="0 0 ${W} ${A}" role="img" aria-label="Trabalho por dia">`);
   grades.forEach((g) => {
     partes.push(`<line class="${g === 0 ? 'grade-base' : 'grade-linha'}" x1="${L}" x2="${W - R}" y1="${y(g)}" y2="${y(g)}"/>`);
-    partes.push(`<text class="eixo-texto" x="${L - 6}" y="${y(g) + 3.5}" text-anchor="end">${g === 0 ? '0' : `${num(g, g % 1 ? 1 : 0)}h`}</text>`);
+    partes.push(`<text class="eixo-texto" x="${L - 6}" y="${y(g) + 3.5}" text-anchor="end">${esc(rotuloEixo(g))}</text>`);
   });
   dados.forEach((d, i) => {
     const x = L + i * (larguraBarra + vao);
-    const h = Math.max(d.horas > 0 ? 2 : 0, alturaPlot - (y(d.horas) - T));
+    const v = d[chave] || 0;
+    const h = Math.max(v > 0 ? 2 : 0, alturaPlot - (y(v) - T));
     const ehHoje = diaChave(d.data) === hoje;
-    if (d.horas > 0) {
-      partes.push(`<path class="barra" data-k="${i}" d="${barraTopoRedondo(x, y(d.horas), larguraBarra, h)}" fill="${cor}"${ehHoje ? ` stroke="${tinta()}" stroke-width="1.2"` : ''}/>`);
+    if (v > 0) {
+      partes.push(`<path class="barra" data-k="${i}" d="${barraTopoRedondo(x, y(v), larguraBarra, h)}" fill="${cor}"${ehHoje ? ` stroke="${tinta()}" stroke-width="1.2"` : ''}/>`);
     } else {
       partes.push(`<rect class="barra" data-k="${i}" x="${x}" y="${y(0) - 2}" width="${larguraBarra}" height="2" rx="1" fill="${borda()}"/>`);
     }
-    // rótulo do eixo: dia 1, múltiplos de 5 e o último — sem poluir
     const dia = d.data.getDate();
     if (dia === 1 || dia % 5 === 0 || i === dados.length - 1) {
       partes.push(`<text class="eixo-texto" x="${x + larguraBarra / 2}" y="${A - 8}" text-anchor="middle">${dia}</text>`);
@@ -129,8 +142,8 @@ export function graficoDias(caixa, dados, { cor = PALETA[0] } = {}) {
       return { chave: i, dado: dados[i], centro: (L + i * (larguraBarra + vao) + larguraBarra / 2) / W };
     },
     (d) => `<div class="dica-titulo">${esc(nomeDia(d.data).slice(0, 3))}, ${esc(dataCurta(d.data))}</div>`
-      + `<div class="dica-linha"><span class="dica-ponto" style="background:${cor}"></span>${esc(d.horas ? horas(d.horas) : 'não trabalhou')}</div>`
-      + (d.valor ? `<div class="dica-linha" style="color:var(--tinta-3)">${esc(money(d.valor))}</div>` : ''));
+      + `<div class="dica-linha"><span class="dica-ponto" style="background:${cor}"></span>${esc(rotuloDica(d))}</div>`
+      + (metrica !== 'valor' && d.valor ? `<div class="dica-linha" style="color:var(--tinta-3)">${esc(money(d.valor))}</div>` : ''));
 }
 
 /* ==========================================================================
@@ -263,22 +276,31 @@ export function graficoTarefas(caixa, dados) {
    dias: [{ data, horas }]
    ========================================================================== */
 
-export function tirasDaSemana(caixa, dias, { cor = PALETA[0] } = {}) {
-  const maxH = Math.max(...dias.map((d) => d.horas), 1);
+export function tirasDaSemana(caixa, dias, { cor = PALETA[0], metrica = 'horas' } = {}) {
+  const chave = metrica === 'valor' ? 'valor' : metrica === 'qtd' ? 'qtd' : 'horas';
+  const maxH = Math.max(...dias.map((d) => d[chave] || 0), 1);
   const hoje = diaChave(new Date());
+  const rotulo = (d) => {
+    const v = d[chave] || 0;
+    if (!v) return '–';
+    if (metrica === 'valor') return money(v).replace('R$\xa0', 'R$ ').replace('R$ ', '');
+    if (metrica === 'qtd') return String(v);
+    return horasCurto(v);
+  };
   caixa.innerHTML = `
     <div class="semana">
       ${dias.map((d) => {
-        const alt = d.horas > 0 ? Math.max(6, (d.horas / maxH) * 100) : 3;
+        const v = d[chave] || 0;
+        const alt = v > 0 ? Math.max(6, (v / maxH) * 100) : 3;
         const ehHoje = diaChave(d.data) === hoje;
         return `
           <div class="semana-dia ${ehHoje ? 'hoje' : ''}">
-            <div class="semana-barra-caixa" title="${esc(dataCurta(d.data))} — ${esc(horas(d.horas))}">
-              <div class="semana-barra ${d.horas ? '' : 'zero'}"
-                   style="height:${alt}%${d.horas ? `;background:${cor}` : ''}"></div>
+            <div class="semana-barra-caixa" title="${esc(dataCurta(d.data))}">
+              <div class="semana-barra ${v ? '' : 'zero'}"
+                   style="height:${alt}%${v ? `;background:${cor}` : ''}"></div>
             </div>
             <div class="semana-letra">${esc(letraDia(d.data))}</div>
-            <div class="semana-valor">${d.horas ? esc(horasCurto(d.horas)) : '–'}</div>
+            <div class="semana-valor">${esc(rotulo(d))}</div>
           </div>`;
       }).join('')}
     </div>`;
@@ -327,7 +349,9 @@ export function graficoPizza(caixa, dados, { formato = 'money', rotuloCentro = '
   }
 
   const W = 220, H = 220, cx = 110, cy = 110, rOut = 96, rIn = 58;
-  const fmt = formato === 'horas' ? horas : money;
+  const fmt = formato === 'horas' ? horas
+    : formato === 'qtd' ? (n) => String(Math.round(n))
+    : money;
   let ang = -Math.PI / 2;
   const fatias = limpos.map((d, i) => {
     const fat = (d.valor / total) * Math.PI * 2;

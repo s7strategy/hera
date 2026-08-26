@@ -589,6 +589,8 @@ export function criaStoreDemo() {
       if (!db.shiftRates) db.shiftRates = [];
 
       const inicio = new Date(quando).toISOString();
+      const fechaJa = modo === 'task' || modo === 'shift';
+      const fim = fechaJa ? inicio : null;
       let flatTurno = null;
       let periodo = period || null;
       let trecho;
@@ -601,7 +603,7 @@ export function criaStoreDemo() {
         trecho = {
           id: uid(), task_id: null, task_name: `Turno ${rotulo}`,
           hourly_rate: 0, flat_amount: null, period: periodo,
-          started_at: inicio, ended_at: null,
+          started_at: inicio, ended_at: fim,
         };
       } else {
         const t = db.tasks.find((x) => x.id === taskId);
@@ -611,7 +613,7 @@ export function criaStoreDemo() {
           trecho = {
             id: uid(), task_id: t.id, task_name: t.name,
             hourly_rate: 0, flat_amount: tr?.flat_amount != null ? +tr.flat_amount : +t.hourly_rate || 0,
-            period: periodo, started_at: inicio, ended_at: null,
+            period: periodo, started_at: inicio, ended_at: fim,
           };
         } else {
           trecho = {
@@ -623,7 +625,7 @@ export function criaStoreDemo() {
       }
 
       const turno = {
-        id: uid(), user_id: userId, started_at: inicio, ended_at: null, source: 'app', note: null,
+        id: uid(), user_id: userId, started_at: inicio, ended_at: fim, source: 'app', note: null,
         company_id: emp?.id ?? null, company_name: emp?.name ?? null,
         period: periodo, pay_mode: modo, flat_amount: flatTurno,
       };
@@ -635,8 +637,8 @@ export function criaStoreDemo() {
     async trocaTarefa(shiftId, taskId, period = null, quando = new Date()) {
       carrega();
       const turno = db.shifts.find((s) => s.id === shiftId);
-      if ((turno?.pay_mode || 'hourly') === 'shift') {
-        throw new Error('Quem recebe por turno não troca de tarefa no meio.');
+      if ((turno?.pay_mode || 'hourly') !== 'hourly') {
+        throw new Error('Quem recebe por tarefa ou turno marca cada uma como concluída — não troca no meio.');
       }
       const t = db.tasks.find((x) => x.id === taskId);
       if (!t) throw new Error('Tarefa não encontrada.');

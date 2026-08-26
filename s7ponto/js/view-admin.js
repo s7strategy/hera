@@ -9,7 +9,7 @@ import {
   inicioDoMes, fimDoMes, somaMeses, somaDias, inicioDaSemana,
   paraInputLocal, deInputLocal, juntaDiaHora, deDiaChave,
   baixaArquivo, csvLinha, horasEntre, PERIODOS, HORARIOS_PERIODO,
-  nomePeriodo, chaveMes, senhaPadrao,
+  nomePeriodo, chaveMes, senhaPadrao, pagamentoFixo,
 } from './util.js';
 import {
   $, $$, ICONE, el, abreFolha, confirma, torrada, carregando, vazio, comBotaoOcupado,
@@ -1030,21 +1030,28 @@ export async function telaDeAdmin(raiz, ctx) {
       else ultimo.itens.push(t);
     }
 
-    const htmlItem = (t) => `
+    const htmlItem = (t) => {
+      const ehFixoT = pagamentoFixo(t.pay_mode);
+      return `
       <button class="item clicavel" data-turno="${esc(t.id)}">
         <span class="item-faixa" style="background:${esc(t.segments?.[0]?.cor || PALETA[0])}"></span>
         <span class="item-corpo">
           <span class="item-titulo">${esc(nomeDe(t.user_id))}
             ${t.ended_at ? '' : '<span class="ficha ficha-alta" style="margin-left:6px;padding:2px 8px;font-size:11px">em turno</span>'}</span>
-          <span class="item-sub">${esc(hora(t.started_at))} → ${t.ended_at ? esc(hora(t.ended_at)) : '—'} ·
+          <span class="item-sub">${ehFixoT
+            ? `${esc(hora(t.started_at))} · concluído`
+            : `${esc(hora(t.started_at))} → ${t.ended_at ? esc(hora(t.ended_at)) : '—'}`} ·
             ${t.company_name ? `${esc(t.company_name)} · ` : ''}${esc(rotuloDoTurno(t))}
             ${t.source === 'import' ? ' · importado' : t.source === 'manual' ? ' · manual' : ''}</span>
         </span>
         <span class="item-fim">
-          <span class="num" style="font-weight:600">${esc(horasCurto(horasDoTurno(t)))}</span>
-          <span class="num apagado" style="display:block;font-size:12px">${esc(money(valorDoTurno(t)))}</span>
+          ${ehFixoT
+            ? `<span class="num" style="font-weight:600">${esc(money(valorDoTurno(t)))}</span>`
+            : `<span class="num" style="font-weight:600">${esc(horasCurto(horasDoTurno(t)))}</span>
+               <span class="num apagado" style="display:block;font-size:12px">${esc(money(valorDoTurno(t)))}</span>`}
         </span>
       </button>`;
+    };
 
     const extrasMes = extraPorPessoa(turnos, pessoas);
     const avisosPromessa = store.listaAvisosHoraExtra({ yearMonth: chaveMes(mesRef) }).catch(() => []);
@@ -1590,6 +1597,7 @@ export async function telaDeAdmin(raiz, ctx) {
       return d >= inicioDoMes(mesRef) && d <= fimDoMes(mesRef);
     });
     const porTurno = p.pay_mode === 'shift' || noMes.some((t) => t.period);
+    const fixo = pagamentoFixo(p.pay_mode);
     const cmp = comparaSaldo(turnos, bonusTodos, mesRef);
     const dv = cmp.variacao.total;
     const temAnt = cmp.diaLimite > 0 && (cmp.anterior.total > 0.004 || cmp.atual.total > 0.004);
@@ -1636,16 +1644,22 @@ export async function telaDeAdmin(raiz, ctx) {
             : `A receber em ${esc(nomeMes(mesRef))}`}</p>
           <p class="heroi-valor saldo">${esc(money(Math.max(0, total - pagoMes)))}</p>
           <div class="heroi-nota">
-            <span class="ficha ficha-neutra">${esc(horas(r.horas))} · ${esc(plural(noMes.length, 'turno', 'turnos'))} · ganhou ${esc(money(total))}${pagoMes > 0.004 ? ` · já pago ${esc(money(pagoMes))}` : ''}</span>
-            ${htmlRecadoExtraPessoa(extraDoPeriodo(noMes), { compacto: true })}
+            <span class="ficha ficha-neutra">${fixo
+              ? esc(plural(noMes.length, p.pay_mode === 'shift' ? 'turno' : 'tarefa', p.pay_mode === 'shift' ? 'turnos' : 'tarefas'))
+              : `${esc(horas(r.horas))} · ${esc(plural(noMes.length, 'turno', 'turnos'))}`} · ganhou ${esc(money(total))}${pagoMes > 0.004 ? ` · já pago ${esc(money(pagoMes))}` : ''}</span>
+            ${htmlRecadoExtraPessoa(fixo ? null : extraDoPeriodo(noMes), { compacto: true })}
             ${fichaVar}
           </div>
         </div>
-        ${htmlRecibo({ horasMes: r.horas, trabalho: r.valor, grupos, total, pago: pagoMes, partes: r.porTarefa })}
+        ${htmlRecibo({
+          horasMes: fixo ? 0 : r.horas,
+          trabalho: r.valor, grupos, total, pago: pagoMes,
+          partes: fixo ? r.porTarefa.map((x) => ({ ...x, horas: 0 })) : r.porTarefa,
+        })}
         ${htmlDetalheBonus(bonusMes)}
       </section>
 
-      ${htmlRecadoExtraPessoa(extraDoPeriodo(noMes), { nomeMes: nomeMes(mesRef) })}
+      ${htmlRecadoExtraPessoa(fixo ? null : extraDoPeriodo(noMes), { nomeMes: nomeMes(mesRef) })}
       ${dicaOutroMes}
 
       ${esperado != null ? `
@@ -1657,7 +1671,7 @@ export async function telaDeAdmin(raiz, ctx) {
         </div>` : ''}
 
       <section class="cartao" style="margin-top:16px">
-        ${htmlPizzas({ porTurno })}
+        ${htmlPizzas({ porTurno, payMode: p.pay_mode })}
       </section>
 
       ${htmlGradeMetricas({
@@ -1669,8 +1683,8 @@ export async function telaDeAdmin(raiz, ctx) {
 
       <section class="cartao" style="margin-top:16px">
         <div class="cartao-topo">
-          <h2 class="cartao-titulo">Horas por dia</h2>
-          <span class="apagado" style="font-size:13px">${esc(plural(noMes.length, 'turno', 'turnos'))} no mês</span>
+          <h2 class="cartao-titulo">${fixo ? (p.pay_mode === 'shift' ? 'Turnos por dia' : 'Tarefas por dia') : 'Horas por dia'}</h2>
+          <span class="apagado" style="font-size:13px">${esc(plural(noMes.length, p.pay_mode === 'shift' ? 'turno' : (fixo ? 'tarefa' : 'turno'), p.pay_mode === 'shift' ? 'turnos' : (fixo ? 'tarefas' : 'turnos')))} no mês</span>
         </div>
         <div class="grafico" id="vp-dias"></div>
         <div id="vp-tabela"></div>
@@ -1685,21 +1699,28 @@ export async function telaDeAdmin(raiz, ctx) {
       <section class="cartao" style="margin-top:16px">
         <div class="cartao-topo"><h2 class="cartao-titulo">Turnos do mês</h2>
           <span class="apagado">${esc(plural(noMes.length, 'turno', 'turnos'))}</span></div>
-        ${noMes.length ? `<div class="lista">${noMes.map((t) => `
+        ${noMes.length ? `<div class="lista">${noMes.map((t) => {
+          const ehFixoT = pagamentoFixo(t.pay_mode);
+          return `
           <button class="item clicavel" data-turno="${esc(t.id)}">
             <span class="item-faixa" style="background:${esc(t.segments?.[0]?.cor || PALETA[0])}"></span>
             <span class="item-corpo">
               <span class="item-titulo">${esc(maiuscula(dataLonga(t.started_at)))}</span>
-              <span class="item-sub">${esc(hora(t.started_at))} → ${t.ended_at ? esc(hora(t.ended_at)) : '—'}
+              <span class="item-sub">${ehFixoT
+                ? `${esc(hora(t.started_at))} · concluído`
+                : `${esc(hora(t.started_at))} → ${t.ended_at ? esc(hora(t.ended_at)) : '—'}`}
                 ${t.company_name ? ` · ${esc(t.company_name)}` : ''}
                 · ${esc(rotuloDoTurno(t))}
                 ${t.source === 'import' ? ' · importado' : t.source === 'manual' ? ' · lançado na mão' : ''}</span>
             </span>
             <span class="item-fim">
-              <span class="num" style="font-weight:600">${esc(horasCurto(horasDoTurno(t)))}</span>
-              <span class="num apagado" style="display:block;font-size:12px">${esc(money(valorDoTurno(t)))}</span>
+              ${ehFixoT
+                ? `<span class="num" style="font-weight:600">${esc(money(valorDoTurno(t)))}</span>`
+                : `<span class="num" style="font-weight:600">${esc(horasCurto(horasDoTurno(t)))}</span>
+                   <span class="num apagado" style="display:block;font-size:12px">${esc(money(valorDoTurno(t)))}</span>`}
             </span>
-          </button>`).join('')}</div>`
+          </button>`;
+        }).join('')}</div>`
           : vazio({ emoji: '📭', titulo: 'Nenhum turno neste mês',
                     texto: 'Lance pela administração ou ela bate o ponto no app.' })}
       </section>
@@ -1722,12 +1743,17 @@ export async function telaDeAdmin(raiz, ctx) {
       </section>`;
 
     const serieD = serieDoMes(mesRef, r.porDia);
-    try { graficoDias($('#vp-dias', alvo), serieD, { cor: PALETA[0] }); } catch { /* gráfico opcional */ }
-    try { pintaPizzas(alvo, r.porTarefa, grupos, { porTurno }); } catch { /* gráfico opcional */ }
+    const metricaDia = fixo ? 'qtd' : 'horas';
+    try { graficoDias($('#vp-dias', alvo), serieD, { cor: PALETA[0], metrica: metricaDia }); } catch { /* gráfico opcional */ }
+    try { pintaPizzas(alvo, r.porTarefa, grupos, { porTurno, payMode: p.pay_mode }); } catch { /* gráfico opcional */ }
     try { graficoMeses($('#vp-meses', alvo), serieDeMeses(turnos, mesRef, 6, new Date(), bonusTodos)); } catch { /* gráfico opcional */ }
     $('#vp-tabela', alvo).innerHTML = tabelaDeApoio(
-      serieD.filter((d) => d.horas > 0).map((d) => [dataCurta(d.data), horasCurto(d.horas), money(d.valor)]),
-      ['Dia', 'Horas', 'Valor'],
+      serieD.filter((d) => (fixo ? d.qtd : d.horas) > 0).map((d) => [
+        dataCurta(d.data),
+        fixo ? String(d.qtd || 0) : horasCurto(d.horas),
+        money(d.valor),
+      ]),
+      ['Dia', fixo ? (p.pay_mode === 'shift' ? 'Turnos' : 'Tarefas') : 'Horas', 'Valor'],
     );
 
     $$('[data-mes]', alvo).forEach((b) => b.addEventListener('click', () => {
@@ -2210,7 +2236,7 @@ export async function telaDeAdmin(raiz, ctx) {
         p, ...r, dias, media: dias ? r.horas / dias : 0,
         bonus, total: (+r.valor || 0) + bonus, bons, extra,
       };
-    }).filter((l) => l.horas > 0 || l.bonus > 0 || l.p.active)
+    }).filter((l) => l.horas > 0 || l.valor > 0.004 || l.bonus > 0 || l.p.active)
       .sort((a, b) => b.total - a.total);
 
     const custoTotal = geral.valor + totalBonus;
@@ -2227,8 +2253,8 @@ export async function telaDeAdmin(raiz, ctx) {
           <div class="heroi-nota">
             <span class="ficha ficha-neutra">trabalho ${esc(money(geral.valor))}</span>
             <span class="ficha ficha-neutra">bônus ${esc(money(totalBonus))}</span>
-            <span class="ficha ficha-neutra">${esc(horas(geral.horas))}</span>
-            <span class="ficha ficha-neutra">${esc(plural(linhas.filter((l) => l.horas > 0 || l.bonus > 0).length, 'pessoa', 'pessoas'))}</span>
+            ${geral.horas > 0.001 ? `<span class="ficha ficha-neutra">${esc(horas(geral.horas))}</span>` : ''}
+            <span class="ficha ficha-neutra">${esc(plural(linhas.filter((l) => l.total > 0.004).length, 'pessoa', 'pessoas'))}</span>
           </div>
         </div>
       </section>
