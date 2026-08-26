@@ -20,7 +20,7 @@ import {
   serieDaSemana, agrega,
 } from './metricas.js';
 import {
-  extraDoPeriodo, htmlAlertaLiberdade, TEXTO_AVISO_GESTOR,
+  extraDoDia, htmlAlertaLiberdade, TEXTO_AVISO_GESTOR,
 } from './hora-extra.js';
 
 export async function telaDePonto(raiz, ctx) {
@@ -79,11 +79,11 @@ export async function telaDePonto(raiz, ctx) {
     };
   }
 
-  function bancoDoMes(turnoRef = turno, agora = new Date()) {
-    const mes = chaveMes(turnoRef?.started_at || agora);
-    const lista = recentes.filter((t) => t.id !== turnoRef?.id && chaveMes(t.started_at) === mes);
+  function bancoDoDia(turnoRef = turno, agora = new Date()) {
+    const quando = turnoRef?.started_at || agora;
+    const lista = recentes.filter((t) => t.id !== turnoRef?.id && chaveMes(t.started_at) === chaveMes(quando));
     if (turnoRef) lista.push(turnoRef);
-    return extraDoPeriodo(lista, agora);
+    return extraDoDia(lista, quando, agora);
   }
 
   function disparaAviso(banco, { authorized = false, turnoRef = turno } = {}) {
@@ -293,11 +293,11 @@ export async function telaDePonto(raiz, ctx) {
     const h = horasDoTurno(turno);
     const v = valorDoTurno(turno);
     const quantas = new Set((turno.segments || []).map((s) => s.task_name)).size;
-    const banco = bancoDoMes(turno);
+    const banco = bancoDoDia(turno);
     const certeza = banco.temExtra
       ? await confirma({
         titulo: 'Atenção: hora extra',
-        texto: `${TEXTO_AVISO_GESTOR} No mês, depois de compensar os dias mais curtos, já são ${horas(banco.extra)} a mais.`,
+        texto: `${TEXTO_AVISO_GESTOR} Neste dia já são ${horas(banco.extra)} a mais que a jornada.`,
         ok: 'Sim, fechar mesmo assim',
         cancelar: 'Ainda não',
         perigo: true,
@@ -363,11 +363,11 @@ export async function telaDePonto(raiz, ctx) {
             return;
           }
           const hipotetico = turnoComSaida(quando);
-          const banco = bancoDoMes(hipotetico, quando);
+          const banco = bancoDoDia(hipotetico, quando);
           if (banco.temExtra) {
             const okExtra = await confirma({
               titulo: 'Atenção: hora extra',
-              texto: `${TEXTO_AVISO_GESTOR} Com esta saída, no mês já são ${horas(banco.extra)} a mais (já compensando os dias mais curtos).`,
+              texto: `${TEXTO_AVISO_GESTOR} Com esta saída, neste dia já são ${horas(banco.extra)} a mais que a jornada.`,
               ok: 'Sim, fechar mesmo assim',
               cancelar: 'Voltar',
               perigo: true,
@@ -636,12 +636,14 @@ export async function telaDePonto(raiz, ctx) {
       rel.textContent = cronometro(Date.now() - new Date(turno.started_at).getTime());
       const g = $('#ganho-turno', raiz);
       if (g) g.textContent = money(valorDoTurno(turno));
-      const banco = bancoDoMes(turno);
+      const banco = bancoDoDia(turno);
       const caixa = $('#alerta-extra', raiz);
       if (caixa) {
         caixa.hidden = !banco.temExtra;
         const qtd = $('#alerta-extra-qtd', caixa);
+        const qtdWrap = caixa.querySelector('.alerta-liberdade-qtd');
         if (qtd && banco.temExtra) qtd.textContent = horas(banco.extra);
+        if (qtdWrap) qtdWrap.hidden = !banco.temExtra;
       }
       if (banco.temExtra) disparaAviso(banco);
     };

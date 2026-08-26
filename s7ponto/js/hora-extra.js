@@ -160,6 +160,42 @@ export function htmlAlertaExtra(lista, { tituloMes = '', avisos = 0 } = {}) {
     </div>`;
 }
 
+/**
+ * Hora extra DESTE dia (para o aviso ao vivo no ponto).
+ * A jornada prevista vem dos outros dias do mês (o que a pessoa costuma
+ * fazer). Sem histórico no mês, usa a inferência do próprio dia.
+ * Turno recém-aberto não alerta — só quando o relógio de hoje passa disso.
+ */
+export function extraDoDia(turnos, dia = new Date(), agora = new Date()) {
+  const chave = diaChave(dia);
+  const ym = chave.slice(0, 7);
+  const doDia = (turnos || []).filter((t) => diaChave(t.started_at) === chave);
+  const bancoHoje = extraDoPeriodo(doDia, agora);
+  const hoje = (bancoHoje.dias || []).find((d) => d.dia === chave);
+  if (!hoje || hoje.ignorado) {
+    return { ...bancoHoje, previsto: 0, extra: 0, temExtra: false };
+  }
+  const outros = horasPorDia(
+    (turnos || []).filter((t) => chaveMes(t.started_at) === ym && diaChave(t.started_at) !== chave),
+    agora,
+  ).filter((d) => !d.ignorado && d.previsto >= 1);
+  let previsto = hoje.previsto;
+  if (outros.length) {
+    const cnt = new Map();
+    for (const d of outros) cnt.set(d.previsto, (cnt.get(d.previsto) || 0) + 1);
+    previsto = [...cnt.entries()].sort((a, b) => b[1] - a[1] || b[0] - a[0])[0][0];
+  }
+  const extra = hoje.horas - previsto;
+  return {
+    trabalhado: hoje.horas,
+    previsto,
+    extra,
+    dias: bancoHoje.dias,
+    diasContados: 1,
+    temExtra: extra >= LIMIAR_EXTRA - 1e-9,
+  };
+}
+
 export function htmlAlertaLiberdade({ horasExtra = 0 } = {}) {
   return `
     <div class="recado ruim alerta-liberdade" id="alerta-extra" hidden>
@@ -167,9 +203,9 @@ export function htmlAlertaLiberdade({ horasExtra = 0 } = {}) {
       <span>
         <strong>Atenção, você está passando da sua hora.</strong>
         Teve autorização? Estamos enviando um aviso para seu gestor.
-        ${horasExtra > 0
-          ? `<span class="alerta-liberdade-qtd"> No mês, depois de compensar os dias, já são <strong id="alerta-extra-qtd">${esc(horas(horasExtra))}</strong> a mais.</span>`
-          : '<span class="alerta-liberdade-qtd"> No mês, depois de compensar os dias, já são <strong id="alerta-extra-qtd">—</strong> a mais.</span>'}
+        <span class="alerta-liberdade-qtd"${horasExtra > 0 ? '' : ' hidden'}>
+          Neste dia já são <strong id="alerta-extra-qtd">${horasExtra > 0 ? esc(horas(horasExtra)) : ''}</strong> a mais.
+        </span>
       </span>
     </div>`;
 }
