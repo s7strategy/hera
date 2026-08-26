@@ -11,6 +11,7 @@ renumeracao no SIDRA nao devolve silenciosamente um numero errado.
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable
 from typing import Any
 
 import pandas as pd
@@ -181,6 +182,55 @@ def _uf_por_regiao_imediata(m: dict[str, Any]) -> str | None:
     return ((intermediaria.get("UF") or {}).get("sigla"))
 
 
+def _faixa(rotulo: str) -> tuple[str, int, int] | None:
+    """Classifica um rotulo de idade em (familia, inicio, fim).
+
+    familia: "ano" para ano simples, "grupo" para intervalo, "aberta" para
+    "N anos ou mais". `fim` e inclusivo; para faixa aberta e infinito.
+    """
+    r = rotulo.strip().lower()
+    if r.startswith("total") or "não" in r or "nao" in r:
+        return None
+    if "menos de" in r:
+        return ("ano", 0, 0)
+    if any(u in r for u in ("mes", "mês", "dia", "semana")):
+        return ("ano", 0, 0)
+    if "ou mais" in r:
+        m = re.search(r"(\d+)", r)
+        return ("aberta", int(m.group(1)), 10**6) if m else None
+    intervalo = re.match(r"^(\d+)\s*a\s*(\d+)", r)
+    if intervalo:
+        return ("grupo", int(intervalo.group(1)), int(intervalo.group(2)))
+    simples = re.match(r"^(\d+)\s*anos?$", r)
+    if simples:
+        return ("ano", int(simples.group(1)), int(simples.group(1)))
+    return None
+
+
+def faixas_para_somar(rotulos: Iterable[str], idade_min: int) -> set[str]:
+    """Quais rotulos somar para chegar a populacao com `idade_min` anos ou mais.
+
+    O SIDRA devolve as duas granularidades na MESMA resposta: "40 anos",
+    "41 anos"... e tambem "40 a 44 anos". Somar as duas conta cada morador
+    duas vezes — foi assim que a populacao 40+ saiu com 92% do total.
+
+    Entao: escolhe UMA familia (ano simples se houver, senao grupos) e soma so
+    ela, mais a cauda aberta que a familia escolhida nao cobre.
+    """
+    classificados = [(r, f) for r in rotulos if (f := _faixa(r))]
+    familia = "ano" if any(f[0] == "ano" for _, f in classificados) else "grupo"
+    finitos = [(r, f) for r, f in classificados if f[0] == familia]
+    if not finitos:
+        return set()
+
+    # "100 anos ou mais" nao esta em nenhuma familia finita e precisa entrar;
+    # ja um "60 anos ou mais" convivendo com anos simples ate 99 seria
+    # contagem dobrada, e fica de fora.
+    cobertura = max(f[2] for _, f in finitos)
+    abertas = [(r, f) for r, f in classificados if f[0] == "aberta" and f[1] > cobertura]
+    return {r for r, f in [*finitos, *abertas] if f[1] >= idade_min}
+
+
 def _classificacao_de_idade(tabela: str, *, refresh: bool = False) -> str | None:
     """`c<id>` da classificacao de faixa etaria da tabela, lida dos metadados.
 
@@ -288,25 +338,31 @@ def populacao_por_idade(
         c.entrada = len(bruto) - 1
 
         acumulado: dict[str, dict[str, float | None]] = {}
-        rotulos_vistos: set[str] = set()
-        somadas: set[str] = set()
+        col_idade = colunas["idade"]
+        rotulos_vistos = {str(linha.get(col_idade, "")).strip() for linha in bruto[1:]}
+        somadas = faixas_para_somar(rotulos_vistos, idade_min)
+        if not somadas:
+            # Sem faixa selecionavel a populacao 40+ sairia nula em todos os
+            # municipios — exatamente o silencio que este modulo evita.
+            raise FonteIndisponivel(
+                FONTE,
+                f"nenhuma faixa etaria somavel para {idade_min}+ entre os rotulos devolvidos: "
+                f"{sorted(rotulos_vistos)[:30]}",
+            )
         amostra_sem_valor: list[dict[str, Any]] = []
         for linha in bruto[1:]:
             codigo = para_codigo7(linha.get(colunas["codigo"]))
             if not codigo:
                 c.descartar("codigo invalido")
                 continue
-            rotulo = str(linha.get(colunas["idade"], ""))
-            rotulos_vistos.add(rotulo.strip())
+            rotulo = str(linha.get(col_idade, "")).strip()
             valor = _num(linha.get(colunas["valor"]))
             if valor is None and len(amostra_sem_valor) < 3:
                 amostra_sem_valor.append(linha)
             reg = acumulado.setdefault(codigo, {"populacao_total": None, "populacao_40mais": None})
-            inicio = idade_inicial(rotulo)
-            if rotulo.strip().lower().startswith("total"):
+            if rotulo.lower().startswith("total"):
                 reg["populacao_total"] = valor
-            elif inicio is not None and valor is not None and inicio >= idade_min:
-                somadas.add(rotulo.strip())
+            elif rotulo in somadas and valor is not None:
                 reg["populacao_40mais"] = (reg["populacao_40mais"] or 0) + valor
 
         df = pd.DataFrame(

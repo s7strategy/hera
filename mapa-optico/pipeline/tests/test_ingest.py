@@ -172,10 +172,11 @@ def test_populacao_vai_ao_sidra_em_lotes_de_codigo(monkeypatch):
         pedidos.append(url)
         # Devolve uma linha "Total" para cada código que o lote pediu.
         codigos_do_lote = url.split("/n6/", 1)[1].split("/", 1)[0].split(",")
-        return [
-            {"D1C": "Município (Código)", "V": "Valor", "D2N": "Grupo de idade"},
-            *({"D1C": c, "V": "2500", "D2N": "Total"} for c in codigos_do_lote),
-        ]
+        linhas = []
+        for c in codigos_do_lote:
+            linhas.append({"D1C": c, "V": "2500", "D2N": "Total"})
+            linhas.append({"D1C": c, "V": "1000", "D2N": "40 a 44 anos"})
+        return [{"D1C": "Município (Código)", "V": "Valor", "D2N": "Grupo de idade"}, *linhas]
 
     monkeypatch.setattr(ibge, "get_or_set", _falso)
     monkeypatch.setattr(ibge, "get_json", _json)
@@ -234,9 +235,9 @@ def test_bebe_nao_vira_adulto_pelo_numero_do_rotulo(rotulo):
 def test_fracao_40_mais_implausivel_e_recusada(monkeypatch):
     """A fração 40+ dimensiona a demanda inteira: se dobrar, o faturamento dobra.
 
-    Uma classificação etária cumulativa ("40 anos ou mais", "45 anos ou mais",
-    …) soma o mesmo morador várias vezes e produz 90% de 40+ num município
-    onde o real é ~45%. Sem esta guarda isso passa como número bom.
+    Aqui os rótulos são todos cumulativos, sem nenhuma família finita — não há
+    partição possível, e somar o que veio produziria 90% de 40+ num município
+    onde o real é ~45%. O campo fica nulo e sinalizado, não inflado.
     """
     def _falso(fonte, chave, buscar, refresh=False):
         return buscar()
@@ -254,5 +255,56 @@ def test_fracao_40_mais_implausivel_e_recusada(monkeypatch):
     monkeypatch.setattr(ibge, "get_json", _json)
     monkeypatch.setattr(ibge, "_classificacao_de_idade", lambda *a, **k: "c287")
 
+    with pytest.raises(FonteIndisponivel, match="nenhuma faixa etaria somavel"):
+        ibge.populacao_por_idade(["SC"], codigos=["4200051"])
+
+
+def test_fracao_40_mais_alta_demais_e_recusada(monkeypatch):
+    """Mesmo com faixas bem formadas, uma fração impossível não passa."""
+    def _falso(fonte, chave, buscar, refresh=False):
+        return buscar()
+
+    def _json(fonte, url):
+        return [
+            {"D1C": "Município (Código)", "V": "Valor", "D4N": "Idade"},
+            {"D1C": "4200051", "V": "1000", "D4N": "Total"},
+            {"D1C": "4200051", "V": "900", "D4N": "40 a 44 anos"},
+        ]
+
+    monkeypatch.setattr(ibge, "get_or_set", _falso)
+    monkeypatch.setattr(ibge, "get_json", _json)
+    monkeypatch.setattr(ibge, "_classificacao_de_idade", lambda *a, **k: "c287")
+
     with pytest.raises(FonteIndisponivel, match="fora da faixa plausivel"):
         ibge.populacao_por_idade(["SC"], codigos=["4200051"])
+
+
+def test_nao_soma_ano_simples_junto_com_grupo_etario():
+    """O SIDRA devolve as duas granularidades na mesma resposta.
+
+    "40 anos", "41 anos"… e também "40 a 44 anos". Somar as duas conta cada
+    morador duas vezes — foi assim que a população 40+ saiu com 92% do total
+    num estado onde o real é ~45%.
+    """
+    rotulos = [
+        "Total", "Menos de 1 ano", "39 anos", "40 anos", "41 anos", "99 anos",
+        "35 a 39 anos", "40 a 44 anos", "45 a 49 anos", "100 anos ou mais",
+    ]
+    escolhidas = ibge.faixas_para_somar(rotulos, 40)
+    assert escolhidas == {"40 anos", "41 anos", "99 anos", "100 anos ou mais"}
+    assert not any(" a " in r for r in escolhidas), "grupo etário não entra junto com ano simples"
+
+
+def test_usa_grupo_etario_quando_nao_ha_ano_simples():
+    rotulos = ["Total", "35 a 39 anos", "40 a 44 anos", "45 a 49 anos", "100 anos ou mais"]
+    assert ibge.faixas_para_somar(rotulos, 40) == {
+        "40 a 44 anos", "45 a 49 anos", "100 anos ou mais",
+    }
+
+
+def test_cauda_aberta_ja_coberta_pela_familia_fica_de_fora():
+    """"60 anos ou mais" convivendo com anos simples até 99 é contagem dobrada."""
+    rotulos = ["Total", *[f"{i} anos" for i in range(40, 100)], "60 anos ou mais", "100 anos ou mais"]
+    escolhidas = ibge.faixas_para_somar(rotulos, 40)
+    assert "60 anos ou mais" not in escolhidas
+    assert "100 anos ou mais" in escolhidas
