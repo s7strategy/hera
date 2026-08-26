@@ -5,7 +5,7 @@ import pytest
 
 from mapa_optico.geo import UF_CODIGO, area_km2, centroide, haversine_km
 from mapa_optico.http import FonteIndisponivel
-from mapa_optico.ingest import ibge
+from mapa_optico.ingest import cnes, ibge
 from mapa_optico.ingest.cnes import CnesIndisponivel, _preparar, agregar_por_municipio
 from mapa_optico.ingest.ibge import _mapa_colunas, _num, idade_inicial
 from mapa_optico.ingest.places import raio_metros
@@ -308,3 +308,26 @@ def test_cauda_aberta_ja_coberta_pela_familia_fica_de_fora():
     escolhidas = ibge.faixas_para_somar(rotulos, 40)
     assert "60 anos ou mais" not in escolhidas
     assert "100 anos ou mais" in escolhidas
+
+
+def test_carga_horaria_reconhecida_por_padrao_e_nao_por_lista():
+    """Regressão: a coluna existia no CSV com uma grafia fora da lista.
+
+    O CNES escreve ora QT_CARGA_HOR_AMBULATORIAL, ora QT_CARGA_HORARIA_...
+    Com a grafia fora da lista exata, a carga horária saiu nula nos 154
+    municípios — e a capacidade instalada de todo mundo virou zero, inflando a
+    demanda não atendida de quem tem oftalmologista na cidade.
+    """
+    for grafia in (
+        "QT_CARGA_HORARIA_AMBULATORIAL",
+        "QT_CARGA_HOR_AMBULATORIAL",
+        "qt_carga_horaria_ambulatorial",
+        "CARGA_HOR_AMB",
+    ):
+        assert cnes._resolver([grafia, "CO_UNIDADE"], "horas_amb") == grafia, grafia
+
+
+def test_carga_hospitalar_nao_e_confundida_com_ambulatorial():
+    colunas = ["QT_CARGA_HOR_HOSPITALAR", "QT_CARGA_HOR_AMBULATORIAL"]
+    assert cnes._resolver(colunas, "horas_amb") == "QT_CARGA_HOR_AMBULATORIAL"
+    assert cnes._resolver(colunas, "horas_hosp") == "QT_CARGA_HOR_HOSPITALAR"

@@ -60,11 +60,30 @@ class CnesIndisponivel(RuntimeError):
     """Nenhum dos caminhos do CNES funcionou. Parar e reportar — nao improvisar."""
 
 
+# Quando a lista exata nao acerta a grafia, o papel ainda pode ser reconhecido
+# pela forma do nome. Foi assim que a carga horaria ambulatorial escapou: a
+# coluna existia no CSV com um nome fora da lista, e o campo saiu nulo nos 154
+# municipios sem levantar nada.
+_PADRAO_POR_PAPEL = {
+    "horas_amb": re.compile(r"(carga.*hor|hora).*amb", re.IGNORECASE),
+    "horas_hosp": re.compile(r"(carga.*hor|hora).*hosp", re.IGNORECASE),
+    "municipio": re.compile(r"^(co_)?munic", re.IGNORECASE),
+    "cbo": re.compile(r"cbo", re.IGNORECASE),
+    "cpf": re.compile(r"(cpf|cns|co_profissional)", re.IGNORECASE),
+}
+
+
 def _resolver(colunas: Iterable[str], papel: str) -> str | None:
     normalizadas = {str(c).strip().lower(): str(c) for c in colunas}
     for cand in _CANDIDATOS[papel]:
         if cand in normalizadas:
             return normalizadas[cand]
+    padrao = _PADRAO_POR_PAPEL.get(papel)
+    if padrao:
+        for limpo, original in normalizadas.items():
+            if padrao.search(limpo):
+                log("coluna resolvida por padrao", papel=papel, coluna=original)
+                return original
     return None
 
 
@@ -95,6 +114,10 @@ def _preparar(df: pd.DataFrame, cbos: list[str], contador: Any) -> pd.DataFrame:
     trabalho["id_profissional"] = trabalho[col_cpf].astype(str).str.strip()
 
     col_amb = _resolver(df.columns, "horas_amb")
+    log(
+        "colunas do CNES resolvidas",
+        municipio=col_mun, cbo=col_cbo, profissional=col_cpf, horas_ambulatorial=col_amb or "—",
+    )
     if col_amb:
         trabalho["horas_ambulatorial"] = pd.to_numeric(trabalho[col_amb], errors="coerce").fillna(0.0)
     else:
@@ -468,7 +491,7 @@ def _ler_carga_horaria(arquivo: Any, cbos: set[str]) -> pd.DataFrame:
     pedacos = []
     for bloco in pd.read_csv(
         arquivo, sep=";", dtype=str, encoding="latin-1",
-        usecols=lambda c: c.strip().upper() in _COLUNAS_CARGA,
+        usecols=_coluna_de_carga,
         chunksize=500_000,
     ):
         cbo = (
@@ -479,13 +502,17 @@ def _ler_carga_horaria(arquivo: Any, cbos: set[str]) -> pd.DataFrame:
     return pd.concat(pedacos, ignore_index=True) if pedacos else pd.DataFrame()
 
 
-_COLUNAS_CARGA = {
-    "CO_UNIDADE",
-    "CO_PROFISSIONAL_SUS",
-    "CO_CBO",
-    "QT_CARGA_HOR_AMBULATORIAL",
-    "QT_CARGA_HORARIA_AMBULATORIAL",
-}
+_CHAVES_CARGA = {"CO_UNIDADE", "CO_PROFISSIONAL_SUS", "CO_CBO"}
+# Qualquer coluna de carga horaria, sem depender de acertar a grafia exata.
+# O CNES escreve ora QT_CARGA_HOR_AMBULATORIAL, ora QT_CARGA_HORARIA_...,
+# e listar as variantes uma a uma ja fez a carga horaria sumir calada nos 154
+# municipios — com ela, a capacidade instalada de todo mundo virou zero.
+_PADRAO_CARGA = re.compile(r"carga.*hor", re.IGNORECASE)
+
+
+def _coluna_de_carga(nome: str) -> bool:
+    limpo = str(nome).strip().upper()
+    return limpo in _CHAVES_CARGA or bool(_PADRAO_CARGA.search(limpo))
 
 
 def _col(df: pd.DataFrame, nome: str) -> str:
