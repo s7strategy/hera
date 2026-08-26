@@ -4,6 +4,7 @@ import pandas as pd
 import pytest
 
 from mapa_optico.geo import UF_CODIGO, area_km2, centroide, haversine_km
+from mapa_optico.http import FonteIndisponivel
 from mapa_optico.ingest import ibge
 from mapa_optico.ingest.cnes import CnesIndisponivel, _preparar, agregar_por_municipio
 from mapa_optico.ingest.ibge import _mapa_colunas, _num, idade_inicial
@@ -228,3 +229,30 @@ def test_coluna_sem_idade_de_verdade_nao_vira_coluna_de_idade(rotulo):
 def test_bebe_nao_vira_adulto_pelo_numero_do_rotulo(rotulo):
     """"2 meses" tem um 2 no rótulo, mas não é alguém de 2 anos."""
     assert idade_inicial(rotulo) == 0
+
+
+def test_fracao_40_mais_implausivel_e_recusada(monkeypatch):
+    """A fração 40+ dimensiona a demanda inteira: se dobrar, o faturamento dobra.
+
+    Uma classificação etária cumulativa ("40 anos ou mais", "45 anos ou mais",
+    …) soma o mesmo morador várias vezes e produz 90% de 40+ num município
+    onde o real é ~45%. Sem esta guarda isso passa como número bom.
+    """
+    def _falso(fonte, chave, buscar, refresh=False):
+        return buscar()
+
+    def _json(fonte, url):
+        return [
+            {"D1C": "Município (Código)", "V": "Valor", "D4N": "Idade"},
+            {"D1C": "4200051", "V": "1000", "D4N": "Total"},
+            {"D1C": "4200051", "V": "450", "D4N": "40 anos ou mais"},
+            {"D1C": "4200051", "V": "300", "D4N": "50 anos ou mais"},
+            {"D1C": "4200051", "V": "150", "D4N": "60 anos ou mais"},
+        ]
+
+    monkeypatch.setattr(ibge, "get_or_set", _falso)
+    monkeypatch.setattr(ibge, "get_json", _json)
+    monkeypatch.setattr(ibge, "_classificacao_de_idade", lambda *a, **k: "c287")
+
+    with pytest.raises(FonteIndisponivel, match="fora da faixa plausivel"):
+        ibge.populacao_por_idade(["SC"], codigos=["4200051"])

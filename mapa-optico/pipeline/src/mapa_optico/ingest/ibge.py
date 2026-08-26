@@ -26,6 +26,10 @@ FONTE = "ibge"
 # Quanto da resposta do SIDRA precisa virar numero para a populacao valer.
 # Abaixo disso o ranking sairia pela metade parecendo completo.
 COBERTURA_MINIMA = 0.9
+# Faixa plausivel para a fracao da populacao com 40 anos ou mais. O Censo 2022
+# da ~45% para o Brasil, e nenhum municipio realista sai de 25%–65%.
+FRACAO_40_MAIS_MIN = 0.25
+FRACAO_40_MAIS_MAX = 0.65
 
 _VALOR_AUSENTE = {"-", "..", "...", "X", "..X", None, ""}
 
@@ -285,6 +289,7 @@ def populacao_por_idade(
 
         acumulado: dict[str, dict[str, float | None]] = {}
         rotulos_vistos: set[str] = set()
+        somadas: set[str] = set()
         amostra_sem_valor: list[dict[str, Any]] = []
         for linha in bruto[1:]:
             codigo = para_codigo7(linha.get(colunas["codigo"]))
@@ -301,6 +306,7 @@ def populacao_por_idade(
             if rotulo.strip().lower().startswith("total"):
                 reg["populacao_total"] = valor
             elif inicio is not None and valor is not None and inicio >= idade_min:
+                somadas.add(rotulo.strip())
                 reg["populacao_40mais"] = (reg["populacao_40mais"] or 0) + valor
 
         df = pd.DataFrame(
@@ -335,6 +341,25 @@ def populacao_por_idade(
         sem_40 = int(df["populacao_40mais"].isna().sum()) if not df.empty else 0
         if sem_40:
             aviso("municipios sem populacao 40+", quantidade=sem_40)
+
+        # A fracao 40+ e o que dimensiona a demanda inteira do modelo: se ela
+        # dobrar, toda projecao de faturamento dobra junto. No Brasil ela fica
+        # perto de 45%; fora da faixa abaixo alguma faixa etaria esta sendo
+        # contada duas vezes ou de menos, e isso nao pode passar calado.
+        fracao = (df["populacao_40mais"] / df["populacao_total"]).median()
+        log(
+            "faixas etarias somadas em 40+",
+            quantidade=len(somadas),
+            fracao_mediana=None if pd.isna(fracao) else round(float(fracao), 3),
+            faixas=", ".join(sorted(somadas)[:40]),
+        )
+        if pd.notna(fracao) and not (FRACAO_40_MAIS_MIN <= fracao <= FRACAO_40_MAIS_MAX):
+            raise FonteIndisponivel(
+                FONTE,
+                f"populacao 40+ deu {fracao:.0%} da populacao total, fora da faixa plausivel "
+                f"({FRACAO_40_MAIS_MIN:.0%}–{FRACAO_40_MAIS_MAX:.0%}). "
+                f"Faixas somadas ({len(somadas)}): {sorted(somadas)[:40]}",
+            )
     return df
 
 
