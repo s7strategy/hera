@@ -1014,6 +1014,32 @@ html[data-tema="claro"] .barra-mes-sticky {
   padding: 4px 0;
 }
 
+.extrato-saldo { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--borda); }
+.extrato-titulo {
+  font-size: 11.5px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--tinta-3); margin: 0 0 10px;
+}
+.extrato-linhas { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+.extrato-linha {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+  font-size: 14px;
+}
+.extrato-nome { color: var(--tinta-2); min-width: 0; }
+.extrato-nome small {
+  display: inline; margin-left: 6px;
+  font-size: 12px; color: var(--tinta-3); font-weight: 500;
+}
+.extrato-linha.mais .extrato-valor { color: var(--salvia-alt); font-weight: 650; }
+.extrato-linha.menos .extrato-valor { color: var(--tinta-2); font-weight: 650; }
+.extrato-pe {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-top: 10px; padding-top: 10px;
+  border-top: 1.5px dashed var(--borda-forte);
+  font-weight: 700; font-size: 15px;
+}
+.extrato-pe .num { color: var(--salvia-alt); font-size: 16px; }
+.extrato-nota { margin-top: 8px; font-size: 12.5px; color: var(--tinta-3); }
+
 .barra-pago { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--borda); }
 .barra-pago-topo {
   display: flex; justify-content: space-between; gap: 10px;

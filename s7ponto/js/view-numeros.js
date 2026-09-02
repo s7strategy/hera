@@ -15,7 +15,7 @@ import {
   horasDoTurno, valorDoTurno, somaBonus, totalComBonus, somaPagamentos,
   agrupaBonus, comparaSaldo, saldosPorPessoa,
 } from './metricas.js';
-import { htmlRecibo, htmlPizzas, pintaPizzas, htmlDetalheBonus, htmlGradeMetricas } from './extrato.js';
+import { htmlRecibo, htmlPizzas, pintaPizzas, htmlGradeMetricas, htmlExtratoSaldo } from './extrato.js';
 import { extraDoPeriodo, htmlRecadoExtraPessoa } from './hora-extra.js';
 
 export async function telaDeNumeros(raiz, ctx) {
@@ -39,19 +39,21 @@ export async function telaDeNumeros(raiz, ctx) {
   async function carregaBonus() {
     const ym = chaveMes(mesRef);
     const ymAnt = chaveMes(somaMeses(mesRef, -1));
+    bonusMes = [];
+    bonusTodos = [];
     try {
-      const [doMes] = await Promise.all([
-        store.listaBonusMes({ userId: usuario.id, yearMonth: ym }),
-        store.listaBonusMes({ userId: usuario.id, yearMonth: ymAnt }).catch(() => []),
-      ]);
-      bonusMes = doMes;
+      bonusMes = await store.listaBonusMes({ userId: usuario.id, yearMonth: ym });
+    } catch { bonusMes = []; }
+    try {
+      await store.listaBonusMes({ userId: usuario.id, yearMonth: ymAnt });
+    } catch { /* mês anterior só gera automático; o saldo usa a lista da pessoa */ }
+    try {
       const todos = await store.listaBonusPessoa(usuario.id);
       const porId = new Map((todos || []).map((e) => [e.id, e]));
       for (const e of bonusMes) porId.set(e.id, e);
       bonusTodos = [...porId.values()];
     } catch {
-      bonusMes = [];
-      bonusTodos = [];
+      bonusTodos = bonusMes.slice();
     }
   }
 
@@ -147,7 +149,7 @@ export async function telaDeNumeros(raiz, ctx) {
           <p class="heroi-valor saldo">${esc(money(heroiValor))}</p>
           <div class="heroi-nota">
             ${fichaTrabalho}
-            ${total > 0.004 ? `<span class="ficha ficha-neutra">ganhou ${esc(money(total))}${pago > 0.004 ? ` · recebeu ${esc(money(pago))}` : ''}</span>` : ''}
+            ${total > 0.004 ? `<span class="ficha ficha-neutra">neste mês ${esc(money(total))}${somaBonus(bonusMes) > 0.004 ? ` · bônus ${esc(money(somaBonus(bonusMes)))}` : ''}${pago > 0.004 ? ` · recebeu ${esc(money(pago))}` : ''}</span>` : ''}
             ${ehMesCorrente && Math.abs(saldoGeral?.carregado || 0) > 0.5
               ? `<span class="ficha ficha-neutra">já puxa ${esc(money(saldoGeral.carregado))} do mês anterior</span>` : ''}
             ${htmlRecadoExtraPessoa(bancoExtra, { compacto: true })}
@@ -155,12 +157,27 @@ export async function telaDeNumeros(raiz, ctx) {
           </div>
           ${cmp.parcial ? `<p class="apagado" style="font-size:12.5px;margin-top:10px">Comparado até o dia ${esc(String(cmp.diaLimite))} (ontem), com bônus e extras — o dia de hoje fica de fora enquanto puder estar em aberto.</p>` : ''}
         </div>
+        ${htmlExtratoSaldo({
+          mesNome: nomeMes(mesRef),
+          mesAntNome: nomeMes(somaMeses(mesRef, -1)),
+          saldoAnterior: (saldoGeral?.meses || []).find((m) => m.ym === chaveMes(mesRef))?.saldoAnterior
+            ?? (ehMesCorrente ? (saldoGeral?.carregado || 0) : 0),
+          partes: fixo ? r.porTarefa.map((p) => ({ ...p, horas: 0 })) : r.porTarefa,
+          trabalho: r.valor,
+          horasMes: fixo ? 0 : r.horas,
+          bonusEntries: bonusMes,
+          pagamentos,
+          saldo: ehMesCorrente
+            ? (saldoGeral?.saldo || 0)
+            : ((saldoGeral?.meses || []).find((m) => m.ym === chaveMes(mesRef))?.disponivel || 0),
+          titulo: ehMesCorrente ? 'Como chegou no disponível' : `Conta de ${nomeMes(mesRef)}`,
+        })}
+        <p class="extrato-titulo" style="margin-top:18px">O que entrou em ${esc(nomeMes(mesRef))}</p>
         ${htmlRecibo({
           horasMes: fixo ? 0 : r.horas,
-          trabalho: r.valor, grupos, total, pago,
+          trabalho: r.valor, grupos, total, pago, ocultarPago: true,
           partes: fixo ? r.porTarefa.map((p) => ({ ...p, horas: 0 })) : r.porTarefa,
         })}
-        ${htmlDetalheBonus(bonusMes)}
       </section>
 
       ${htmlRecadoExtraPessoa(bancoExtra, { nomeMes: nomeMes(mesRef) })}

@@ -21,8 +21,8 @@ import {
   saldosPorPessoa, rotuloMesDevido, roundMoney,
 } from './metricas.js';
 import {
-  htmlRecibo, htmlReciboPessoa, htmlPizzas, pintaPizzas, htmlDetalheBonus, htmlGradeMetricas,
-  fatiasPorPessoa,
+  htmlRecibo, htmlReciboPessoa, htmlPizzas, pintaPizzas, htmlGradeMetricas,
+  fatiasPorPessoa, htmlExtratoSaldo, origemBonus,
 } from './extrato.js';
 import {
   extraDoPeriodo, extraPorPessoa, htmlAlertaExtra, htmlRecadoExtraPessoa,
@@ -349,25 +349,69 @@ export async function telaDeAdmin(raiz, ctx) {
     });
   }
 
+  async function carregaSaldoPessoa(p) {
+    const agora = new Date();
+    const ymAgora = chaveMes(agora);
+    const ymAnt = chaveMes(somaMeses(agora, -1));
+    try {
+      await Promise.all([
+        store.listaBonusMes({ userId: p.id, yearMonth: ymAgora }),
+        store.listaBonusMes({ userId: p.id, yearMonth: ymAnt }).catch(() => []),
+      ]);
+    } catch { /* o saldo de turnos continua mesmo se o automático falhar */ }
+    const [turnosBrutos, pags, bonus] = await Promise.all([
+      store.listaTurnos({ userId: p.id }),
+      store.listaPagamentos({ userId: p.id }),
+      store.listaBonusPessoa(p.id).catch(() => []),
+    ]);
+    const turnos = pintaTrechos(turnosBrutos, tarefas);
+    const lin = saldosPorPessoa({
+      pessoas: [p], turnos, bonus, pagamentos: pags, agora,
+    })[0];
+    return { lin, turnos, pags, bonus, agora, ym: ymAgora };
+  }
+
+  function toastSaldoBonus(lin, oQue) {
+    const credito = (lin?.saldo || 0) < -0.5;
+    const extra = credito
+      ? `Crédito agora: ${money(-lin.saldo)}.`
+      : `Disponível agora: ${money(Math.max(0, lin?.saldo || 0))}.`;
+    torrada(`${oQue} ${extra}`, 'bom');
+  }
+
+  function aposMudarBonus() {
+    if (aba === 'visao' && pessoaFoco) abaVisaoPessoa($('#conteudo-aba', raiz), pessoaFoco);
+    else if (aba === 'pagamentos') abaPagamentos($('#conteudo-aba', raiz));
+  }
+
   async function editaBonus(p) {
     const ym = chaveMes(mesRef);
     let templates = [];
     let entries = [];
+    let saldoLin = null;
 
     async function carregaBonus() {
       [templates, entries] = await Promise.all([
         store.listaTemplatesBonus(p.id),
         store.listaBonusMes({ userId: p.id, yearMonth: ym }),
       ]);
+      try { saldoLin = (await carregaSaldoPessoa(p)).lin; } catch { saldoLin = null; }
     }
 
     function corpoBonus() {
       const soma = somaBonus(entries);
+      const disp = saldoLin ? Math.max(0, saldoLin.saldo || 0) : null;
+      const credito = (saldoLin?.saldo || 0) < -0.5;
       return `
         <p class="campo-dica" style="margin-bottom:14px">
-          Automático repete todo mês. Manual vale só em <strong>${esc(nomeMes(mesRef))}</strong>.
-          O funcionário vê cada item separado e o total junto.
+          Automático repete todo mês e já entra no disponível. Manual vale só em <strong>${esc(nomeMes(mesRef))}</strong> — também soma no saldo.
+          Cada pagamento depois abate. ${esc(p.full_name.split(' ')[0])} vê de onde veio cada valor.
         </p>
+        ${saldoLin ? `
+          <p class="pg-pagar-saldo" style="margin-bottom:14px">${credito
+            ? `Crédito agora: <strong>${esc(money(-saldoLin.saldo))}</strong>`
+            : `Disponível agora: <strong>${esc(money(disp))}</strong>`}
+            ${soma > 0.004 ? `<span class="apagado"> · bônus deste mês ${esc(money(soma))}</span>` : ''}</p>` : ''}
 
         <h3 style="font-size:15px;margin:0 0 10px">Automáticos (todo mês)</h3>
         ${templates.length ? `<div class="lista" style="margin-bottom:12px">${templates.map((t) => `
@@ -389,7 +433,7 @@ export async function telaDeAdmin(raiz, ctx) {
           <div class="item" style="gap:10px">
             <span class="item-corpo" style="min-width:0;flex:1">
               <span class="item-titulo">${esc(e.title)}</span>
-              <span class="item-sub">${e.bonus_on ? `${esc(dataBR(e.bonus_on))} · ` : ''}${esc(money(e.amount))} · ${e.source === 'auto' ? 'auto' : e.source === 'import' ? 'importado' : 'manual'}${e.note ? ` · ${esc(e.note)}` : ''}</span>
+              <span class="item-sub">${e.bonus_on ? `${esc(dataBR(e.bonus_on))} · ` : ''}${esc(money(e.amount))} · ${esc(origemBonus(e))}${e.note ? ` · ${esc(e.note)}` : ''}</span>
             </span>
             <button class="btn btn-pequeno btn-fantasma" data-ed-ent="${esc(e.id)}">Editar</button>
             <button class="btn btn-pequeno btn-fantasma" data-rm-ent="${esc(e.id)}">${ICONE.lixo}</button>
@@ -492,6 +536,7 @@ export async function telaDeAdmin(raiz, ctx) {
                 bonus_on: dates?.length === 1 ? dates[0] : undefined,
               }));
               fechar();
+              editaBonus(p);
             } catch (e) { erro.textContent = e.message; erro.hidden = false; }
           });
         },
@@ -501,8 +546,9 @@ export async function telaDeAdmin(raiz, ctx) {
     await carregaBonus();
     abreFolha({
       titulo: `Bônus · ${p.full_name.split(' ')[0]}`,
-      sub: 'Título e valor — automático ou só neste mês.',
+      sub: 'Tudo que lançar aqui soma no disponível. Pagamento depois abate.',
       corpo: `<div id="bonus-corpo">${corpoBonus()}</div>`,
+      aoFechar: () => { aposMudarBonus(); },
       aoMontar: (caixa) => {
         const corpo = $('#bonus-corpo', caixa);
 
@@ -516,14 +562,15 @@ export async function telaDeAdmin(raiz, ctx) {
           $('[data-novo-tpl]', corpo)?.addEventListener('click', () => {
             formBonus({
               tituloFolha: 'Novo bônus automático',
-              sub: 'Vai aparecer todo mês enquanto estiver ativo.',
+              sub: 'Enquanto estiver ativo, gera todo mês e já entra no saldo deste mês.',
               aoSalvar: async ({ title, amount }) => {
-                await store.criaTemplateBonus({
+                const tpl = await store.criaTemplateBonus({
                   user_id: p.id, title, amount, active: true,
                   sort_order: templates.length,
                 });
-                torrada('Automático criado.', 'bom');
-                await redesenha();
+                await store.listaBonusMes({ userId: p.id, yearMonth: ym });
+                const { lin } = await carregaSaldoPessoa(p);
+                toastSaldoBonus(lin, `Automático “${tpl.title || title}” no saldo.`);
               },
             });
           });
@@ -534,12 +581,17 @@ export async function telaDeAdmin(raiz, ctx) {
               if (!t) return;
               formBonus({
                 tituloFolha: 'Editar automático',
-                sub: 'Desligue “Ativo” para pausar nos próximos meses.',
+                sub: 'Muda também o lançamento deste mês. Desligue “Ativo” para pausar os próximos.',
                 title: t.title, amount: t.amount, active: t.active,
                 aoSalvar: async ({ title, amount, active }) => {
                   await store.atualizaTemplateBonus(t.id, { title, amount, active });
-                  torrada('Automático atualizado.', 'bom');
-                  await redesenha();
+                  const ents = await store.listaBonusMes({ userId: p.id, yearMonth: ym });
+                  const auto = ents.find((e) => e.template_id === t.id);
+                  if (auto && active !== false) {
+                    await store.atualizaBonus(auto.id, { title, amount });
+                  }
+                  const { lin } = await carregaSaldoPessoa(p);
+                  toastSaldoBonus(lin, 'Automático atualizado.');
                 },
               });
             });
@@ -563,7 +615,7 @@ export async function telaDeAdmin(raiz, ctx) {
           $('[data-novo-ent]', corpo)?.addEventListener('click', () => {
             formBonus({
               tituloFolha: 'Lançar bônus neste mês',
-              sub: `Escolha as datas em ${nomeMes(mesRef)}. Mesmo título e valor — use + para repetir.`,
+              sub: `Entra no disponível de ${p.full_name.split(' ')[0]}. Datas em ${nomeMes(mesRef)} — use + para repetir.`,
               mostraNota: true,
               datas: [chaveMes(mesRef) + '-01'],
               aoSalvar: async ({ title, amount, note, dates }) => {
@@ -571,8 +623,8 @@ export async function telaDeAdmin(raiz, ctx) {
                   user_id: p.id, title, amount, note, dates,
                 });
                 const n = Array.isArray(criados) ? criados.length : 1;
-                torrada(n > 1 ? `${n} bônus lançados.` : 'Bônus lançado.', 'bom');
-                await redesenha();
+                const { lin } = await carregaSaldoPessoa(p);
+                toastSaldoBonus(lin, n > 1 ? `${n} bônus no saldo.` : `Bônus “${title}” no saldo.`);
               },
             });
           });
@@ -595,8 +647,8 @@ export async function telaDeAdmin(raiz, ctx) {
                       user_id: p.id, title, amount, note, dates: dates.slice(1),
                     });
                   }
-                  torrada('Lançamento atualizado.', 'bom');
-                  await redesenha();
+                  const { lin } = await carregaSaldoPessoa(p);
+                  toastSaldoBonus(lin, 'Lançamento no saldo.');
                 },
               });
             });
@@ -614,7 +666,8 @@ export async function telaDeAdmin(raiz, ctx) {
                 ok: 'Apagar', perigo: true,
               })) return;
               await store.apagaBonus(e.id);
-              torrada('Lançamento apagado.', 'bom');
+              const { lin } = await carregaSaldoPessoa(p);
+              toastSaldoBonus(lin, 'Bônus saiu do saldo.');
               await redesenha();
             });
           });
@@ -1671,19 +1724,34 @@ export async function telaDeAdmin(raiz, ctx) {
           <div class="heroi-nota">
             <span class="ficha ficha-neutra">${fixo
               ? esc(plural(noMes.length, p.pay_mode === 'shift' ? 'turno' : 'tarefa', p.pay_mode === 'shift' ? 'turnos' : 'tarefas'))
-              : `${esc(horas(r.horas))} · ${esc(plural(noMes.length, 'turno', 'turnos'))}`} · ganhou ${esc(money(total))}${pagoMes > 0.004 ? ` · já pago ${esc(money(pagoMes))}` : ''}</span>
+              : `${esc(horas(r.horas))} · ${esc(plural(noMes.length, 'turno', 'turnos'))}`} · neste mês ${esc(money(total))}${somaBonus(bonusMes) > 0.004 ? ` · bônus ${esc(money(somaBonus(bonusMes)))}` : ''}${pagoMes > 0.004 ? ` · já pago ${esc(money(pagoMes))}` : ''}</span>
             ${ehMesCorrente && Math.abs(saldoGeral?.carregado || 0) > 0.5
               ? `<span class="ficha ficha-neutra">já puxa ${esc(money(saldoGeral.carregado))} do mês anterior</span>` : ''}
             ${htmlRecadoExtraPessoa(fixo ? null : extraDoPeriodo(noMes), { compacto: true })}
             ${fichaVar}
           </div>
         </div>
+        ${htmlExtratoSaldo({
+          mesNome: nomeMes(mesRef),
+          mesAntNome: nomeMes(somaMeses(mesRef, -1)),
+          saldoAnterior: (saldoGeral?.meses || []).find((m) => m.ym === ym)?.saldoAnterior
+            ?? (ehMesCorrente ? (saldoGeral?.carregado || 0) : 0),
+          partes: fixo ? r.porTarefa.map((x) => ({ ...x, horas: 0 })) : r.porTarefa,
+          trabalho: r.valor,
+          horasMes: fixo ? 0 : r.horas,
+          bonusEntries: bonusMes,
+          pagamentos: pagsMes,
+          saldo: ehMesCorrente
+            ? (saldoGeral?.saldo || 0)
+            : ((saldoGeral?.meses || []).find((m) => m.ym === ym)?.disponivel || 0),
+          titulo: ehMesCorrente ? 'Como chegou no disponível' : `Conta de ${nomeMes(mesRef)}`,
+        })}
+        <p class="extrato-titulo" style="margin-top:18px">O que entrou em ${esc(nomeMes(mesRef))}</p>
         ${htmlRecibo({
           horasMes: fixo ? 0 : r.horas,
-          trabalho: r.valor, grupos, total, pago: pagoMes,
+          trabalho: r.valor, grupos, total, pago: pagoMes, ocultarPago: true,
           partes: fixo ? r.porTarefa.map((x) => ({ ...x, horas: 0 })) : r.porTarefa,
         })}
-        ${htmlDetalheBonus(bonusMes)}
       </section>
 
       ${htmlRecadoExtraPessoa(fixo ? null : extraDoPeriodo(noMes), { nomeMes: nomeMes(mesRef) })}
@@ -1872,21 +1940,27 @@ export async function telaDeAdmin(raiz, ctx) {
     const agora = new Date();
     const ym = chaveMes(agora);
     const ymAnt = chaveMes(somaMeses(agora, -1));
+    let bonusMes = [];
+    let bonusAnt = [];
     try {
-      await Promise.all([
-        store.listaBonusMes({ yearMonth: ym }),
-        store.listaBonusMes({ yearMonth: ymAnt }).catch(() => []),
-      ]);
-    } catch { /* bônus automático é extra; o saldo de turnos continua */ }
+      bonusMes = await store.listaBonusMes({ yearMonth: ym });
+      bonusAnt = await store.listaBonusMes({ yearMonth: ymAnt }).catch(() => []);
+    } catch { bonusMes = []; bonusAnt = []; }
 
-    const [turnosBrutos, pags, bonus] = await Promise.all([
+    let bonusTodos = [];
+    try { bonusTodos = await store.listaBonusTodos(); } catch { bonusTodos = []; }
+    const porIdBonus = new Map((bonusTodos || []).map((e) => [e.id, e]));
+    for (const e of [...bonusMes, ...bonusAnt]) porIdBonus.set(e.id, e);
+
+    const [turnosBrutos, pags] = await Promise.all([
       store.listaTurnos(),
       store.listaPagamentos(),
-      store.listaBonusTodos().catch(() => []),
     ]);
     const turnos = pintaTrechos(turnosBrutos, tarefas);
     const equipe = pessoas.filter((p) => p.role !== 'admin');
-    const linhas = saldosPorPessoa({ pessoas: equipe, turnos, bonus, pagamentos: pags, agora })
+    const linhas = saldosPorPessoa({
+      pessoas: equipe, turnos, bonus: [...porIdBonus.values()], pagamentos: pags, agora,
+    })
       .filter((l) => l.p.active !== false || l.devido > 0.5 || l.saldo < -0.5)
       .sort((a, b) => b.devido - a.devido || a.p.full_name.localeCompare(b.p.full_name, 'pt-BR'));
 
@@ -1952,6 +2026,9 @@ export async function telaDeAdmin(raiz, ctx) {
         chips.push(`<span class="pg-chip velho">já puxa ${esc(money(l.carregado))} do mês anterior</span>`);
       }
     }
+    if ((l.desteMes?.bonus || 0) > 0.5) {
+      chips.push(`<span class="pg-chip">bônus ${esc(money(l.desteMes.bonus))}</span>`);
+    }
     const mesesDetalhe = l.meses.length
       ? l.meses.map((m) => {
         const disp = m.disponivel;
@@ -1967,7 +2044,7 @@ export async function telaDeAdmin(raiz, ctx) {
         return `
           <div class="pg-mes ${cls}">
             <span class="pg-mes-nome">${esc(rotuloMesDevido(m.ym))}</span>
-            <span class="apagado">ganhou ${esc(money(m.ganhou))}${m.pagou > 0.004 ? ` · pago ${esc(money(m.pagou))}` : ''}${veio}</span>
+            <span class="apagado">ganhou ${esc(money(m.ganhou))}${m.bonus > 0.004 ? ` · bônus ${esc(money(m.bonus))}` : ''}${m.pagou > 0.004 ? ` · pago ${esc(money(m.pagou))}` : ''}${veio}</span>
             <span class="num pg-mes-saldo">${rotuloDisp}</span>
           </div>`;
       }).join('')
@@ -2007,31 +2084,17 @@ export async function telaDeAdmin(raiz, ctx) {
       </article>`;
   }
 
-  function abrePagar(p, saldoPrevio = null) {
+  function abrePagar(p) {
     const agora = new Date();
     const montar = async (caixa, fechar) => {
-      let lin = saldoPrevio;
-      if (!lin) {
-        caixa.innerHTML = carregando('Calculando o saldo…');
-        const ym = chaveMes(agora);
-        const ymAnt = chaveMes(somaMeses(agora, -1));
-        try {
-          await Promise.all([
-            store.listaBonusMes({ userId: p.id, yearMonth: ym }),
-            store.listaBonusMes({ userId: p.id, yearMonth: ymAnt }).catch(() => []),
-          ]);
-        } catch { /* segue com o que tiver */ }
-        const [turnosBrutos, pags, bonus] = await Promise.all([
-          store.listaTurnos({ userId: p.id }),
-          store.listaPagamentos({ userId: p.id }),
-          store.listaBonusPessoa(p.id).catch(() => []),
-        ]);
-        lin = saldosPorPessoa({
-          pessoas: [p],
-          turnos: pintaTrechos(turnosBrutos, tarefas),
-          bonus, pagamentos: pags, agora,
-        })[0];
-      }
+      caixa.innerHTML = carregando('Calculando o saldo…');
+      const { lin, turnos, pags, bonus } = await carregaSaldoPessoa(p);
+      const ym = chaveMes(agora);
+      const r = resumoDoMes(turnos, agora);
+      const bonusMes = (bonus || []).filter((e) => e.year_month === ym);
+      const pagsMes = (pags || []).filter((x) => x.year_month === ym);
+      const mesLinha = (lin.meses || []).find((m) => m.ym === ym);
+      const fixo = pagamentoFixo(p.pay_mode);
 
       const devido = lin.devido;
       const atalhos = devido > 0.5
@@ -2042,9 +2105,19 @@ export async function telaDeAdmin(raiz, ctx) {
         <p class="pg-pagar-saldo">${devido > 0.5
           ? `Disponível agora: <strong>${esc(money(devido))}</strong>`
           : 'Nada em aberto — pode lançar um valor mesmo assim.'}</p>
-        ${Math.abs(lin.carregado || 0) > 0.5 ? `
-          <p class="apagado pg-pagar-quebra">Já inclui ${esc(money(lin.carregado))} que veio do mês anterior, como na planilha.</p>` : ''}
-        <p class="apagado" style="margin:0 0 12px;font-size:13px">Não precisa ser o total. Você marca o valor deste pagamento e o disponível desconta só isso.</p>
+        ${htmlExtratoSaldo({
+          mesNome: nomeMes(agora),
+          mesAntNome: nomeMes(somaMeses(agora, -1)),
+          saldoAnterior: mesLinha?.saldoAnterior ?? (lin.carregado || 0),
+          partes: fixo ? r.porTarefa.map((x) => ({ ...x, horas: 0 })) : r.porTarefa,
+          trabalho: r.valor,
+          horasMes: fixo ? 0 : r.horas,
+          bonusEntries: bonusMes,
+          pagamentos: pagsMes,
+          saldo: lin.saldo,
+          titulo: 'De onde veio',
+        })}
+        <p class="apagado" style="margin:12px 0;font-size:13px">Não precisa ser o total. Você marca o valor deste pagamento e o disponível desconta só isso.</p>
         ${atalhos.length ? `
           <div class="pg-atalhos">
             ${atalhos.map((a) => `<button type="button" class="pg-atalho" data-atalho="${esc(a.id)}" data-valor="${esc(String(a.valor))}">${esc(a.rotulo)}</button>`).join('')}
@@ -2077,21 +2150,29 @@ export async function telaDeAdmin(raiz, ctx) {
         const note = $('#pg-nota', caixa).value.trim() || null;
         if (!(amount > 0.004)) { erro.textContent = 'Informe o valor.'; erro.hidden = false; return; }
         if (!paid_on) { erro.textContent = 'Informe a data.'; erro.hidden = false; return; }
-        const ym = paid_on.slice(0, 7);
+        const ymPg = paid_on.slice(0, 7);
         try {
           await comBotaoOcupado(ev.currentTarget, 'Pagando…', async () => {
             await store.lancaPagamento({
               user_id: p.id,
               paid_on,
               amount,
-              year_month: ym,
-              title: `Pagamento · ${rotuloMesDevido(ym, agora)}`,
+              year_month: ymPg,
+              title: `Pagamento · ${rotuloMesDevido(ymPg, agora)}`,
               note,
             });
           });
+          let restaTxt = '';
+          try {
+            const { lin: depois } = await carregaSaldoPessoa(p);
+            const credito = (depois.saldo || 0) < -0.5;
+            restaTxt = credito
+              ? ` Crédito agora: ${money(-depois.saldo)}.`
+              : ` Disponível agora: ${money(Math.max(0, depois.saldo))}.`;
+          } catch { /* toast mesmo sem o recálculo */ }
           fechar();
           aposMudarPagamento();
-          torrada(`Pago ${money(amount)} para ${p.full_name}. Já está no saldo dela.`, 'bom');
+          torrada(`Pago ${money(amount)} para ${p.full_name}.${restaTxt}`, 'bom');
         } catch (e) { erro.textContent = e.message; erro.hidden = false; }
       });
     };

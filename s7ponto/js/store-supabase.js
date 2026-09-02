@@ -273,12 +273,28 @@ export async function criaStoreSupabase() {
 
     async listaBonusPessoa(userId) {
       if (!userId) return [];
-      return ok(await sb.from('bonus_entries').select('*').eq('user_id', userId)
-        .order('bonus_on', { ascending: true }).order('created_at'));
+      const page = 1000;
+      const out = [];
+      for (let from = 0; from < 10000; from += page) {
+        const chunk = ok(await sb.from('bonus_entries').select('*').eq('user_id', userId)
+          .order('created_at', { ascending: true })
+          .range(from, from + page - 1));
+        out.push(...(chunk || []));
+        if (!chunk || chunk.length < page) break;
+      }
+      return out;
     },
     async listaBonusTodos() {
-      return ok(await sb.from('bonus_entries').select('*')
-        .order('bonus_on', { ascending: true }).limit(5000));
+      const page = 1000;
+      const out = [];
+      for (let from = 0; from < 30000; from += page) {
+        const chunk = ok(await sb.from('bonus_entries').select('*')
+          .order('created_at', { ascending: true })
+          .range(from, from + page - 1));
+        out.push(...(chunk || []));
+        if (!chunk || chunk.length < page) break;
+      }
+      return out;
     },
     async listaPagamentos({ userId = null, yearMonth = null } = {}) {
       let q = sb.from('payments').select('*').order('paid_on', { ascending: false }).limit(5000);

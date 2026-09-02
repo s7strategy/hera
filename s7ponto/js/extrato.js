@@ -8,6 +8,12 @@ import { agrupaBonus, fatiasHoras, fatiasQtd, fatiasSalario } from './metricas.j
 
 export { agrupaBonus };
 
+export function origemBonus(e) {
+  if (e?.source === 'auto') return 'automático';
+  if (e?.source === 'import') return 'da planilha';
+  return 'lançado na mão';
+}
+
 function linha(nome, valor, detalhe = '') {
   if (!(valor > 0.004) && !detalhe) return '';
   return `
@@ -20,7 +26,10 @@ function linha(nome, valor, detalhe = '') {
 
 /** Recibo: horas × valor, cada tipo de bônus agrupado, total embaixo.
  *  `partes` (ex.: Turno Manhã / Tarde) quebra o trabalho quando há mais de uma origem. */
-export function htmlRecibo({ horasMes = 0, trabalho = 0, grupos = [], total = 0, pago = 0, partes = [] }) {
+export function htmlRecibo({
+  horasMes = 0, trabalho = 0, grupos = [], total = 0, pago = 0, partes = [],
+  ocultarPago = false,
+}) {
   const bonus = grupos.reduce((s, g) => s + (g.total || 0), 0);
   const falta = total - pago;
   const mixTrab = total > 0 ? (trabalho / total) * 100 : 0;
@@ -58,7 +67,111 @@ export function htmlRecibo({ horasMes = 0, trabalho = 0, grupos = [], total = 0,
           <span>trabalho ${esc(money(trabalho))}</span>
           ${bonus ? `<span>bônus ${esc(money(bonus))}</span>` : ''}
         </div>` : ''}
-      ${pago > 0.004 ? htmlBarraPago({ pago, total, falta }) : ''}
+      ${!ocultarPago && pago > 0.004 ? htmlBarraPago({ pago, total, falta }) : ''}
+    </div>`;
+}
+
+function linhaExtrato({ nome, detalhe = '', valor = 0, sentido = '' }) {
+  const n = +valor || 0;
+  if (Math.abs(n) < 0.005 && !detalhe) return '';
+  const menos = sentido === 'menos' || n < -0.005;
+  const abs = Math.abs(n);
+  const sinal = menos ? '−' : n > 0.005 ? '+' : '';
+  return `
+    <li class="extrato-linha ${menos ? 'menos' : 'mais'}">
+      <span class="extrato-nome">${esc(nome)}${detalhe
+        ? ` <small>${esc(detalhe)}</small>` : ''}</span>
+      <span class="num extrato-valor">${sinal}${esc(money(abs))}</span>
+    </li>`;
+}
+
+/**
+ * Conta do saldo: o que veio do mês anterior + trabalho + cada bônus
+ * − cada pagamento = disponível. É isso que sobe quando lança bônus
+ * e desce quando paga.
+ */
+export function htmlExtratoSaldo({
+  mesNome = '',
+  mesAntNome = '',
+  saldoAnterior = 0,
+  partes = [],
+  trabalho = 0,
+  horasMes = 0,
+  bonusEntries = [],
+  pagamentos = [],
+  saldo = 0,
+  titulo = 'Como chegou no disponível',
+} = {}) {
+  const linhas = [];
+  if (Math.abs(saldoAnterior) > 0.5) {
+    linhas.push(linhaExtrato({
+      nome: saldoAnterior < 0 ? `Crédito de ${mesAntNome}` : `Saldo de ${mesAntNome}`,
+      detalhe: 'já puxa do mês anterior',
+      valor: saldoAnterior,
+    }));
+  }
+
+  const linhasPartes = (partes || []).filter((p) => (p.valor || 0) > 0.004 || (p.horas || 0) > 0.001);
+  if (linhasPartes.length > 1) {
+    for (const p of linhasPartes) {
+      const qtd = p.qtd > 1 ? `${p.qtd}×` : '';
+      linhas.push(linhaExtrato({
+        nome: p.nome,
+        detalhe: [p.horas > 0.001 ? horas(p.horas) : '', qtd].filter(Boolean).join(' · '),
+        valor: p.valor,
+      }));
+    }
+  } else if (trabalho > 0.004 || horasMes > 0.001) {
+    linhas.push(linhaExtrato({
+      nome: linhasPartes[0]?.nome || 'Trabalho',
+      detalhe: horasMes > 0.001 ? horas(horasMes) : '',
+      valor: trabalho,
+    }));
+  }
+
+  const bons = [...(bonusEntries || [])].sort((a, b) =>
+    String(a.bonus_on || a.created_at || '').localeCompare(String(b.bonus_on || b.created_at || '')));
+  for (const e of bons) {
+    linhas.push(linhaExtrato({
+      nome: e.title || 'Bônus',
+      detalhe: [e.bonus_on ? dataBR(e.bonus_on) : null, origemBonus(e), e.note]
+        .filter(Boolean).join(' · '),
+      valor: +e.amount || 0,
+    }));
+  }
+
+  const pags = [...(pagamentos || [])].sort((a, b) =>
+    String(a.paid_on || '').localeCompare(String(b.paid_on || '')));
+  for (const pg of pags) {
+    linhas.push(linhaExtrato({
+      nome: pg.title || 'Pagamento',
+      detalhe: pg.paid_on ? dataBR(pg.paid_on) : '',
+      valor: -(+pg.amount || 0),
+      sentido: 'menos',
+    }));
+  }
+
+  if (!linhas.length) {
+    return `
+      <div class="extrato-saldo">
+        <p class="extrato-titulo">${esc(titulo)}</p>
+        <p class="apagado" style="margin:0">Ainda não entrou trabalho, bônus nem pagamento em ${esc(mesNome || 'neste mês')}.</p>
+      </div>`;
+  }
+
+  const credito = saldo < -0.5;
+  const rotuloFim = credito ? 'Crédito' : (saldo > 0.5 ? 'Disponível' : 'Em dia');
+  const valorFim = credito ? -saldo : Math.max(0, saldo);
+
+  return `
+    <div class="extrato-saldo">
+      <p class="extrato-titulo">${esc(titulo)}</p>
+      <ul class="extrato-linhas">${linhas.join('')}</ul>
+      <div class="extrato-pe">
+        <span>${esc(rotuloFim)}</span>
+        <span class="num">${esc(money(valorFim))}</span>
+      </div>
+      <p class="extrato-nota">Bônus (na mão ou automático) soma aqui. Cada pagamento abate esse valor.</p>
     </div>`;
 }
 
@@ -271,22 +384,22 @@ export function htmlGradeMetricas({
 export function htmlDetalheBonus(entries = []) {
   if (!entries.length) return '';
   return `
-    <details class="recibo-detalhe">
-      <summary>Ver cada lançamento (${entries.length})</summary>
-      <div class="lista" style="margin-top:10px">${entries.map((e) => `
+    <div class="recibo-detalhe">
+      <p class="extrato-titulo" style="margin-top:14px">Cada bônus</p>
+      <div class="lista">${entries.map((e) => `
         <div class="item">
           <div class="item-corpo">
             <div class="item-titulo">${esc(e.title)}</div>
             <div class="item-sub">${[
               e.bonus_on ? dataBR(e.bonus_on) : null,
+              origemBonus(e),
               e.note,
-              e.source === 'auto' ? 'automático' : e.source === 'import' ? 'importado' : null,
             ].filter(Boolean).join(' · ')}</div>
           </div>
           <div class="num" style="font-weight:600;color:var(--salvia-alt)">${esc(money(e.amount))}</div>
         </div>`).join('')}
       </div>
-    </details>`;
+    </div>`;
 }
 
 export function fatiasPorPessoa(linhas) {
