@@ -288,3 +288,106 @@ def test_acento_sai_correto_na_imagem_mesmo_com_console_limitado(settings_offlin
     analise = vision.heuristic_analysis(m.results[0].output)
     lido = " ".join(b.text for b in analise.text_blocks).upper()
     assert "GRÁTIS" in lido or "GRATIS" in lido, f"não achei o texto novo em {lido!r}"
+
+
+# --------------------------------------------------------------------------- #
+# Refazer com IA
+# --------------------------------------------------------------------------- #
+def test_refazer_regiao_preserva_o_resto(settings_offline, tmp_path, monkeypatch):
+    """O ponto do escopo 'regiao': a IA redesenha o botão, o resto fica idêntico.
+
+    Sem chave aqui, então a chamada à API é substituída por uma imagem toda
+    vermelha. Se a composição protegida estiver certa, só a região pedida fica
+    vermelha e o resto continua byte a byte igual ao original.
+    """
+    from s7editor import aigen, pipeline
+    from s7editor.models import Box, EditOp, Engine, OpKind
+
+    origem = tmp_path / "e"
+    origem.mkdir()
+    img = Image.new("RGB", (400, 300), (20, 20, 40))
+    caminho = origem / "peca.png"
+    img.save(caminho)
+
+    def _fake_edit(images, prompt, **kw):
+        return [Image.new("RGB", (400, 300), (255, 0, 0))]
+
+    monkeypatch.setattr(aigen, "edit", _fake_edit)
+    monkeypatch.setattr(aigen, "estimate_cost", lambda *a, **k: 0.04)
+    st = replace_settings(settings_offline)
+
+    caixa = {"x": 100, "y": 100, "w": 120, "h": 60}
+    recipe_ops = [EditOp(kind=OpKind.REDO, engine=Engine.AI,
+                         params={"prompt": "botão novo", "escopo": "regiao", "box": caixa})]
+    m = pipeline.run_recipe(
+        pipeline._ad_hoc_recipe("refazer", [caminho], tmp_path / "s", st,
+                                operations=recipe_ops),
+        st, paths=[caminho])
+
+    assert m.ok_count == 1, m.results[0].error
+    saida = np.array(Image.open(m.results[0].output).convert("RGB"))
+    dentro = saida[110:150, 110:200]
+    assert (dentro == [255, 0, 0]).all(), "a região pedida não foi redesenhada"
+
+    fora = saida.copy()
+    b = m.results[0].changed_boxes[0]
+    fora[b.y:b.y1, b.x:b.x1] = 0
+    original = np.array(Image.open(caminho).convert("RGB"))
+    original[b.y:b.y1, b.x:b.x1] = 0
+    assert (fora == original).all(), "mudou pixel fora da região pedida"
+
+
+def replace_settings(st):
+    """Settings com chave fingida: o caminho de IA é exercitado sem rede."""
+    from dataclasses import replace as _replace
+    return _replace(st, openai_api_key="sk-teste", key_source="teste")
+
+
+def test_refazer_sem_prompt_e_erro_claro(settings_offline, tmp_path):
+    from s7editor import pipeline
+    from s7editor.models import EditOp, Engine, OpKind
+
+    origem = tmp_path / "e2"
+    origem.mkdir()
+    caminho = origem / "p.png"
+    Image.new("RGB", (200, 200), (10, 10, 10)).save(caminho)
+
+    st = replace_settings(settings_offline)
+    m = pipeline.run_recipe(
+        pipeline._ad_hoc_recipe("x", [caminho], tmp_path / "s2", st,
+                                operations=[EditOp(kind=OpKind.REDO, engine=Engine.AI,
+                                                   params={"prompt": ""})]),
+        st, paths=[caminho])
+    assert m.fail_count == 1
+    assert "prompt" in m.results[0].error.lower()
+
+
+def test_find_container_acha_o_botao():
+    """O motor precisa enxergar o botão, senão apaga a peça inteira em volta."""
+    from PIL import ImageDraw
+
+    from s7editor.textedit import find_container
+
+    img = Image.new("RGB", (600, 240), (10, 6, 20))
+    d = ImageDraw.Draw(img)
+    d.rounded_rectangle([120, 70, 480, 170], radius=24, fill=(130, 40, 210))
+    d.text((200, 105), "ASSINE AGORA", fill=(255, 255, 255))
+
+    cont, fill = find_container(img, Box(200, 100, 180, 20))
+    assert cont is not None, "não achou o botão"
+    # tolerância de alguns px por causa da borda arredondada
+    assert abs(cont.x - 120) <= 12 and abs(cont.y - 70) <= 12
+    assert abs(cont.x1 - 480) <= 12 and abs(cont.y1 - 170) <= 12
+    assert fill is not None and fill[0] > 90 and fill[2] > 150
+
+
+def test_find_container_devolve_none_sem_botao():
+    """Texto solto sobre o fundo não tem contêiner — e forçar um seria pior."""
+    from PIL import ImageDraw
+
+    from s7editor.textedit import find_container
+
+    img = Image.new("RGB", (600, 240), (12, 12, 18))
+    ImageDraw.Draw(img).text((200, 110), "SEM BOTAO", fill=(255, 255, 255))
+    cont, _ = find_container(img, Box(200, 105, 120, 20))
+    assert cont is None or cont.area < 0.55 * 600 * 240

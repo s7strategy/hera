@@ -927,6 +927,44 @@ def cmd_trocar_texto(args: argparse.Namespace, settings: Any) -> int:
     return _finish(manifesto, saida)
 
 
+def cmd_refazer(args: argparse.Namespace, settings: Any) -> int:
+    """Refaz as peças com IA a partir de um prompt."""
+    pasta = _folder_or_die(args.pasta, settings)
+    paths = _images_or_die(pasta, recursive=bool(getattr(args, "recursive", False)),
+                           limite=getattr(args, "limite", None))
+    if not settings.openai_api_key:
+        raise UsageError(
+            "Refazer com IA precisa da chave da OpenAI, e não achei nenhuma.\n"
+            f"  Rode '{PROG} doctor' para ver onde colocá-la.\n"
+            "  Sem chave, a troca de texto continua funcionando: "
+            f"{PROG} trocar-texto ...")
+
+    escopo = str(getattr(args, "escopo", "regiao"))
+    saida = _default_out(settings, "refeitas", pasta, getattr(args, "out", None))
+    onde = "a peça inteira" if escopo == "tudo" else f"só a região ({args.papel})"
+    print(f"Refazendo {len(paths)} imagem(ns) com IA — {bold(onde)}.")
+    if escopo == "tudo":
+        print(yellow("  Atenção: a peça inteira será redesenhada. Fotos, logos e "
+                     "textos secundários vão mudar."))
+    else:
+        print(dim("  Fora da região, os pixels continuam idênticos aos do original."))
+
+    if getattr(args, "dry_run", False):
+        print(yellow(f"--dry-run: nada foi escrito. Saída iria para {saida}"))
+        return EXIT_OK
+
+    _guard_out_dir(saida, bool(getattr(args, "force", False)))
+    bar = Progress("refazendo", total=len(paths))
+    try:
+        manifesto = _pipeline().run_redo_batch(
+            paths, args.prompt, settings, saida, escopo=escopo,
+            role=getattr(args, "papel", "cta"), progress=bar,
+            force=bool(getattr(args, "force", False)))
+    finally:
+        bar.close()
+    return _finish(manifesto, saida)
+
+
 # --------------------------------------------------------------------------- #
 # ui
 # --------------------------------------------------------------------------- #
@@ -1079,6 +1117,23 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--limite", "--limit", type=int, default=None, metavar="N",
                    help="processa só as N primeiras (use --limite 1 para provar antes do lote)")
     s.set_defaults(func=cmd_trocar_texto)
+    s = sub.add_parser("refazer", parents=[g],
+                       help="refaz as peças com IA a partir de um prompt",
+                       description="Refaz o criativo com IA. Por padrão mexe só na região "
+                                   "pedida (o CTA), mantendo o resto da imagem intacto.")
+    s.add_argument("pasta", help="pasta com os criativos")
+    s.add_argument("--prompt", "-p", required=True,
+                   help='o que fazer, em português. Ex.: "troque o botão por um CTA '
+                        'TESTE GRÁTIS no mesmo estilo visual"')
+    s.add_argument("--escopo", choices=["regiao", "tudo"], default="regiao",
+                   help="regiao (padrão) refaz só o bloco; tudo redesenha a peça inteira")
+    s.add_argument("--papel", "--role", dest="papel", default="cta",
+                   help="qual bloco refazer quando escopo=regiao (padrão: cta)")
+    s.add_argument("--recursive", "-r", action="store_true", help="inclui subpastas")
+    s.add_argument("--limite", "--limit", type=int, default=None, metavar="N",
+                   help="processa só as N primeiras")
+    s.set_defaults(func=cmd_refazer)
+
 
     s = sub.add_parser("ui", parents=[g], help="sobe a interface web",
                        description="Interface web local para arrastar as imagens e editar.")

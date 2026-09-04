@@ -372,6 +372,7 @@ class OpKind(str, Enum):
     OVERLAY = "overlay"                   # logo/selo PNG
     RESIZE = "resize"
     EXPORT = "export"
+    REDO = "refazer"
 
 
 class Engine(str, Enum):

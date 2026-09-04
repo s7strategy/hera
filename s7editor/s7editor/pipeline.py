@@ -46,7 +46,7 @@ from pathlib import Path
 from typing import Any, Callable, Sequence
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 
 from . import aigen as _aigen
 from . import imageio_util as _io
@@ -90,16 +90,17 @@ _LOSSLESS_FORMATS = frozenset({"PNG", "TIFF", "BMP"})
 _CONFINED_OPS = frozenset({
     OpKind.REPLACE_TEXT, OpKind.REMOVE_TEXT, OpKind.ADD_TEXT,
     OpKind.REPLACE_COLOR, OpKind.REPLACE_REGION, OpKind.REMOVE_OBJECT,
-    OpKind.OVERLAY,
+    OpKind.OVERLAY, OpKind.REDO,
 })
 
 #: Operações que mudam a geometria: a comparação byte a byte deixa de existir.
 _GEOMETRY_OPS = frozenset({OpKind.REFRAME, OpKind.RESIZE})
 
 #: Operações que precisam saber onde está o texto quando não vem 'box'.
-_NEEDS_ANALYSIS = frozenset({OpKind.REPLACE_TEXT, OpKind.REMOVE_TEXT, OpKind.REMOVE_OBJECT})
+_NEEDS_ANALYSIS = frozenset({OpKind.REPLACE_TEXT, OpKind.REMOVE_TEXT,
+                             OpKind.REMOVE_OBJECT, OpKind.REDO})
 
-_AI_ONLY = frozenset({OpKind.REPLACE_REGION})
+_AI_ONLY = frozenset({OpKind.REPLACE_REGION, OpKind.REDO})
 
 
 class PipelineError(RuntimeError):
@@ -590,6 +591,91 @@ def _op_add_text(op: EditOp, ctx: _Ctx) -> None:
     ctx.applied.append("add_text")
 
 
+def _op_redo(op: EditOp, ctx: _Ctx) -> None:
+    """Refaz a peça com IA a partir de um prompt.
+
+    Dois escopos, e a diferença entre eles é o ponto:
+
+    ``escopo="regiao"`` (padrão) manda a peça inteira como referência mas
+    recompõe SÓ a região pedida por cima do original. O botão sai redesenhado
+    de verdade — degradê, brilho, o que o prompt pedir — e o resto continua
+    byte a byte igual: a foto, o print da interface, o logo.
+
+    ``escopo="tudo"`` deixa o modelo reescrever o quadro inteiro. É o que um
+    chat faz quando se pede "refaça esta imagem": sai uma peça NOVA, parecida.
+    Fotos e textos secundários mudam. Existe porque às vezes é o que se quer,
+    mas o aviso vai no resultado.
+    """
+    prompt = str(op.params.get("prompt") or "").strip()
+    if not prompt:
+        raise PipelineError("refazer precisa de 'prompt' dizendo o que fazer.")
+
+    escopo = str(op.params.get("escopo") or "regiao").strip().lower()
+    original = ctx.img
+    w, h = original.size
+
+    alvo: Box | None = None
+    if escopo not in ("tudo", "all", "peca", "peça", "imagem"):
+        alvo = _box_from_params(op.params, original)
+        if alvo is None:
+            bloco = _find_block(op, ctx)
+            if bloco is None:
+                analise = ctx.analysis()
+                if analise is not None:
+                    bloco = _vision.find_text_block(analise, role="cta")
+            if bloco is not None:
+                cont, _cor = _textedit.find_container(original, bloco.box)
+                alvo = cont or bloco.box
+        if alvo is None:
+            raise PipelineError(
+                "não achei a região para refazer.\n"
+                "  Passe 'box', 'role' (ex.: cta), ou use escopo: tudo."
+            )
+        alvo = alvo.pad(max(8, int(0.06 * max(alvo.w, alvo.h))), w, h)
+
+    instrucao = prompt
+    mask = None
+    if alvo is not None:
+        instrucao = (
+            f"{prompt}\n\n"
+            "Mantenha EXATAMENTE o mesmo enquadramento, dimensões, paleta, "
+            "tipografia e identidade visual da imagem enviada. Altere apenas a "
+            "área indicada pela máscara. Não redesenhe fotos, logos nem o resto "
+            "do layout."
+        )
+        # Transparente = área que a API pode reescrever.
+        mask = Image.new("RGBA", (w, h), (0, 0, 0, 255))
+        ImageDraw.Draw(mask).rectangle(alvo.xyxy, fill=(0, 0, 0, 0))
+
+    saidas = _aigen.edit(original, instrucao, mask=mask, settings=ctx.settings,
+                         size="auto", n=1, input_fidelity="high")
+    if not saidas:
+        raise PipelineError("a IA não devolveu imagem.")
+    nova = saidas[0]
+    if nova.size != (w, h):
+        nova = nova.resize((w, h), Image.Resampling.LANCZOS)
+
+    if alvo is not None:
+        # Composição protegida: fora da região, os pixels do ORIGINAL.
+        permitido = _protect.build_mask((w, h), [alvo], feather=0)
+        ctx.img = _protect.protected_composite(original, nova, permitido)
+        ctx.changed.append(alvo)
+        ctx.applied.append(f"refazer (região) -> {prompt[:40]!r}")
+    else:
+        ctx.img = nova
+        ctx.geometry_changed = True
+        ctx.warn("escopo 'tudo': a peça inteira foi redesenhada pela IA. Fotos, "
+                 "logos e textos secundários podem ter mudado — confira antes de publicar.")
+        ctx.applied.append(f"refazer (peça inteira) -> {prompt[:40]!r}")
+
+    ctx.engines.add("ai")
+    try:
+        ctx.cost += _aigen.estimate_cost(ctx.settings.image_model, "auto",
+                                         ctx.settings.quality, 1)
+    except Exception:  # noqa: BLE001 - custo é informativo, não pode derrubar o lote
+        pass
+
+
 def _op_replace_color(op: EditOp, ctx: _Ctx) -> None:
     """Troca uma cor por outra dentro da caixa (ou na imagem toda).
 
@@ -872,6 +958,8 @@ def _apply_op(op: EditOp, ctx: _Ctx) -> None:
         _op_remove_text(op, ctx)
     elif kind is OpKind.ADD_TEXT:
         _op_add_text(op, ctx)
+    elif kind is OpKind.REDO:
+        _op_redo(op, ctx)
     elif kind is OpKind.REPLACE_COLOR:
         _op_replace_color(op, ctx)
     elif kind is OpKind.REPLACE_REGION:
@@ -1486,6 +1574,27 @@ def run_reframe_batch(paths: Sequence[Any], target: Any, settings: Settings | No
         reframe_fill=kw.pop("fill", "blur"), reframe_prompt=kw.pop("prompt", None),
         long_edge=_opt_int(kw.pop("long_edge", None)),
     )
+    return run_recipe(recipe, settings, progress=progress, paths=items,
+                      force=kw.pop("force", None))
+
+
+def run_redo_batch(paths: Sequence[Any], prompt: str, settings: Settings | None = None,
+                   out_dir: Any = None, *, escopo: str = "regiao", role: Any = "cta",
+                   box: Any = None,
+                   progress: Callable[[int, int, str], None] | None = None,
+                   **kw: Any) -> JobManifest:
+    """Refaz N peças com IA a partir do mesmo prompt."""
+    settings = settings or load_settings()
+    items = [Path(p) for p in paths]
+    out = Path(out_dir) if out_dir else Path(settings.outbox) / "refeitas"
+    params: dict[str, Any] = {"prompt": str(prompt), "escopo": str(escopo)}
+    if box is not None:
+        params["box"] = box
+    elif role:
+        params["role"] = role.value if isinstance(role, TextRole) else str(role)
+    recipe = _ad_hoc_recipe("refazer com IA", items, out, settings,
+                            operations=[EditOp(kind=OpKind.REDO, params=params,
+                                               engine=Engine.AI)])
     return run_recipe(recipe, settings, progress=progress, paths=items,
                       force=kw.pop("force", None))
 

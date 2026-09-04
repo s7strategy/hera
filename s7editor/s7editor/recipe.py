@@ -179,6 +179,14 @@ _OP_SPEC: dict[str, dict[str, Any]] = {
         "known": {"find", "role", "box", "replace", "match", "style",
                   "autofit", "max_lines", "grow_box", "senao_adicionar"},
     },
+    "refazer": {
+        "aliases": {"instrucao": "prompt", "instrução": "prompt", "texto": "prompt",
+                    "papel": "role", "caixa": "box", "scope_mode": "escopo",
+                    "modo": "escopo", "region": "escopo"},
+        "requires": ["prompt"],
+        "requires_any": [],
+        "known": {"prompt", "escopo", "box", "role"},
+    },
     "remove_text": {
         "aliases": {
             "search": "find", "procurar": "find", "texto": "find",

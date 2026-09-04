@@ -75,6 +75,14 @@
         padrão, com variações de copy.</span>
       <span class="tag ia">usa IA</span>
     </button>
+  
+    <button class="cartao-acao" data-acao="refazer" type="button">
+      <span class="chip-ia">USA IA</span>
+      <span class="cartao-icone">✦</span>
+      <h3>Refazer com IA</h3>
+      <p>Você escreve o que quer em português. Por padrão mexe <b>só no botão</b>
+         e o resto da peça fica idêntico.</p>
+    </button>
   </div>
 
   <!-- formulário: trocar texto -->
@@ -149,6 +157,25 @@
       </label>
     </div>
     <p class="nota" id="vr-nota"></p>
+  </div>
+
+  <div class="grade-form oculto" id="form-refazer">
+    <label class="col-inteira">
+      <span>O que você quer que mude</span>
+      <textarea id="rf-prompt" rows="3" placeholder="Ex.: troque o botão por um CTA escrito TESTE GRÁTIS, no mesmo estilo visual da peça — mesmo roxo, mesmo brilho, mesma fonte."></textarea>
+    </label>
+    <label>
+      <span>Onde mexer</span>
+      <select id="rf-escopo">
+        <option value="regiao" selected>só o botão (resto fica idêntico)</option>
+        <option value="tudo">a peça inteira (redesenha tudo)</option>
+      </select>
+    </label>
+    <label>
+      <span>Qual bloco</span>
+      <select id="rf-papel"></select>
+    </label>
+    <p class="dica col-inteira" id="rf-dica"></p>
   </div>
 
   <div class="rodape-acao">

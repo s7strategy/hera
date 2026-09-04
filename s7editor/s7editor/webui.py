@@ -82,7 +82,7 @@ MAX_JOBS_KEPT: int = _env_int("S7_WEB_MAX_JOBS", 60)
 _CHUNK = 1 << 20  # 1 MiB por leitura no upload
 
 # Nomes de ação aceitos em POST /api/job.
-ACTIONS: tuple[str, ...] = ("trocar-texto", "formato", "variacoes")
+ACTIONS: tuple[str, ...] = ("trocar-texto", "formato", "variacoes", "refazer")
 
 # O que a rota de preview pode devolver (o resto é 404 mesmo existindo em disco).
 _PREVIEW_EXT: frozenset[str] = frozenset(SUPPORTED_EXT) | {".html", ".json", ".zip"}
@@ -341,6 +341,16 @@ def _validate(action: str, params: dict[str, Any]) -> dict[str, Any]:
         return {"find": achar, "replace": novo, "role": papel, "box": caixa,
                 "senao_adicionar": senao}
 
+    if action == "refazer":
+        prompt = str(p.get("prompt") or "").strip()
+        if not prompt:
+            raise HTTPException(400, "escreva o que você quer que mude na peça.")
+        escopo = str(p.get("escopo") or "regiao").strip().lower()
+        if escopo not in ("regiao", "tudo"):
+            raise HTTPException(400, "escopo inválido: use 'regiao' ou 'tudo'.")
+        papel = str(p.get("role") or "cta").strip().lower() or "cta"
+        return {"prompt": prompt, "escopo": escopo, "role": papel}
+
     if action == "formato":
         alvo = str(p.get("target") or "").strip()
         if not alvo:
@@ -466,6 +476,11 @@ def _run_job(job: JobRecord, store: JobStore, settings: Settings,
                     paths, p["target"], settings, out_dir,
                     mode=p.get("mode", "pad"), progress=progresso,
                     long_edge=p.get("long_edge", 1440))
+            elif acao == "refazer":
+                manifesto = pipeline.run_redo_batch(
+                    paths, p["prompt"], settings, out_dir,
+                    escopo=p.get("escopo", "regiao"), role=p.get("role", "cta"),
+                    progress=progresso)
             elif acao == "variacoes":
                 manifesto = pipeline.run_variations_batch(
                     paths, p["n"], settings, out_dir,

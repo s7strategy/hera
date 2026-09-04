@@ -251,7 +251,7 @@
       Array.prototype.forEach.call(botoesAcao, function (o) {
         o.classList.toggle("sel", o === b);
       });
-      ["trocar-texto", "formato", "variacoes"].forEach(function (a) {
+      ["trocar-texto", "formato", "variacoes", "refazer"].forEach(function (a) {
         mostrar($("form-" + a), a === estado.acao);
       });
       atualizaBotao();
@@ -285,6 +285,13 @@
         target: $("fm-target").value.trim(),
         mode: $("fm-mode").value,
         long_edge: parseInt($("fm-longedge").value, 10) || 1440
+      };
+    }
+    if (estado.acao === "refazer") {
+      return {
+        prompt: $("rf-prompt").value.trim(),
+        escopo: $("rf-escopo").value,
+        role: $("rf-papel").value
       };
     }
     return {

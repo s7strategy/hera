@@ -1391,6 +1391,91 @@ def _confine(base: Image.Image, drawn: Image.Image, box: Box) -> Image.Image:
     return out
 
 
+def find_container(img: Image.Image, box: Box, *, tol: float = 26.0
+                   ) -> tuple[Box | None, tuple[int, int, int] | None]:
+    """Acha o botão/pastilha que envolve o texto, se houver.
+
+    Por que isto existe: um CTA quase nunca é texto solto sobre o fundo da peça
+    — ele mora dentro de um retângulo colorido. Tratando só a caixa do texto,
+    duas coisas dão errado e as duas apareceram em produção: a reconstrução do
+    fundo amostra a borda da caixa, que pode cair FORA do botão e trazer a cor
+    da página (o botão some), e o texto novo é diagramado no espaço do texto
+    antigo, então uma copy mais longa estoura ou é encolhida sem necessidade,
+    quando havia botão de sobra.
+
+    Sabendo o contêiner, apagamos por dentro dele e recentralizamos o texto na
+    largura toda — que é como o designer faria.
+
+    A varredura sai do centro do texto para os quatro lados e para quando a cor
+    deixa de casar com o preenchimento local. Um degradê suave (o caso do botão
+    roxo) continua casando, porque comparamos com a cor do vizinho imediato e
+    não com um valor fixo.
+
+    Devolve ``(caixa_do_contêiner, cor_de_preenchimento)`` ou ``(None, None)``
+    quando o texto está sobre o fundo da peça, sem contêiner.
+    """
+    b = box.clamp(img.width, img.height)
+    if b.area <= 0:
+        return (None, None)
+    arr = np.asarray(img.convert("RGB"), dtype=np.int16)
+    h, w = arr.shape[:2]
+
+    # Cor de preenchimento: mediana da moldura logo em volta do texto, que está
+    # dentro do botão e livre de glifo.
+    anel = b.pad(max(3, int(0.10 * b.h)), w, h)
+    recorte = arr[anel.y:anel.y1, anel.x:anel.x1].reshape(-1, 3)
+    if recorte.size == 0:
+        return (None, None)
+    fill = np.median(recorte, axis=0)
+
+    def casa(px: np.ndarray) -> bool:
+        return bool(np.sqrt(float(np.sum((px.astype(np.float64) - fill) ** 2))) <= tol)
+
+    # A varredura horizontal NÃO pode passar pela linha do texto: ela bateria
+    # nos glifos, que não casam com o preenchimento, e o botão seria cortado na
+    # primeira letra. Usamos uma linha logo acima (ou abaixo) do texto, ainda
+    # dentro do botão e livre de tinta.
+    folga = max(2, int(0.22 * b.h))
+    cy = int(np.clip(b.y - folga, 0, h - 1))
+    if not casa(arr[cy, int(np.clip(b.x + b.w // 2, 0, w - 1))]):
+        cy = int(np.clip(b.y1 + folga, 0, h - 1))
+    if not casa(arr[cy, int(np.clip(b.x + b.w // 2, 0, w - 1))]):
+        cy = int(np.clip(b.y + b.h // 2, 0, h - 1))   # sem folga: volta ao centro
+    cx = int(np.clip(b.x + b.w // 2, 0, w - 1))
+
+    def anda(inicio: int, passo: int, limite: int, eixo: str) -> int:
+        pos = inicio
+        falhas = 0
+        while 0 <= pos + passo < limite:
+            prox = pos + passo
+            px = arr[cy, prox] if eixo == "x" else arr[prox, cx]
+            if casa(px):
+                falhas = 0
+                pos = prox
+            else:
+                # Tolera a borda clara do botão (1-4 px) antes de desistir.
+                falhas += 1
+                if falhas > 4:
+                    break
+                pos = prox
+        return pos - passo * min(falhas, 4)
+
+    x0 = anda(b.x, -1, w, "x")
+    x1 = anda(b.x1 - 1, +1, w, "x")
+    y0 = anda(b.y, -1, h, "y")
+    y1 = anda(b.y1 - 1, +1, h, "y")
+
+    cont = Box.from_xyxy(x0, y0, x1 + 1, y1 + 1).clamp(w, h)
+    # Só vale como contêiner se for maior que o texto e não a peça inteira.
+    if cont.w < b.w + 8 and cont.h < b.h + 8:
+        return (None, None)
+    if cont.w >= 0.97 * w and cont.h >= 0.97 * h:
+        return (None, None)
+    if cont.area > 0.55 * w * h:
+        return (None, None)
+    return (cont, tuple(int(v) for v in fill))
+
+
 def replace_text(img: Image.Image, block: TextBlock, new_text: str, *,
                  settings: Any = None, style_override: Any = None,
                  autofit: bool = True, feather: int = 1,
@@ -1426,8 +1511,24 @@ def replace_text(img: Image.Image, block: TextBlock, new_text: str, *,
     text = str(new_text if new_text is not None else "")
 
     fw_before = _fonts.font_warnings()
+
+    # Se o texto vive dentro de um botão, é o botão que manda na diagramação:
+    # apagamos dentro dele e recentralizamos o texto novo na largura toda.
+    container, fill = find_container(img, box)
+    if container is not None:
+        margem_x = max(8, int(round(0.06 * container.w)))
+        margem_y = max(4, int(round(0.14 * container.h)))
+        layout = Box(container.x + margem_x, container.y + margem_y,
+                     max(1, container.w - 2 * margem_x),
+                     max(1, container.h - 2 * margem_y)).clamp(img.width, img.height)
+        # A caixa a apagar cobre a linha inteira dentro do botão, não só onde a
+        # detecção viu tinta — senão sobra pedaço do texto antigo nas pontas.
+        box = Box(layout.x, min(box.y, layout.y),
+                  layout.w, max(box.h, layout.h)).clamp(img.width, img.height)
+        rep["container"] = container.to_dict()
+
     forced_kind: BackgroundKind | str | None = None
-    if block.on_solid_background:
+    if block.on_solid_background or container is not None:
         forced_kind = BackgroundKind.SOLID
     model = _inpaint.analyze_region(img, box, kind=forced_kind)
 
