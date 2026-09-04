@@ -1,629 +1,401 @@
-# Açaí na Praia da Ferrugem — franquia D'gusta ou marca própria?
+# Açaí na Praia da Ferrugem — franquia Degusta ou marca própria?
 
-**Estudo de viabilidade · Garopaba / SC · setembro de 2026**
-Ponto avaliado: rua principal da Ferrugem (Rua Geral / Av. Central), ~2 quadras da praia.
-
----
-
-## 0. O veredito, em uma página
-
-**Não assine a franquia. Abra marca própria, com o formato self-service por peso, loja bonita, sob o guarda-chuva da HERA, e operando por temporada.**
-
-Três razões, em ordem de peso:
-
-1. **A conta não fecha como franquia.** No cenário base a franquia dá **prejuízo de R$ 8 mil/ano**; a marca própria dá **R$ 61 a 107 mil de lucro**. A franquia só ganha se a marca D'gusta trouxer **+40% de gente** que uma marca sua não traria — e a D'gusta é desconhecida na Ferrugem.
-2. **Você já é dono de tudo que a franquia vende.** Cozinha central montada, marca registrada, tráfego pago próprio, 2 anos de Garopaba por dentro. Você pagaria **~R$ 330 mil em 5 anos** por know-how que já tem.
-3. **A franquia pode inviabilizar a HERA.** Contrato de franquia tem cláusula de raio e de não-concorrência. Assinar D'gusta na rua principal da Ferrugem pode te proibir contratualmente de vender açaí, sorvete ou smoothie na HERA — que é justamente onde você planeja o piloto.
-
-E sobre a dúvida de posicionamento: **sua intuição está certa pela metade.** A marca deve subir de nível. **O formato, não.** Self-service por peso é a máquina de throughput que colhe janeiro. Bowl montado por atendente derruba a fila justamente nos 45 dias que pagam o ano.
-
-> **Elevar a Ferrugem ≠ diminuir a fila.** Elevar é a mesma balança, num salão bonito, com produto melhor e preço 25% maior.
+**Estudo de viabilidade · Garopaba / SC · setembro de 2026 · v2**
+Ponto avaliado: nº **2956**, ~**35 m² fechados + pátio com deck sob pergolado**.
+Negócio autônomo. Sem relação com qualquer outro projeto.
 
 ---
 
-## 1. Os seis números que decidem
+## 0. Correções da v1
 
-| # | Número | Por quê importa |
-|---|--------|-----------------|
-| 1 | **~60% do faturamento em 2,5 meses** (dez–fev) | O inimigo não é o produto. É o custo fixo dos 8 meses mortos. |
-| 2 | **R$ 330 mil** extraídos pela franqueadora em 5 anos | 15,5% do faturamento do período — a margem líquida inteira de uma loja mediana. |
-| 3 | **+40%** de fluxo extra que a franquia precisaria trazer para empatar | Limiar testado. Marca gaúcha desconhecida na Ferrugem não entrega isso. |
-| 4 | **−26,6%** no gasto com alimentação fora do lar no litoral de SC no verão 2026 | Pior momento da série recente para assumir obrigação fixa de 5 anos. |
-| 5 | **R$ 3.750/mês** (89 m², 150 m do mar — anúncio real na Ferrugem) | Aluguel é a 2ª alavanca mais sensível do modelo. Acima de R$ 8 mil/mês na alta, a franquia perde em qualquer cenário. |
-| 6 | **16 meses** de payback da melhor rota vs **nunca** da franquia | A diferença entre um ativo e uma dívida de 5 anos. |
+Esta versão corrige três erros da anterior:
 
----
-
-## 2. O terreno: Ferrugem e Garopaba em números
-
-### 2.1 A praça
-
-| Indicador | Valor | Fonte |
-|---|---|---|
-| População de Garopaba (Censo 2022) | 29.959 hab. | IBGE |
-| População estimada | ~34 mil hab. | IBGE |
-| PIB municipal | ~R$ 773,1 mi | IBGE / Meu Município |
-| PIB per capita (2023) | R$ 33.556 | IBGE |
-| Peso dos serviços no valor adicionado | 64,8% | IBGE |
-| Turistas no verão | até **150 mil** | Ministério do Turismo / imprensa regional |
-| Classificação no Mapa do Turismo | **Categoria A** (elite nacional) | Ministério do Turismo |
-| Novas empresas registradas (até abr/2025) | 45 | imprensa local |
-
-Garopaba é uma cidade pequena com um pico turístico desproporcional. A Ferrugem é o bairro que concentra **o maior movimento de turistas, surfistas, bares e vida noturna** da região no verão — e é também o que mais esvazia fora dela. É bairro de veraneio, não bairro de moradia.
-
-### 2.2 A sazonalidade — o fato central deste estudo
-
-| Período | Realidade comercial |
+| Erro na v1 | Corrigido |
 |---|---|
-| **Dez (2ª metade) – fev** | Pico absoluto. Público jovem, nacional e argentino, alta densidade na rua principal. |
-| **Março** | Queda acentuada após o Carnaval. |
-| **Abr – nov** | Baixa longa. Muitos estabelecimentos simplesmente fecham. Junho–novembro é temporada de baleias (Rosa), que traz um público diferente e pequeno. |
+| Tratava o açaí como parte de outro projeto | **Removido.** Este é um negócio independente, avaliado sozinho |
+| Assumia um ponto de 50–70 m² a R$ 6.000/mês | **35 m² fechados + deck**, aluguel a definir — modelado com sensibilidade |
+| Deixava ambígua qual marca era | **Degusta Açaí, de Ijuí/RS** — a do Sul. Confirmado |
 
-Curva de demanda usada no modelo (clientes/dia, ponto bom na rua principal):
+**E a correção mudou os números a favor da franquia.** Ponto menor significa aluguel menor, folha menor e overhead menor — e o custo fixo era justamente o que afundava a franquia na v1. Ela deixou de dar prejuízo e passa a dar **R$ 23 mil/ano de lucro**.
 
-```
-Jan ████████████████████████████████████  170
-Fev █████████████████████████             120
-Dez ███████████████████                    90
-Mar ████████████                           55
-Nov ███████                                35
-Abr ██████                                 30
-Out █████                                  26
-Jul █████                                  22
-Mai ████                                   18
-Set ████                                   18
-Jun ███                                    14
-Ago ███                                    14
-```
-
-**Isso é açaí em cima de sazonalidade de praia fria — penalidade dupla.** Açaí é produto associado a calor. Em Garopaba, junho a agosto é frio e vazio ao mesmo tempo. Não existe "vender açaí no inverno com calda quente" que salve um custo fixo de R$ 14 mil/mês.
-
-### 2.3 O vento contrário de 2026 (Fecomércio SC)
-
-A temporada 2025/2026 no litoral catarinense foi **frustrante**, e isso não é opinião:
-
-| Indicador | 2025 | 2026 | Δ |
-|---|---|---|---|
-| Gasto médio por grupo de visitantes | R$ 9.833 | R$ 8.224 | **−16,4%** |
-| Gasto com **alimentação fora do lar** | R$ 3.563 | R$ 2.614 | **−26,6%** |
-| Empresários que avaliaram o movimento abaixo do esperado | — | **43,8%** | — |
-| Argentinos (primeira quinzena de janeiro) | 22% | 19% | −3 p.p. |
-| Hospedagem em imóvel alugado | — | **40,2%** (líder) | — |
-| Perfil de renda dominante | 2 a 8 salários mínimos | **61,6%** dos visitantes | — |
-
-Duas leituras obrigatórias disso:
-
-- **A queda de 26,6% em alimentação fora do lar é o pior indicador possível para este negócio.** O turista está cozinhando na casa alugada. Açaí de rua é exatamente o consumo de impulso que ele cortou primeiro.
-- **O público dominante é 2 a 8 salários mínimos.** Isso é um contrapeso real ao seu instinto de "chique". Não invalida elevar o padrão — mas invalida elevar o *preço* sem elevar o *volume*.
-
-**Conclusão:** este é um bom momento para investir com estrutura leve e reversível. É um péssimo momento para assinar 5 anos de royalties fixos.
-
-### 2.4 A concorrência que já está lá
-
-| Nome | Onde | Formato |
-|---|---|---|
-| **Açaí Concept** | Garopaba centro | Franquia grande (a maior do mundo no segmento) |
-| **OKA Açaí** | Garopaba | Independente |
-| **Ice Mix Fruits** | Campo Duna, Garopaba | **Fábrica e distribuidora local de açaí** |
-| Gelomel, sorveterias e lanchonetes diversas | Centro / Ferrugem | Açaí como item secundário |
-
-Dois pontos aqui:
-
-1. **Uma franquia grande já ocupou o centro de Garopaba.** Chegar com outra franquia média depois é a pior posição competitiva possível: nem é a marca conhecida, nem é a marca autoral.
-2. **A Ice Mix Fruits é uma descoberta valiosa.** Fábrica e distribuidora de açaí **dentro de Garopaba**. Isso derruba o maior argumento a favor da franquia — a cadeia de suprimento. Você tem fornecedor de açaí a poucos quilômetros do ponto.
-
-### 2.5 O ponto e o aluguel
-
-Referências reais de mercado na Ferrugem:
-
-| Anúncio | Valor | Observação |
-|---|---|---|
-| 89 m², 150 m do mar, Central Ferrugem | **R$ 45.000/ano** (≈ R$ 3.750/mês) | 46,77 m² internos + deck exclusivo de 42 m² |
-| Ponto na Rua do Surfista, equipado | R$ 120.000 | Montado para hamburgueria |
-
-> ⚠️ **A estimativa de R$ 1.500/mês para a Ferrugem que consta no plano da HERA (v1.1) está desatualizada para a rua principal.** O mercado real de um ponto bom com fachada e fluxo está em **R$ 3.750 a 6.000/mês** em contrato anual, e pontos de esquina pedem mais, frequentemente com luvas. Isso precisa ser corrigido nas duas projeções — açaí e HERA.
+A recomendação continua a mesma, mas por razões diferentes e com margem menor. Vale ler o porquê.
 
 ---
 
-## 3. A franquia: o que é, o que custa, o que entrega
+## 1. O veredito
 
-### 3.1 ⚠️ Primeiro: confirme de qual marca estamos falando
+**Marca própria, self-service por peso, com o deck como sala principal.**
 
-Existem **duas marcas diferentes** com nome quase idêntico, e isso muda a análise:
+Mas antes de qualquer conta, existe uma pergunta que pode encerrar a discussão sozinha:
 
-| Marca | Origem | Situação |
-|---|---|---|
-| **Degusta Açaí** | **Ijuí / RS** | Franqueadora ativa, expandindo em SC — inaugurou unidade em **Navegantes/SC** em nov/2024. Buffet self-service a **R$ 5,99/100g**. **Esta é quase certamente a que você viu.** |
-| **D'Gusta Açaí** | Alfenas / Varginha, **MG** | Operação regional mineira, presença no Sul não confirmada. |
+> ### 🚧 Cabe uma Degusta em 35 m²?
+> O cardápio da Degusta é **buffet de açaí e sorvetes, sucos, milk shakes, fondue, chocolate quente, waffles e a Pizza Degusta**.
+>
+> Isso exige: balcão refrigerado de buffet (açaí + sorvete), estação de toppings, bancada de sucos e shakes com liquidificadores, máquina de waffle, estação de fondue, **forno de pizza**, freezers de estoque, pia de higienização exigida pela Vigilância Sanitária, e caixa.
+>
+> **Em 35 m², isso não cabe.** Os dois cenários possíveis são:
+> 1. **O ponto é reprovado** pela franqueadora por metragem — e a discussão acaba aqui.
+> 2. **Você opera uma versão mutilada da rede** — sem pizza, sem waffle, sem fondue — pagando taxa cheia, royalty cheio e insumo cheio por uma marca cujos diferenciais você não pode entregar.
+>
+> **O cenário 2 é pior que o 1.** A metragem mínima não está publicada em nenhuma fonte pública. É a **primeira pergunta** da conversa, antes de investir tempo em qualquer outra coisa.
 
-Também existe a **D'gust Açaíteria**, terceira marca com nome parecido. **Peça o CNPJ da franqueadora antes de qualquer conversa.** Nome parecido em franquia é sinal de marca fraca — se três redes disputam o mesmo nome, o valor do nome é baixo, e valor de nome é exatamente o que você estaria comprando.
-
-### 3.2 Os números da Degusta Açaí (fontes públicas)
-
-| Item | Valor |
-|---|---|
-| Taxa de franquia | **R$ 40.000** |
-| Royalties | Fixos ou variáveis (não divulgado) |
-| Taxa de publicidade | **2% do faturamento** |
-| Faturamento médio divulgado | R$ 90.000/mês |
-| Lucratividade divulgada | 18% a 25% |
-| ROI divulgado | 15 a 20 meses |
-| Prazo de contrato | **5 anos** |
-| Modelo | Buffet self-service de açaí e sorvetes, sucos, milk shakes, fondue, waffles, "Pizza Degusta" |
-| Preço praticado | R$ 5,99 / 100 g |
-
-> **Atenção metodológica:** o site da franqueadora está bloqueado pela política de rede desta sessão, então estes números vêm de portais de franquia terceiros, não da COF. **A COF é o único documento que vale.** Ver seção 10.
-
-### 3.3 O benchmark — a Degusta no meio do pelotão
-
-| Marca | Investimento | Taxa | Royalties | Unidades | Posicionamento |
-|---|---|---|---|---|---|
-| **The Best Açaí** | R$ 290–450 mil | R$ 70 mil | **R$ 1.160 fixo** | **+1.100** | Self-service popular, líder |
-| **Açaí Concept** | R$ 90–220 mil | — | R$ 1,5–2,5 mil fixo | Global, 10 países | Popular/médio |
-| **Oakberry** | a partir de R$ 170 mil | R$ 50 mil | **6% + 2% mkt** | 600+ / 40 países | **Premium global** |
-| **Maria Açaí** | R$ 190–250 mil | — | R$ 1.500 fixo máx. | 70+ | Artesanal · **fábrica própria em Joinville/SC** |
-| **Degusta Açaí** | não divulgado | R$ 40 mil | fixo ou variável | não divulgado | Popular gaúcho |
-
-**Leitura:** a Degusta é a marca com **menos informação pública, menos escala e menos poder de barganha** da lista. Se o argumento para franquear é "compro escala e reputação", a Degusta é justamente a que menos entrega isso. The Best Açaí (1.100 lojas, R$ 80 mi de aporte da Auster Capital, royalty fixo de R$ 1.160) seria uma escolha estruturalmente superior — e ainda assim perde para marca própria neste caso específico, como a seção 5 mostra.
-
-### 3.4 A armadilha do "royalty baixo"
-
-Redes que anunciam **"não cobramos royalties sobre o faturamento"** ganham dinheiro no **markup do insumo obrigatório**. É royalty com outro nome — e pior, porque é invisível e incide sobre o CMV, não sobre o lucro.
-
-Relato público de franqueado de açaí no Reclame Aqui: **R$ 3.000/mês de royalties + R$ 11.000/mês de compras obrigatórias da fábrica**, contra uma expectativa vendida de 10–15% de rentabilidade.
-
-**Pergunta obrigatória na COF:** *qual o preço de tabela de cada insumo obrigatório, e como ele se compara à cotação livre de mercado?* Polpa de açaí no atacado custa **R$ 15–22/kg** (e até R$ 20/kg na categoria premium). Se a franqueadora vender a R$ 26/kg, o "royalty invisível" é maior que o visível.
+Feita essa ressalva, o resto do estudo compara os dois caminhos supondo que a franquia aceitasse o ponto.
 
 ---
 
-## 4. A economia unitária: como o dinheiro entra e sai
+## 2. Os números
 
-### 4.1 Premissas do modelo
+### 2.1 Comparativo dos caminhos
 
-| Parâmetro | Valor | Base |
-|---|---|---|
-| Ticket médio — franquia popular | R$ 25 | R$ 5,99–6,99/100 g × ~350 g + bebida |
-| Ticket médio — marca própria elevada | R$ 32 | +25% de preço, mesmo formato |
-| CMV franquia | 38,5% | insumo da rede com markup |
-| CMV marca própria | 32,5% | compra direta (polpa R$ 15–22/kg) |
-| CMV sob HERA | 30,0% | cozinha central rateia toppings, granola, caldas |
-| Simples Nacional | Anexo I, ~6,5–7,0% efetivo | lanchonete/comércio; Fator R não se aplica |
-| Meios de pagamento | 2,8% | — |
-| Delivery | iFood 12% + 3,2% sobre ~12% da receita | Plano Básico com entrega própria |
-| Salário mínimo 2026 | R$ 1.621 | Decreto 12.797/2025 |
-| Custo do funcionário | ~1,4× o salário no Simples | INSS patronal embutido no DAS |
+| Caminho | CAPEX | Faturamento | Lucro/ano | Margem | Payback | ROI a.a. |
+|---|---|---|---|---|---|---|
+| Franquia Degusta · 12 meses | R$ 195.000 | R$ 410.778 | R$ 7.693 | 1,9% | 304 m | 4% |
+| Franquia Degusta · enxuta na baixa | R$ 195.000 | R$ 410.778 | R$ 23.293 | 5,7% | 100 m | 12% |
+| Marca própria · 12 meses | R$ 155.000 | R$ 438.163 | R$ 76.398 | 17,4% | 24 m | 49% |
+| **Marca própria · hiberna mai–ago** | **R$ 155.000** | R$ 389.376 | **R$ 76.385** | **19,6%** | **24 m** | **49%** |
+| **Marca própria · só temporada nov–mar** | **R$ 132.000** | R$ 336.931 | **R$ 74.450** | **22,1%** | **21 m** | **56%** |
 
-### 4.2 DRE mês a mês — o que o modelo revela
+**Diferença no caso base: R$ 53 mil por ano, a favor da marca própria.** Não é o abismo da v1, mas é o lucro inteiro de um ano de franquia — três vezes.
 
-**Franquia D'gusta — operação padrão, 12 meses:**
+### 2.2 DRE mês a mês — franquia (enxuta na baixa)
 
-| Mês | Receita | CMV | Folha | Aluguel | Royalties | Imposto | **Lucro** |
+| Mês | Clientes | Receita | CMV | Folha | Aluguel | Royalties | **Lucro** |
 |---|---|---|---|---|---|---|---|
-| Jan | 131.750 | −50.724 | −22.000 | −6.000 | −4.635 | −8.571 | **+27.552** |
-| Fev | 84.000 | −32.340 | −22.000 | −6.000 | −3.680 | −5.465 | **+5.171** |
-| Mar | 42.625 | −16.411 | −14.000 | −6.000 | −2.852 | −2.773 | **−6.222** |
-| Abr | 22.500 | −8.662 | −6.500 | −3.800 | −2.450 | −1.464 | **−5.954** |
-| Mai | 13.950 | −5.371 | −6.500 | −3.800 | −2.279 | −908 | **−9.962** |
-| Jun | 10.500 | −4.042 | −6.500 | −3.800 | −2.210 | −683 | **−11.579** |
-| Jul | 17.050 | −6.564 | −6.500 | −3.800 | −2.341 | −1.109 | **−8.509** |
-| Ago | 10.850 | −4.177 | −6.500 | −3.800 | −2.217 | −706 | **−11.415** |
-| Set | 13.500 | −5.198 | −6.500 | −3.800 | −2.270 | −878 | **−10.173** |
-| Out | 20.150 | −7.758 | −6.500 | −3.800 | −2.403 | −1.311 | **−7.056** |
-| Nov | 26.250 | −10.106 | −6.500 | −3.800 | −2.525 | −1.708 | **−4.197** |
-| Dez | 69.750 | −26.854 | −14.000 | −6.000 | −3.395 | −4.538 | **+6.492** |
-| **Ano** | **462.875** | −178.207 | −124.000 | −54.400 | **−33.258** | −30.113 | **−35.849** |
+| Jan | 4.340 | 117.180 | −45.114 | −17.000 | −3.000 | −4.344 | **+30.368** |
+| Fev | 2.800 | 75.600 | −29.106 | −17.000 | −3.000 | −3.512 | **+10.721** |
+| Mar | 1.395 | 37.665 | −14.501 | −10.000 | −3.000 | −2.753 | **−203** |
+| Abr | 720 | 19.440 | −7.484 | −3.400 | −2.200 | −2.389 | **−1.415** |
+| Mai | 465 | 12.555 | −4.834 | −3.400 | −2.200 | −2.251 | **−4.668** |
+| Jun | 330 | 8.910 | −3.430 | −3.400 | −2.200 | −2.178 | **−6.390** |
+| Jul | 558 | 15.066 | −5.800 | −3.400 | −2.200 | −2.301 | **−3.481** |
+| Ago | 341 | 9.207 | −3.545 | −3.400 | −2.200 | −2.184 | **−6.250** |
+| Set | 450 | 12.150 | −4.678 | −3.400 | −2.200 | −2.243 | **−4.859** |
+| Out | 651 | 17.577 | −6.767 | −3.400 | −2.200 | −2.352 | **−2.295** |
+| Nov | 870 | 23.490 | −9.044 | −3.400 | −2.200 | −2.470 | **+499** |
+| Dez | 2.294 | 61.938 | −23.846 | −10.000 | −3.000 | −3.239 | **+11.266** |
+| **Ano** | **15.214** | **410.778** | −158.150 | −81.200 | −29.600 | **−32.216** | **+23.293** |
 
-**Nove meses no vermelho. R$ 75 mil de caixa queimado na baixa temporada — mais que o lucro de janeiro inteiro.**
+**Oito meses no vermelho.** Janeiro e fevereiro produzem R$ 41 mil; os oito meses mortos devolvem R$ 29,5 mil. Sobram R$ 23 mil — **menos que os R$ 32 mil pagos em royalties no mesmo ano.**
 
-E note a linha dos royalties: **R$ 33.258 no ano**, dos quais R$ 22 mil saem nos meses em que a loja dá prejuízo. Royalty fixo não sabe que é junho.
+Essa é a frase que resume a franquia neste ponto: **a franqueadora ganha mais que o franqueado.**
 
-### 4.3 Comparativo de todos os caminhos
+### 2.3 DRE mês a mês — marca própria (hiberna mai–ago)
 
-| Caminho | CAPEX | Lucro/ano | Margem | Payback | ROI a.a. |
-|---|---|---|---|---|---|
-| Franquia D'gusta · 12 meses enxuta | R$ 225.000 | **−R$ 8.249** | −1,8% | **nunca** | −4% |
-| Franquia D'gusta · só temporada | R$ 225.000 | R$ 24.402 | 6,9% | 111 m | 11% |
-| Marca própria elevada · hiberna mai–ago | R$ 235.000 | R$ 60.614 | 13,1% | 47 m | 26% |
-| Marca própria elevada · só temporada | R$ 180.000 | R$ 78.129 | 19,6% | 28 m | 43% |
-| **Marca própria HERA · hiberna mai–ago** | R$ 185.000 | R$ 106.418 | 22,0% | 21 m | 58% |
-| **★ Marca própria HERA · só temporada** | **R$ 140.000** | **R$ 107.744** | **25,8%** | **16 m** | **77%** |
+| Mês | Clientes | Receita | CMV | Folha | Aluguel | **Lucro** |
+|---|---|---|---|---|---|---|
+| Jan | 3.906 | 124.992 | −40.622 | −17.000 | −3.000 | **+43.590** |
+| Fev | 2.520 | 80.640 | −26.208 | −17.000 | −3.000 | **+19.890** |
+| Mar | 1.256 | 40.176 | −13.057 | −11.000 | −3.000 | **+4.268** |
+| Abr | 648 | 20.736 | −6.739 | −4.000 | −2.200 | **+1.680** |
+| Mai–Ago | fechado | 0 | 0 | 0 | −2.200/mês | **−3.320/mês** |
+| Set | 405 | 12.960 | −4.212 | −4.000 | −2.200 | **−2.475** |
+| Out | 586 | 18.749 | −6.093 | −4.000 | −2.200 | **+619** |
+| Nov | 783 | 25.056 | −8.143 | −4.000 | −2.200 | **+3.989** |
+| Dez | 2.065 | 66.067 | −21.472 | −11.000 | −3.000 | **+18.103** |
+| **Ano** | **12.168** | **389.376** | −126.547 | −72.000 | −29.600 | **+76.385** |
 
-### 4.4 Ponto de equilíbrio — quanto fluxo cada modelo exige
+Menos clientes que a franquia (ticket maior, fluxo 10% menor), **menos faturamento — e três vezes mais lucro.**
 
-| Caminho | Precisa de | ≈ clientes/dia em janeiro |
+### 2.4 Ponto de equilíbrio
+
+| Caminho | Precisa de | Clientes/dia em janeiro |
 |---|---|---|
-| Franquia · 12 meses | **116% do fluxo base** | 197 |
-| Franquia · enxuta | 104% | 177 |
-| Marca própria · 12 meses | 77% | 114 |
-| Marca própria · hiberna | 74% | 111 |
-| **Marca própria HERA · hiberna** | **61%** | **95** |
-| **Marca própria HERA · só temporada** | **59%** | **93** |
+| Franquia · 12 meses | 96% do fluxo base | 134 |
+| Franquia · enxuta | 87% | 122 |
+| Marca própria · 12 meses | 66% | 92 |
+| Marca própria · hiberna | 62% | 87 |
+| **Marca própria · só temporada** | **58%** | **81** |
 
-**Esta é a tabela mais importante do estudo.** A franquia precisa de **quase o dobro do fluxo** da melhor alternativa só para empatar. Ela transforma um ponto bom em obrigatório-excepcional.
-
-### 4.5 Sensibilidade ao aluguel
-
-| Aluguel (alta/baixa) | Franquia | Própria | HERA |
-|---|---|---|---|
-| R$ 4.000 / 2.500 | R$ 10.151 | R$ 79.014 | R$ 124.818 |
-| R$ 6.000 / 3.800 | **−R$ 8.249** | R$ 60.614 | R$ 106.418 |
-| R$ 8.000 / 5.000 | −R$ 25.849 | R$ 43.014 | R$ 88.818 |
-| R$ 10.000 / 6.000 | −R$ 41.849 | R$ 27.014 | R$ 72.818 |
-| R$ 14.000 / 8.000 | −R$ 73.849 | −R$ 4.986 | R$ 40.818 |
-
-**Regra de bolso: acima de R$ 8 mil/mês na alta temporada, nenhum modelo de açaí fecha na Ferrugem — nem o melhor deles.** Esse é o teto de aluguel que você pode aceitar.
+A franquia precisa de **50% mais gente** que a marca própria só para empatar.
 
 ---
 
-## 5. O teste adversarial: onde a franquia ganharia?
+## 3. O argumento decisivo: fragilidade
 
-Rodei o modelo tentando **fazer a franquia vencer**. É o teste que dá honestidade à recomendação.
+Este é o ponto mais importante do estudo, e é diferente do da v1.
 
-### 5.1 Se o insumo da franqueadora não tiver markup nenhum
+| Cenário de fluxo | Cli/dia em jan | Franquia | Própria hiberna | Própria temporada |
+|---|---|---|---|---|
+| **Pessimista (−35%)** | 91 | **−R$ 41.834** | **+R$ 6.061** | **+R$ 13.039** |
+| Conservador (−15%) | 119 | −R$ 3.980 | +R$ 46.616 | +R$ 48.131 |
+| Base | 140 | +R$ 23.293 | +R$ 76.385 | +R$ 74.450 |
+| Otimista (+25%) | 175 | +R$ 68.351 | +R$ 124.936 | +R$ 116.970 |
+| No teto do ponto (+79%) | 250 | +R$ 165.279 | +R$ 229.807 | +R$ 207.716 |
 
-| CMV da franquia | Lucro/ano | vs marca própria | Veredito |
+> ### A leitura
+> No cenário ruim — que, dado o que as fotos mostram da rua, **não é improvável** — a franquia queima R$ 42 mil no ano e a marca própria **ainda dá lucro**.
+>
+> Não se trata de qual ganha mais quando dá certo. Trata-se de **qual sobrevive quando dá errado**. A marca própria tem R$ 32 mil/ano de custo fixo a menos e pode fechar a porta de maio a agosto sem pedir licença a ninguém. A franquia paga royalty em junho.
+
+### 3.1 Sensibilidade ao aluguel (ainda a negociar)
+
+| Aluguel alta / baixa | Franquia | Própria hiberna | Própria temporada |
 |---|---|---|---|
-| 30,0% | R$ 31.095 | −R$ 41.609 | própria vence |
-| 34,0% | R$ 12.580 | −R$ 60.124 | própria vence |
-| 38,5% | −R$ 8.249 | −R$ 80.954 | própria vence |
+| R$ 2.000 / 1.500 | +R$ 32.893 | +R$ 85.985 | +R$ 84.050 |
+| R$ 3.000 / 2.200 | +R$ 23.293 | +R$ 76.385 | +R$ 74.450 |
+| R$ 4.000 / 3.000 | +R$ 12.893 | +R$ 65.985 | +R$ 64.050 |
+| **R$ 5.500 / 4.000** | **−R$ 1.107** | +R$ 51.985 | +R$ 50.050 |
+| R$ 7.000 / 5.000 | −R$ 15.107 | +R$ 37.985 | +R$ 36.050 |
 
-**Mesmo com CMV melhor que o da marca própria, a franquia perde.** O custo do sistema não é o insumo — é a estrutura.
+**Regra: acima de R$ 5.500/mês na alta, a franquia não fecha em nenhum cenário.** A marca própria aguenta até cerca de R$ 9 mil. Para 35 m² fechados numa rua de pousadas, qualquer coisa acima de R$ 4.000/mês já é caro — negocie com essa tabela na mão.
 
-### 5.2 Se o royalty for o mais baixo do mercado
+---
+
+## 4. Teste adversarial: onde a franquia venceria?
+
+Rodei o modelo tentando **fazer a franquia ganhar**.
+
+### 4.1 Se o insumo da rede não tivesse markup nenhum
+
+| CMV da franquia | Lucro/ano | Veredito |
+|---|---|---|
+| 30,0% (melhor que o da marca própria) | R$ 58.209 | própria vence |
+| 32,5% (igual ao da marca própria) | R$ 47.940 | própria vence |
+| 38,5% (estimado) | R$ 23.293 | própria vence |
+
+**Mesmo comprando melhor que você, a franquia perde.**
+
+### 4.2 Se o royalty fosse o mais baixo do mercado
 
 | Royalty/mês | Lucro/ano | Veredito |
 |---|---|---|
-| R$ 0 | R$ 15.751 | própria vence |
-| R$ 1.160 (padrão The Best Açaí) | R$ 1.831 | própria vence |
-| R$ 2.000 | −R$ 8.249 | própria vence |
+| R$ 0 | R$ 47.293 | própria vence |
+| R$ 1.160 (padrão The Best Açaí) | R$ 33.373 | própria vence |
+| R$ 2.000 | R$ 23.293 | própria vence |
 
-**Mesmo com royalty zero, a franquia perde**, porque continua presa ao ticket popular e ao CMV da rede.
+**Mesmo de graça, a franquia perde.**
 
-### 5.3 Se a marca trouxer mais gente — o único caminho da franquia
+### 4.3 Se a marca puxasse mais gente — o único caminho dela
 
-| Fluxo extra pela marca | Lucro/ano | Veredito |
-|---|---|---|
-| +20% | R$ 32.369 | própria vence |
-| +30% | R$ 52.678 | própria vence |
-| **+40%** | R$ 72.987 | **empate técnico** |
-| +50% | R$ 93.297 | franquia vence |
-
-> ### 🎯 O limiar
-> **A franquia D'gusta só se paga se puxar 40% mais gente para a porta do que uma marca sua bem feita.**
->
-> Na Ferrugem, o público é turista de RS, SP, PR e Argentina, decidindo na calçada, na hora. Nesse contexto, quem puxa é **a vitrine, o cheiro, a fila e o preço na fachada** — não o logo. Uma marca de Ijuí/RS pode ter algum reconhecimento com o turista gaúcho, o que é um ponto real a favor — mas **+40% é um salto que nenhuma marca média de açaí entrega em praia**.
-
-### 5.4 Isolando o custo puro de ser franqueado
-
-Com o **mesmo ticket** dos dois lados, tirando toda a vantagem de posicionamento da marca própria:
-
-| Ticket | Franquia | Própria | **Diferença** |
+| Fluxo extra pela marca | Cli/dia em jan | Lucro/ano | Veredito |
 |---|---|---|---|
-| R$ 25 | −R$ 8.249 | R$ 43.524 | **R$ 51.772** |
-| R$ 28 | R$ 16.122 | R$ 71.227 | **R$ 55.105** |
-| R$ 32 | R$ 48.617 | R$ 108.165 | **R$ 59.549** |
-| R$ 36 | R$ 81.111 | R$ 145.103 | **R$ 63.992** |
+| +10% | 154 | R$ 41.316 | própria vence |
+| +20% | 168 | R$ 59.340 | própria vence |
+| **+30%** | **182** | **R$ 77.363** | **franquia vence** |
+| +50% | 210 | R$ 113.409 | franquia vence |
 
-**Ser franqueado custa R$ 52 a 64 mil por ano, independentemente de quão bem a loja vai.** É um imposto sobre a operação, não uma participação no risco.
-
-### 5.5 O melhor caso possível da franquia
-
-Empilhando **todas** as premissas favoráveis simultaneamente — royalty de R$ 1.160, CMV competitivo de 33%, +25% de fluxo por reconhecimento de marca, CAPEX menor por projeto pronto, custo zero de criação de marca:
-
-- Franquia (melhor caso): faturamento R$ 601.738 · lucro **R$ 98.863** · payback 24 meses
-- Marca própria (caso base, sem empilhar nada a favor): faturamento R$ 521.382 · lucro **R$ 72.705** · payback 39 meses
-
-**Diferença: R$ 26 mil/ano a favor da franquia — no cenário em que tudo dá certo para ela e nada dá certo a mais para você.** E contra esses R$ 26 mil você entrega: 5 anos de contrato, cláusula de raio, dependência de fornecedor único, e o ativo de marca no fim (que fica com eles).
-
-**Isso não é um trade aceitável.**
-
-### 5.6 O que realmente move o resultado
-
-| Alavanca | Impacto no lucro anual |
-|---|---|
-| Fluxo de clientes +10% | **+R$ 26.004** |
-| Ticket médio +10% | **+R$ 26.004** |
-| Royalty de franquia R$ 2 mil | **−R$ 34.428** |
-| CMV melhora 3 p.p. | +R$ 15.641 |
-| Aluguel +R$ 1.500/mês | −R$ 18.000 |
-| Folha de pico +R$ 5 mil/mês | −R$ 10.000 |
-
-**O royalty é a maior alavanca negativa isolada do negócio — maior que um aumento de aluguel de R$ 1.500/mês.** Você estaria pagando, voluntariamente, o equivalente a um segundo aluguel.
-
----
-
-## 6. ⚠️ O risco que quase ninguém enxerga: a colisão com a HERA
-
-Este é o ponto que, sozinho, deveria encerrar a discussão.
-
-**O plano da HERA coloca a loja-piloto na Praia da Ferrugem.** O ponto de açaí em avaliação está na rua principal da Ferrugem. São o mesmo bairro, provavelmente a mesma rua.
-
-Contratos de franquia contêm rotineiramente:
-
-- **Cláusula de raio / exclusividade territorial** — você não pode operar negócio similar dentro de um raio definido, durante o contrato.
-- **Cláusula de não-concorrência pós-contratual** — a restrição sobrevive ao fim do contrato, tipicamente por 1 a 2 anos, em território delimitado. A jurisprudência brasileira valida essas cláusulas quando têm **território, prazo e área de atuação claramente delimitados**.
-
-**As perguntas que precisam de resposta escrita antes de qualquer assinatura:**
-
-1. O que exatamente conta como "negócio similar"? Açaí? Sorvete? Smoothie? **Sobremesa gelada em geral?**
-2. A HERA, vendendo açaí ou gelato no cardápio, viola o contrato?
-3. O raio cobre a Ferrugem inteira? Garopaba inteira? A região?
-4. A restrição vale para você pessoalmente, para o CNPJ, ou para **sócios e cônjuges**?
-5. Ela sobrevive à rescisão — inclusive se você fechar a loja no ano 2?
-
-> **A ironia:** o próprio plano da HERA impõe ao parceiro a cláusula *"você não pode abrir um lugar parecido sem a gente, em nenhum lugar"*. Você conhece o poder dessa cláusula — porque a escreveu. Assinar a versão espelhada dela, com uma franqueadora, no mesmo bairro do seu piloto, é dar a uma marca de Ijuí poder de veto sobre o cardápio da HERA.
-
-**Isso não é risco teórico.** Um cardápio de empório-café sem açaí, sem gelato e sem smoothie na Praia da Ferrugem é um cardápio mutilado.
-
----
-
-## 7. Roots ou chique? A resposta correta é: as duas coisas, em camadas diferentes
-
-Sua leitura da Ferrugem — *"é bem roots, mas a ideia é começar a evoluir o local com os negócios novos, não o contrário"* — está **estrategicamente certa e taticamente perigosa**. Vale separar as camadas.
-
-### 7.1 O que os dados dizem
-
-**A favor de elevar:**
-- Garopaba entrou na **Categoria A do Mapa do Turismo** — elite nacional.
-- A região do Rosa/Ferrugem concentra **pousadas boutique e hotelaria de alto padrão** em expansão.
-- Açaí premium/gourmet cresce **15% ao ano** em mercados classe A/B; bowls em taça alcançam ticket de **R$ 32–45**.
-- Boom imobiliário em curso no litoral catarinense.
-- O plano da HERA já aposta nisso, e a aposta é boa.
-
-**Contra elevar demais:**
-- O visitante dominante do litoral de SC tem renda de **2 a 8 salários mínimos (61,6%)**.
-- Gasto com alimentação fora do lar **caiu 26,6%** na última temporada.
-- A Ferrugem, especificamente, é a praia **jovem, de surfe, festa e volume** — não é o Rosa.
-- Sua janela de faturamento tem 45 dias úteis de verdade. **Nesses 45 dias, o que importa é vazão.**
-
-### 7.2 A síntese
-
-| Camada | Decisão | Por quê |
-|---|---|---|
-| **Formato operacional** | **Self-service por peso. Sem exceção.** | É a máquina de vazão. O cliente se serve, você não tem gargalo de montagem, o ticket é autosselecionado. Em janeiro isso é a diferença entre 170 e 90 clientes/dia. |
-| **Produto** | **Elevado.** Polpa premium (mais fruta, menos xarope), toppings de verdade, frutas frescas, granola artesanal da cozinha central. | É o que justifica o preço e o que ninguém na Ferrugem está fazendo. |
-| **Preço** | **+20 a 25% acima da média** (R$ 7,49/100 g vs R$ 5,99 da Degusta) | Sustentado pelo produto, não pelo logo. |
-| **Loja** | **Elevada.** Madeira, concreto, luz quente, vegetação, balcão bonito, identidade forte. | É onde a "evolução da Ferrugem" acontece de verdade — e é gratuito em termos de vazão. |
-| **Marca** | **Sua.** | O ativo fica com você. |
-
-> ### A frase que resume
-> **Não venda açaí mais caro. Venda açaí melhor, num lugar bonito, na mesma balança.**
+> ### 🎯 O limiar honesto
+> **A franquia Degusta se paga se puxar +30% mais gente que uma marca sua bem feita.**
 >
-> Bowl montado por atendente é uma decisão que parece premium e é, na prática, uma redução deliberada da sua capacidade de atendimento no único mês que paga o ano. **Premium na Ferrugem é o balcão, não a fila.**
+> Na v1 esse limiar era +40% e eu disse que era inalcançável. **Com o ponto correto, é +30% — e isso cabe dentro do teto físico de 250 clientes/dia.** Ou seja: agora é fisicamente possível.
+>
+> É plausível? A Ferrugem recebe muito turista gaúcho, e Degusta é marca de Ijuí/RS. **Existe algum reconhecimento real ali** — mais do que eu supus na primeira versão. Mas +30% é um número grande para uma rede que não divulga número de unidades, não divulga metragem mínima e disputa o próprio nome com outras duas marcas.
+>
+> **É apostável, não é confiável.** E a diferença entre as duas coisas é justamente o que a tabela de fragilidade da seção 3 mostra.
 
-### 7.3 E a D'gusta "pega bem" na Ferrugem?
+### 4.4 O custo puro de ser franqueado
 
-Honestamente: **não pega mal, mas também não puxa.** É uma marca neutra ali. Buffet self-service a R$ 5,99/100 g funciona com o público jovem da Ferrugem — o formato é certo. Mas:
+Com o **mesmo ticket** dos dois lados:
 
-- Ninguém vai à Ferrugem *procurando* uma Degusta.
-- A marca não carrega prêmio de preço — ao contrário, ancora barato.
-- Ela ocupa o seu ponto com uma identidade que **não conversa com a HERA** e que você não controla.
+| Ticket | Franquia | Marca própria | **Custo de franquear** |
+|---|---|---|---|
+| R$ 25 | R$ 9.942 | R$ 47.563 | **R$ 37.621** |
+| R$ 27 | R$ 23.293 | R$ 62.740 | **R$ 39.447** |
+| R$ 30 | R$ 43.319 | R$ 85.504 | **R$ 42.185** |
+| R$ 32 | R$ 56.669 | R$ 100.680 | **R$ 44.011** |
 
-Você estaria pagando R$ 330 mil em 5 anos por uma marca que, na melhor das hipóteses, é indiferente para o cliente que decide na calçada.
+**R$ 38 a 44 mil por ano, independentemente de como a loja vai.** Em cinco anos: **R$ 190 a 220 mil**, mais a taxa inicial de R$ 40 mil.
 
 ---
 
-## 8. O caminho recomendado
+## 5. O ponto: o que as fotos mostram
 
-### 8.1 A estrutura
+### 5.1 O que é um ativo
 
-**Marca própria, self-service por peso, produto e loja elevados, sob o guarda-chuva operacional da HERA, com operação concentrada na temporada.**
+| Elemento | Por quê importa |
+|---|---|
+| **O deck sob pergolado** | É a sala principal. Sombra, madeira, hortênsias, trepadeira. **Não ocupa nenhum dos 35 m²** — é capacidade grátis. Em praia, ninguém quer sentar dentro |
+| **A madeira escura com esquadrias amarelas** | Já tem personalidade. A construção é bonita, com telha colonial e vidros grandes. Isso não se compra, e não se recria com dinheiro |
+| **O pátio de paver na frente** | Espaço de manobra, fila, estacionamento de bike. Pode virar área de espera com bancos |
+| **A vegetação** | Hortênsias, arbustos, árvore grande de sombra. Já está pronta e já está boa |
+| **Vidros grandes** | Visibilidade total do balcão desde a rua. Vitrine de graça |
+
+### 5.2 O que é problema
+
+| Elemento | Risco |
+|---|---|
+| **A tela de galinheiro com mourões** | Está **fechando o deck da rua**. É uma barreira física e visual contra o consumo de impulso — exatamente o oposto do que um açaí precisa. Abrir isso é a primeira obra |
+| **O recuo do prédio** | A loja está atrás de um pátio, não na calçada. Recuo custa captura de impulso. O deck sendo aberto compensa parte disso |
+| **A rua** | Paver e areia, meio-fio com grama, pousadas e casas em volta, associação comunitária em frente. **Não é o calçadão de bares da Ferrugem** — é rua de hospedagem |
+| **Os 35 m²** | Tetam a operação em ~250 clientes/dia. Suficiente para o cenário base e otimista; impede a hipótese de virar campeão de volume |
+
+### 5.3 O conflito que a franquia cria com o ponto
+
+Este ponto tem **identidade própria** — madeira escura, amarelo, telha, pergolado, jardim. É exatamente o material de que uma marca boa é feita.
+
+Uma franquia impõe **padrão de rede**: comunicação visual, cores, fachada, layout interno, mobiliário. Colocar a identidade da Degusta nessa construção significa **pintar por cima do ativo** — pagar R$ 40 mil de taxa para destruir a coisa que faz o ponto valer a pena.
+
+> **O ponto já é a marca.** Falta batizar e afiar, não substituir.
+
+---
+
+## 6. O caminho recomendado
+
+### 6.1 Estrutura
 
 | Dimensão | Decisão |
 |---|---|
-| Marca | Própria, registrada no INPI, sob a mesma família da HERA (marca-irmã, não submarca) |
-| Formato | Self-service por peso, balança, 8–12 sabores, 25–35 toppings |
-| Preço | R$ 7,49/100 g (ajustável por temporada) |
+| Marca | Própria, registrada no INPI |
+| Formato | **Self-service por peso** — balança, 8–10 sabores, 25–30 toppings. Alta vazão, ticket autosselecionado, pouca gente atrás do balcão |
+| Layout | Os 35 m² são **produção e balcão**. O deck é o salão |
+| Preço | R$ 7,49/100 g |
 | Ticket-alvo | R$ 30–34 |
-| Ponto | Rua principal da Ferrugem, **teto de R$ 8 mil/mês na alta** |
-| Metragem | 50–70 m² com fachada aberta e fila para fora |
-| Operação | Nov–mar em capacidade plena; abr–out fechado ou mínimo |
-| Cozinha | Toppings, granola, caldas e frutas pela **cozinha central da HERA** |
-| Insumo base | Contrato com distribuidora local (**Ice Mix Fruits**, Campo Duna) + 2 fornecedores alternativos |
-| CAPEX | R$ 140–185 mil |
-| Retorno esperado | Lucro R$ 100–110 mil/ano · payback 16–21 meses · ROI 58–77% a.a. |
+| Obra prioritária | **Abrir a tela do deck para a rua.** Depois: iluminação quente, sinalização, bancos |
+| Operação | Nov–mar em capacidade plena; hibernar mai–ago |
+| CAPEX | **R$ 132–155 mil** |
+| Aluguel-teto | **R$ 4.000/mês na alta.** Acima de R$ 5.500 nem a franquia nem o conforto existem |
+| Retorno esperado | Lucro R$ 74–76 mil/ano · payback 21–24 meses · ROI 49–56% a.a. |
 
-### 8.2 Por que a sinergia com a HERA é o verdadeiro pulo do gato
+### 6.2 Por que self-service e não bowl montado
 
-O modelo mostra que a mesma loja, sozinha, dá **R$ 60 mil**; sob a HERA, dá **R$ 106 mil**. A diferença de R$ 46 mil/ano não vem de vender mais — vem de:
+Em janeiro você tem 4.340 clientes para atender em 31 dias com 35 m². Bowl montado por atendente processa ~20/hora e exige mais gente atrás do balcão — que não cabe. **Balança processa 60–70/hora com duas pessoas.** O formato não é uma escolha estética; é o que o ponto comporta.
 
-| Sinergia | Ganho |
-|---|---|
-| CMV de 32,5% → 30,0% | Cozinha central produz toppings, granola e caldas; compra de fruta em escala |
-| Folha compartilhada | Gerente regional e equipe circulam entre HERA e açaí; picos não coincidem no dia |
-| Overhead diluído | Contador, PDV, sistema, marketing digital, jurídico — um só para dois negócios |
-| Marketing | Tráfego pago da S7 já rodando para a região; CAC compartilhado |
-| Aluguel | Poder de negociação maior com dois contratos na mesma rua |
-| Complementaridade de horário | Café pela manhã, açaí à tarde e à noite — mesma rua, mesmo cliente, dois momentos |
+Elevar o padrão vai no **produto** (polpa premium, fruta fresca, granola de verdade), no **deck** e na **marca**. Nunca no formato.
 
-**E o mais importante:** o açaí resolve o maior problema estrutural da HERA — a sazonalidade. A HERA é um empório de recorrência que sofre nos 8 meses vazios. O açaí é um negócio de colheita rápida que **injeta caixa no verão**. Juntos, um financia o outro.
+### 6.3 Fornecimento — o único ponto em que a franquia tem razão
 
-### 8.3 Sequenciamento — e esta é a parte que merece atenção
+É o que uma rede realmente entrega. Resolva antes de abrir:
 
-O plano da HERA prevê **~10 semanas até o piloto** e uma cozinha central com equipe de 4 a 6 pessoas. Abrir açaí e HERA na mesma temporada, na mesma rua, com a mesma cozinha e a mesma gente, é o risco clássico de *"quem abre dois ao mesmo tempo, quebra dois ao mesmo tempo"* — frase que está no próprio documento de vocês.
+1. **Ice Mix Fruits** — fábrica e distribuidora de açaí em Campo Duna, dentro de Garopaba. Fornecedor primário natural.
+2. **Maria Açaí** — fábrica em Joinville, a única do Sul do Brasil. Vale sondar venda de insumo avulso.
+3. **Um distribuidor no RS** como backup de temporada.
 
-**Duas ordens possíveis:**
-
-| Opção | Lógica | Quando escolher |
-|---|---|---|
-| **Açaí primeiro** (temporada 26/27), HERA depois | Açaí tem CAPEX menor, operação mais simples, payback de 16 meses e gera o caixa que capitaliza a HERA. Valida a cozinha central com um produto simples antes do complexo. | Se o capital está apertado ou se a sociedade da HERA ainda não fechou |
-| **HERA primeiro**, açaí na temporada seguinte | A HERA é a marca-mãe e define a identidade da família. | Se a sociedade já está fechada e o capital é do parceiro |
-
-**Recomendação: açaí primeiro, se a decisão for sua e o capital for seu.** É o negócio mais simples, mais rápido, mais barato e mais rentável por real investido dos dois — e a cozinha central já existe. Ele prova a operação e financia o resto.
+Faça **teste cego de 4 polpas** antes de fechar. Polpa no atacado custa R$ 15–22/kg; premium chega a R$ 20/kg. De setembro a dezembro o preço sobe 15–25% por causa da entressafra amazônica — **compre estoque em agosto.**
 
 ---
 
-## 9. Plano de execução — 12 semanas até a temporada
+## 7. O que precisa ser medido antes de assinar qualquer coisa
 
-| Fase | Prazo | Entregáveis |
-|---|---|---|
-| **0 · Validação de campo** | 2 semanas | Contagem de fluxo no ponto (ver 9.1); 3 propostas de aluguel; mapeamento de todo concorrente de açaí num raio de 3 km |
-| **1 · Ponto e marca** | Semanas 3–4 | Contrato assinado com teto de R$ 8 mil/mês na alta; registro INPI; identidade visual |
-| **2 · Fornecimento** | Semanas 3–5 | Contrato com Ice Mix Fruits + 2 alternativos; teste cego de 4 polpas; ficha técnica e CMV fechados |
-| **3 · Obra e licenças** | Semanas 4–10 (paralelo) | Reforma, fachada, alvará da Prefeitura de Garopaba, Vigilância Sanitária |
-| **4 · Equipamentos** | Semanas 6–8 | Balcão self-service refrigerado, freezers, balanças homologadas, vitrine de toppings, PDV |
-| **5 · Cozinha central** | Semanas 7–9 | Linha de toppings, granola e caldas rodando na estrutura HERA |
-| **6 · Equipe** | Semanas 9–11 | Contratação sazonal (prazo determinado), treino de 2 semanas |
-| **7 · Pré-abertura** | Semanas 10–12 | Tráfego pago geolocalizado, parcerias com pousadas e escolas de surfe, lista de espera |
-| **8 · Abertura** | **Início de dezembro** | Abrir com a temporada já entrando, nunca depois |
+Toda a projeção parte de **140 clientes/dia em janeiro**. É estimativa minha, não medição — e as fotos mostram uma rua de pousadas, não o calçadão. **Esta é a variável que decide o negócio.**
 
-> ⏰ **A janela é inegociável.** Abrir em janeiro é perder metade da temporada. Abrir em fevereiro é perder o ano inteiro. Se em outubro a obra não estiver em pé, **adie para a temporada seguinte** — não force uma abertura atrasada.
+**Protocolo:** três dias de alta temporada (sexta, sábado, quarta) e um de baixa. Na calçada do ponto, contando pessoas a pé em blocos de 15 minutos, das 11h às 23h. Conversão realista de calçada para açaí em praia: **3% a 6%**.
 
-### 9.1 O teste de campo que vale mais que este estudo inteiro
+Para 140 clientes/dia são necessários **2.300 a 4.700 pedestres/dia** passando na porta.
 
-Todas as projeções aqui partem de **170 clientes/dia em janeiro**. Esse número é a espinha dorsal do modelo — e é uma **estimativa minha**, não um dado medido. Vocês têm a capacidade rara de medir isso de verdade:
-
-**Protocolo:**
-1. Escolham 3 dias da alta temporada (uma sexta, um sábado, uma quarta) e 1 dia de baixa.
-2. Fiquem na calçada do ponto, contando **pessoas que passam a pé**, em blocos de 15 min, das 11h às 23h.
-3. Contem separadamente quantas entram nos comércios vizinhos.
-4. Taxa de conversão realista de calçada para açaí em praia: **3% a 6%** do fluxo pedestre.
-
-**A regra de decisão:**
-
-| Fluxo pedestre medido em janeiro | Leitura |
+| Pedestres/dia medidos em janeiro | Leitura |
 |---|---|
-| **> 4.000 pessoas/dia** | Ponto excelente. Vá com tudo. |
-| **2.800 – 4.000/dia** | Ponto bom. Modelo funciona com marca própria; não funciona como franquia. |
-| **1.800 – 2.800/dia** | Marginal. Só temporada, CAPEX mínimo, aluguel abaixo de R$ 5 mil. |
-| **< 1.800/dia** | **Não abra neste ponto.** Procure outro. |
+| **acima de 4.700** | Cenário otimista. Marca própria com folga; a franquia até fecharia |
+| **3.000 – 4.700** | Cenário base. Marca própria sim, franquia não |
+| **1.800 – 3.000** | Cenário conservador. Só temporada, CAPEX mínimo, aluguel abaixo de R$ 3.000 |
+| **abaixo de 1.800** | **Não abra neste ponto.** Nem marca própria fecha |
 
-Esse levantamento custa quatro dias do verão e vale mais que qualquer projeção — a minha inclusive.
+Quatro dias do verão. Vale mais que este estudo inteiro.
 
 ---
 
-## 10. Se ainda quiser avaliar a franquia: a due diligence mínima
+## 8. Se ainda quiser avaliar a Degusta
 
-Não estou dizendo que franquia é ruim como categoria. Estou dizendo que **esta franquia, neste ponto, para vocês especificamente**, é uma transferência de valor sem contrapartida. Se quiserem confirmar por conta própria, exijam:
+A **Lei 13.966/2019, art. 2º** obriga a entrega da Circular de Oferta de Franquia **10 dias antes** de qualquer assinatura ou pagamento. Descumprido o prazo, o contrato é anulável e os valores voltam corrigidos. **Nunca pague nada antes de ter a COF há 10 dias.**
 
-### 10.1 A COF — e o prazo legal
+### 8.1 Pergunte primeiro, antes de tudo
 
-Pela **Lei 13.966/2019, art. 2º**, a Circular de Oferta de Franquia deve ser entregue **no mínimo 10 dias antes** de qualquer assinatura ou pagamento. Descumprido o prazo, o contrato é **anulável** e os valores pagos devem ser devolvidos corrigidos.
+1. **Qual a metragem mínima exigida?** Se for maior que 35 m², a conversa acaba aqui e você economizou meses.
+2. **Se o ponto for aceito, quais itens do cardápio saem?** Pizza, waffle e fondue fora significam pagar cheio por uma versão reduzida.
+3. **A obra de padronização respeita a construção existente**, ou exige refazer fachada e esquadrias?
 
-**Nunca pague nada antes de ter a COF há 10 dias.**
+### 8.2 Depois, a due diligence
 
-### 10.2 O que extrair da COF
-
-| # | Exigência | O que você está procurando |
+| # | Exigência | O que procurar |
 |---|---|---|
-| 1 | **Valor exato do royalty** — fixo, variável ou misto | Se for fixo, o modelo já mostrou: perde |
-| 2 | **Tabela de preços dos insumos obrigatórios** | Compare com R$ 15–22/kg de mercado. O markup é o royalty invisível |
-| 3 | **Lista de todos os franqueados, ativos e desligados, dos últimos 24 meses** | A Lei obriga. **Ligue para os desligados** — são a fonte mais honesta que existe |
-| 4 | **Faturamento real de unidades em cidades turísticas sazonais** | "R$ 90 mil/mês" é média de loja urbana. Peça o número de Navegantes, Torres, Capão |
-| 5 | **Cláusula de raio e de não-concorrência, na íntegra** | Ver seção 6. Este é o item que pode matar a HERA |
-| 6 | **Obrigação de horário e dias mínimos de funcionamento** | Se você não puder fechar de maio a agosto, o modelo de 12 meses é obrigatório — e ele dá prejuízo |
-| 7 | **Multa rescisória e condições de saída antecipada** | Quanto custa errar |
-| 8 | **Taxa de renovação ao fim dos 5 anos** | The Best Açaí não cobra; muitas cobram |
-| 9 | **Quem paga reforma de padronização se a rede mudar de identidade visual** | Custo oculto clássico |
-| 10 | **CNPJ e registro da marca no INPI** | Confirma qual das três marcas homônimas é |
+| 4 | Valor exato do royalty — fixo, variável ou misto | Acima de R$ 1.200/mês o modelo já não fecha bem |
+| 5 | Tabela de preços dos insumos obrigatórios | Compare com R$ 15–22/kg de mercado. O markup é o royalty invisível |
+| 6 | Lista de franqueados ativos **e desligados** dos últimos 24 meses | A Lei obriga. **Ligue para os desligados** |
+| 7 | Faturamento real de unidades em cidade litorânea sazonal | Peça Navegantes, Torres, Capão da Canoa — não a média urbana |
+| 8 | Obrigação de horário e dias mínimos de funcionamento | Se não puder fechar mai–ago, o modelo de 12 meses é obrigatório — e ele entrega 1,9% de margem |
+| 9 | Multa rescisória e saída antecipada | Quanto custa errar |
+| 10 | Cláusula de raio e não-concorrência pós-contratual | Delimita o que você pode fazer depois, e onde |
+| 11 | Taxa de renovação ao fim do contrato | The Best Açaí não cobra; muitas cobram |
+| 12 | CNPJ e registro no INPI | Confirma que é a de Ijuí/RS e não uma das homônimas |
 
-### 10.3 A regra de decisão
+### 8.3 A regra de decisão
 
-> Só reconsidere a franquia se, **cumulativamente**:
-> - o royalty total (fixo + fundo) ficar **abaixo de R$ 1.200/mês**, **e**
-> - os insumos obrigatórios custarem **no máximo 5% acima** da cotação livre, **e**
-> - a cláusula de raio **excluir explicitamente e por escrito** o negócio da HERA, **e**
+> Só siga com a franquia se, **cumulativamente**:
+> - o ponto for **aprovado com o cardápio completo**, **e**
+> - o royalty total ficar **abaixo de R$ 1.200/mês**, **e**
+> - os insumos custarem **no máximo 5% acima** da cotação livre, **e**
 > - o contrato permitir **fechamento sazonal sem multa**, **e**
-> - pelo menos **três franqueados em cidade litorânea sazonal** confirmarem os números.
+> - a padronização **preservar a construção e o deck**, **e**
+> - a contagem de campo der **acima de 4.700 pedestres/dia** em janeiro.
 >
-> **Se qualquer um dos cinco falhar, a resposta é não.** Pela análise disponível, ao menos três já falham.
+> Se qualquer um falhar, é marca própria. Pela informação disponível hoje, **o primeiro já é improvável**.
 
 ---
 
-## 11. Riscos do caminho recomendado — e como matar cada um
+## 9. Riscos do caminho recomendado
 
-Marca própria não é isenta de risco. Estes são os reais:
-
-| Risco | Gravidade | Mitigação |
+| Risco | Grav. | Mitigação |
 |---|---|---|
-| **Cadeia de suprimento de açaí** — é o que a franquia realmente entrega | Alta | Contrato com Ice Mix Fruits (Garopaba) + Maria Açaí (fábrica em Joinville, única do Sul) + 1 distribuidor RS como backup. Teste cego antes de fechar |
-| **Aluguel acima do teto** | Alta | R$ 8 mil/mês na alta é limite rígido. Negocie contrato com valor menor na baixa. Recuse luvas altas |
-| **Temporada fraca (repetição de 2026)** | Alta | Modelo de temporada mantém lucro mesmo a −30% de fluxo (R$ 28,5 mil no pior cenário HERA). É o caminho mais resistente dos testados |
-| **Sobreposição de gestão com a HERA** | Média-alta | Sequenciar (seção 8.3). Nunca abrir os dois na mesma temporada |
-| **Falta de padrão sem manual de franquia** | Média | Ficha técnica escrita, foto de montagem, checklist de abertura/fechamento. Vocês já fazem isso na cozinha central |
-| **Curva de aprendizado em açaí** | Média | Contratar um ex-gerente de açaiteria por uma temporada custa menos de 1 mês de royalty |
-| **Concorrente forte entrar na rua** | Média | Contrato de exclusividade de categoria com o locador, se possível. Marca forte e produto melhor são a defesa real |
-| **Equipe sazonal ruim** | Média | Contratação por prazo determinado, começando em outubro. Reter os bons com bônus de fim de temporada |
-| **Balança e Vigilância Sanitária** | Baixa | Balança homologada pelo INMETRO é obrigatória em venda por peso. Protocolar na Vigilância junto com o alvará |
+| **Fluxo real abaixo do estimado** | **Alta** | É o risco nº 1. Medir antes de assinar (seção 7). Modelo de temporada aguenta até −35% |
+| **Aluguel acima do teto** | Alta | R$ 4.000/mês na alta é o limite confortável. Peça valor reduzido na baixa ou contrato de temporada |
+| **Cadeia de suprimento** | Alta | Ice Mix Fruits + Maria Açaí + 1 backup no RS. Teste cego. Estoque comprado em agosto |
+| **Temporada fraca como 2026** | Alta | Gasto do turista em SC caiu 16,4% e alimentação fora do lar 26,6% na última temporada. O modelo de temporada mantém lucro mesmo assim |
+| **Os 35 m² não comportarem a operação** | Média-alta | Projeto de layout ANTES de fechar o aluguel. Balcão, freezer, pia e caixa em 35 m² é apertado mesmo sem franquia |
+| **Deck sem cobertura em dia de chuva** | Média | Pergolado com trepadeira não protege de chuva. Prever fechamento lateral retrátil ou toldo |
+| **Curva de aprendizado em açaí** | Média | Contratar um ex-gerente de açaiteria por uma temporada custa menos de dois meses de royalty |
+| **Vigilância Sanitária em 35 m²** | Média | Pia exclusiva de higienização, fluxo sujo/limpo e balança homologada pelo INMETRO. Protocolar junto com o alvará |
 
 ---
 
-## 12. Conclusão
+## 10. Conclusão
 
-**Não faça a franquia D'gusta.**
+Com o ponto correto na mesa, a franquia Degusta **deixou de ser um erro óbvio e virou uma aposta ruim**. Ela dá lucro — R$ 23 mil/ano — mas paga R$ 32 mil de royalty para isso. A franqueadora ganha mais que você. E se o fluxo vier 35% abaixo do estimado, ela queima R$ 42 mil enquanto a marca própria ainda fecha no azul.
 
-Não porque franquia seja ruim, e não porque a D'gusta seja ruim — mas porque **vocês são o comprador errado para este produto**. Franquia é um atalho vendido para quem não tem operação, não tem marca, não tem marketing e não conhece a praça. Vocês têm as quatro coisas: cozinha central montada com R$ 90–135 mil em equipamento, marca registrada, tráfego pago próprio e dois anos de Garopaba por dentro.
+O ponto já tem o que uma franquia jamais vai te dar: **caráter**. Madeira escura, esquadrias amarelas, telha colonial, um deck sombreado com hortênsias. Pagar R$ 40 mil de taxa inicial para pintar isso com a identidade de uma rede de Ijuí é destruir o ativo e comprar o que você não precisa.
 
-Pagar R$ 330 mil em cinco anos por um manual, um logo desconhecido e um fornecedor obrigatório é comprar o que já está no seu galpão. E, pior, é dar a uma franqueadora de Ijuí um direito de veto sobre o cardápio da HERA na rua onde vocês querem plantar o piloto.
+**Faça assim:** marca sua, self-service por peso nos 35 m², o deck como salão, tela aberta para a rua, R$ 7,49/100 g, aberta de novembro a março, aluguel travado abaixo de R$ 4.000 na alta, CAPEX de R$ 132 a 155 mil. Payback de 21 a 24 meses.
 
-**Sobre a dúvida de posicionamento:** o instinto está certo — a Ferrugem está subindo e quem chega primeiro com padrão melhor colhe a subida. Mas execute isso no **produto, no salão e na marca**, nunca no formato. Mantenha a balança. Mantenha a fila andando. Em janeiro, na Ferrugem, **vazão é margem**.
-
-**Faça assim:** marca sua, self-service por peso, R$ 7,49/100 g, loja bonita, cozinha central da HERA por trás, aberta de novembro a março, aluguel travado abaixo de R$ 8 mil na alta, CAPEX de R$ 140–185 mil. Payback de 16 a 21 meses. Lucro de R$ 100 a 110 mil por ano. E o ativo de marca fica com vocês — não com Ijuí.
-
-**Antes de tudo isso: passem quatro dias contando gente na calçada.** É o único número deste estudo que vocês podem transformar de estimativa em fato.
+**E antes de tudo isso:** ligue para a Degusta e pergunte a metragem mínima. Se for maior que 35 m², você economizou uma temporada de conversa. Depois passe quatro dias contando gente na calçada — é o único número deste estudo que só vocês podem transformar de estimativa em fato.
 
 ---
 
-## 13. Notas metodológicas e limitações
+## 11. Notas metodológicas
 
-Transparência sobre o que é dado e o que é modelo:
-
-1. **A curva de 170 clientes/dia em janeiro é estimativa minha**, calibrada por benchmarks de quiosque de praia e pelo perfil da Ferrugem. É a premissa mais sensível do estudo. Validem em campo (seção 9.1).
-2. **Os números da Degusta Açaí vêm de portais de franquia terceiros**, não da COF — o site da franqueadora está bloqueado pela política de rede desta sessão. A COF é a única fonte autoritativa.
-3. **O CMV da franquia (38,5%) é estimado**, assumindo 6 p.p. de markup de insumo obrigatório. A seção 5.1 testa a conclusão contra essa premissa e ela se sustenta mesmo com markup zero.
-4. **Existe ambiguidade de marca** entre Degusta Açaí (Ijuí/RS), D'Gusta Açaí (MG) e D'gust Açaíteria. Confirmem o CNPJ.
-5. **A cláusula de raio é risco identificado, não confirmado** — depende do contrato específico. É a primeira coisa a verificar.
-6. Valores em reais correntes de 2026, sem inflação projetada. Simples Nacional Anexo I. Não inclui pró-labore dos sócios nem custo de capital.
+1. **140 clientes/dia em janeiro é estimativa minha**, calibrada por benchmarks de quiosque de praia e pelo que as fotos mostram da rua. É a premissa mais sensível do estudo e a única que muda a recomendação.
+2. **Teto físico de 250 clientes/dia** derivado de 2 balanças a ~60–70 clientes/hora e da capacidade de assento do deck.
+3. **Os números da Degusta vêm de portais de franquia terceiros**, não da COF — o site da franqueadora está bloqueado pela política de rede desta sessão. Metragem mínima e número de unidades não são divulgados publicamente.
+4. **CMV da franquia (38,5%) é estimado**, assumindo 6 p.p. de markup de insumo. As seções 4.1 e 4.2 testam a conclusão contra essa premissa e ela se sustenta mesmo com markup e royalty zerados.
+5. **Aluguel de R$ 3.000/2.200 é premissa**, não valor negociado. A seção 3.1 dá a tabela completa.
+6. Reais correntes de 2026, sem inflação projetada. Simples Nacional Anexo I. Sem pró-labore nem custo de capital.
 
 ---
 
-## 14. Fontes
+## 12. Fontes
 
 **Franquias**
 - [Degusta Açaí — Seja um Franqueado](https://franqueadora.degustaacai.com/)
-- [Franquia do Degusta Açaí é inaugurada em Navegantes](https://jornalnosbairros.com.br/wp/2024/11/franquia-do-degusta-acai-e-inaugurada-em-navegantes/)
-- [Franquia The Best Açaí — Portal Franquia de Açaí](https://franquiadeacai.com/the-best-acai/)
+- [Franquia do Degusta Açaí é inaugurada em Navegantes/SC](https://jornalnosbairros.com.br/wp/2024/11/franquia-do-degusta-acai-e-inaugurada-em-navegantes/)
+- [Franquia The Best Açaí](https://franquiadeacai.com/the-best-acai/)
 - [Como abrir uma loja da The Best Açaí — Mercado&Consumo](https://mercadoeconsumo.com.br/13/04/2026/franquias/como-abrir-uma-loja-da-the-best-acai/)
-- [Franquia The Best Açaí — Acelera Varejo](https://www.aceleravarejo.com.br/home-destaque/franquia-the-best-acai/)
-- [Franquia Açaí Concept — franquia.com.br](https://www.franquia.com.br/franquia/acai-concept)
-- [Quanto custa uma franquia Açaí Concept em 2026 — FranquiaTech](https://franquiatech.com/blog/quanto-custa-franquia-acai-concept-2026-contabilidade-franqueado)
+- [Franquia Açaí Concept](https://www.franquia.com.br/franquia/acai-concept)
 - [Franquia Oakberry — Investidor10](https://investidor10.com.br/conteudo/descubra-a-franquia-oakberry-de-acai-quanto-custa-investir-lojas-e-como-abrir-106122/)
-- [Franquia Maria Açaí — Sua Franquia](https://www.suafranquia.com/franquias/alimentacao-e-food-service/sorvetes/maria-acai/)
-- [Mercado de franquias supera R$ 300 bilhões em 2025 — ABF](https://abf.com.br/mercado-de-franquias-supera-os-r-300-bilhoes-em-2025-e-impulsiona-o-crescimento-da-economia-brasileira/)
+- [Franquia Maria Açaí](https://www.suafranquia.com/franquias/alimentacao-e-food-service/sorvetes/maria-acai/)
+- [Relato de franqueado de açaí — Reclame Aqui](https://www.reclameaqui.com.br/jah-franchising/alerta-sobre-a-franquia-jah-do-acai-experiencia-de-um-franqueado_Z7I0oHq8CQL41KGR/)
 - [Açaí franquia vale a pena? — franquia.com.br](https://www.franquia.com.br/acai-franquia-vale-a-pena)
-- [Alerta sobre franquia de açaí — Reclame Aqui](https://www.reclameaqui.com.br/jah-franchising/alerta-sobre-a-franquia-jah-do-acai-experiencia-de-um-franqueado_Z7I0oHq8CQL41KGR/)
 
 **Jurídico**
 - [Lei de Franquias 13.966/2019 — guia completo](https://pedromiguellaw.com/lei-de-franquias-13966-2019-guia-completo/)
 - [Circular de Oferta de Franquia — Serasa Experian](https://www.serasaexperian.com.br/conteudos/circular-de-oferta-de-franquias/)
-- [A validade da cláusula de não concorrência nos contratos de franquia — Migalhas](https://www.migalhas.com.br/depeso/406199/a-validade-da-clausula-de-nao-concorrencia-nos-contratos-de-franquia)
-- [Aplicação da cláusula de não concorrência — Conjur](https://www.conjur.com.br/2023-dez-22/aplicacao-da-clausula-de-nao-concorrencia-nos-contratos-de-franquia/)
+- [Cláusula de não concorrência em franquia — Migalhas](https://www.migalhas.com.br/depeso/406199/a-validade-da-clausula-de-nao-concorrencia-nos-contratos-de-franquia)
 
 **Região e turismo**
-- [IBGE Cidades — Garopaba, SC](https://cidades.ibge.gov.br/brasil/sc/garopaba/panorama)
-- [Garopaba atrai turistas com praias, dunas e surfe — Ministério do Turismo](https://www.gov.br/turismo/pt-br/assuntos/noticias/garopaba-atrai-turistas-com-praias-dunas-e-a-cultura-do-surfe-no-litoral-catarinense)
-- [Garopaba entra para a elite do turismo nacional — UNITV](https://unitv.com.br/turismo/garopaba-entra-para-elite-do-turismo-nacional-com-nota-maxima-em-avaliacao-federal/)
-- [Turismo de Verão no Litoral Catarinense 2026 — Fecomércio SC (PDF)](https://www.fecomercio-sc.com.br/wp-content/uploads/2026/03/Temporada-de-Verao-2026.pdf)
-- [Gasto médio dos turistas cai 16,4% em 2026 no litoral — OCP News](https://ocp.news/economia/temporada-de-verao-em-sc-gasto-medio-dos-turistas-cai-164-em-2026-no-litoral)
-- [Turismo de verão 2026 teve turista mais cauteloso — Santa Catarina em Pauta](https://www.santacatarinaempauta.com.br/2026/03/27/turismo-de-verao-de-2026-no-litoral-de-sc-teve-turista-mais-cauteloso-e-comercio-com-desempenho-desigual/)
+- [IBGE Cidades — Garopaba/SC](https://cidades.ibge.gov.br/brasil/sc/garopaba/panorama)
+- [Garopaba no Ministério do Turismo](https://www.gov.br/turismo/pt-br/assuntos/noticias/garopaba-atrai-turistas-com-praias-dunas-e-a-cultura-do-surfe-no-litoral-catarinense)
+- [Garopaba entra na Categoria A do Mapa do Turismo](https://unitv.com.br/turismo/garopaba-entra-para-elite-do-turismo-nacional-com-nota-maxima-em-avaliacao-federal/)
+- [Turismo de Verão no Litoral Catarinense 2026 — Fecomércio SC](https://www.fecomercio-sc.com.br/wp-content/uploads/2026/03/Temporada-de-Verao-2026.pdf)
+- [Gasto do turista cai 16,4% em 2026 — OCP News](https://ocp.news/economia/temporada-de-verao-em-sc-gasto-medio-dos-turistas-cai-164-em-2026-no-litoral)
 - [Praia da Ferrugem — Eco Garopaba](https://ecogaropaba.com.br/praias/praia-da-ferrugem-garopaba/)
-- [Como abrir um negócio em Garopaba](https://zaluski.com.br/como-abrir-um-negocio-em-garopaba/)
-- [Pontos comerciais na Praia da Ferrugem — Chaves na Mão](https://www.chavesnamao.com.br/ponto-comercial/sc-garopaba/praia-da-ferrugem/)
+- [Pontos comerciais na Praia da Ferrugem](https://www.chavesnamao.com.br/ponto-comercial/sc-garopaba/praia-da-ferrugem/)
 
 **Operação e custos**
-- [Como precificar açaí: ficha técnica, CMV e markup — OlaClick](https://olaclick.com/sistema-para/acaiteria/como-precificar-acai/)
+- [Como precificar açaí: CMV e markup — OlaClick](https://olaclick.com/sistema-para/acaiteria/como-precificar-acai/)
 - [Preço médio do açaí no Brasil em 2026 — Foodbit](https://www.foodbit.com.br/blog/acai/preco-medio-acai-brasil-2026)
-- [Como precificar açaí e bowls: CMV e margem 2026 — Custo por Prato](https://www.custoporprato.com.br/precificacao/acaiteria)
+- [CMV e margem de açaiteria 2026 — Custo por Prato](https://www.custoporprato.com.br/precificacao/acaiteria)
 - [Quanto custa abrir uma açaiteria — OlaClick](https://olaclick.com/sistema-para/acaiteria/quanto-custa-abrir-acaiteria/)
-- [Quanto fatura um quiosque de praia por mês — Rei do Delivery](https://reidodelivery.com.br/blog/quanto-fatura-um-quiosque-de-praia)
-- [Açaí gourmet: como criar e vender o açaí premium — OlaClick](https://olaclick.com/sistema-para/acaiteria/acai-gourmet/)
+- [Quanto fatura um quiosque de praia — Rei do Delivery](https://reidodelivery.com.br/blog/quanto-fatura-um-quiosque-de-praia)
 - [Tabela Simples Nacional 2026 — Contabilizei](https://www.contabilizei.com.br/contabilidade-online/tabela-simples-nacional-completa/)
-- [Simples Nacional para restaurantes: alíquotas 2026 — iFood](https://blog-parceiros.ifood.com.br/aliquota-simples-nacional/)
-- [Quanto custa um empregado CLT em 2026 — Razonet](https://razonet.com.br/contabilidade-digital/quanto-custa-um-empregado-clt-em-2026-para-a-empresa)
+- [Custo de um empregado CLT em 2026 — Razonet](https://razonet.com.br/contabilidade-digital/quanto-custa-um-empregado-clt-em-2026-para-a-empresa)
 - [Taxa de comissão do iFood 2026 — Brendi](https://brendi.com.br/blog/ifood-taxa-comissao-2026/)
-- [Como vender açaí no inverno — OlaClick](https://olaclick.com/sistema-para/acaiteria/como-vender-acai-no-inverno/)
 
 ---
 
-*Estudo produzido para S7 Strategy · setembro de 2026*
-*Modelo financeiro reproduzível: `analise/modelo-acai-ferrugem.py`*
+*Estudo v2 · setembro de 2026 · modelo reproduzível em `analise/modelo-acai-ferrugem.py`*
