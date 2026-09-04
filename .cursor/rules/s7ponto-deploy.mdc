@@ -1,0 +1,26 @@
+---
+description: Sempre atualizar VPS e git ao mudar o S7 PONTO
+alwaysApply: true
+---
+
+# S7 PONTO — deploy e git obrigatórios
+
+Sempre que este agente alterar o projeto **S7 PONTO** (`s7ponto/` ou schema/API relacionados):
+
+1. **Aplicar SQL na VPS** se houver mudança de schema/migração (`migrate-*.sql`, `bootstrap-*.sql`, `schema.sql` parcial). Banco: container `s7hub-supabase-db`, schema `s7ponto`. Depois: `NOTIFY pgrst, 'reload schema';` (ou reiniciar `s7hub-supabase-rest`).
+2. **Publicar o app** com `VPS=s7strategy ./deploy.sh` (atalho SSH `s7strategy`). **Nunca** sobrescrever `js/config.js` da VPS (credenciais ficam só no servidor; local fica vazio = demo).
+3. **Commitar e dar push** das mudanças no git quando o trabalho estiver estável (a menos que a pessoa peça para não commitar). Branch típica: a do PR do timesheet.
+4. **Conferir** em https://s7strategy.com.br/s7ponto/ após o deploy.
+
+## 3 modos de pagamento
+
+- `hourly` — horas × R$/h da tarefa  
+- `task` — valor FIXO por tarefa  
+- `shift` — valor FIXO por manhã/tarde/noite  
+
+Só a **administração** define senhas e dados de pagamento; o funcionário não edita a própria ficha.
+
+## Host
+
+- App: `/var/www/s7ponto` na VPS `s7strategy`
+- API: `https://s7strategy.com.br/apphub-api` (Kong / PostgREST com schema `s7ponto`)
