@@ -1,0 +1,1014 @@
+<title>Açaí na Ferrugem</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400;12..96,75..100,600;12..96,75..100,800&family=Public+Sans:ital,wght@0,300;0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* ============================================================
+   PALETA — derivada do lugar: ferro oxidado (ferrugem), açaí,
+   areia e maresia. Neutros puxados para o quente, nunca cinza puro.
+   ============================================================ */
+:root{
+  --ferro:#1A1512;
+  --ferrugem:#B4552E;
+  --ferrugem-viva:#D2703F;
+  --acai:#40284F;
+  --areia:#F4EEE4;
+  --areia-2:#E9E0D2;
+  --maresia:#6E7B73;
+  --verde:#2F6B4F;
+  --sangue:#A32A21;
+
+  --bg:var(--areia);
+  --bg-2:#FBF8F2;
+  --bg-3:var(--areia-2);
+  --ink:var(--ferro);
+  --ink-2:#5B5148;
+  --ink-3:#8A7F73;
+  --linha:#D6CBB9;
+  --linha-forte:#B9AB95;
+  --acento:var(--ferrugem);
+  --acento-suave:rgba(180,85,46,.10);
+  --pos:var(--verde);
+  --neg:var(--sangue);
+  --sombra:rgba(26,21,18,.07);
+
+  --display:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
+  --corpo:"Public Sans","Helvetica Neue",Arial,sans-serif;
+  --dado:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;
+
+  --medida:66ch;
+  --pad:clamp(20px,5vw,64px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#14100E; --bg-2:#1C1714; --bg-3:#241D19;
+    --ink:#EDE5D9; --ink-2:#B3A79A; --ink-3:#877B6E;
+    --linha:#332A24; --linha-forte:#4A3E35;
+    --acento:var(--ferrugem-viva); --acento-suave:rgba(210,112,63,.14);
+    --pos:#5FA37E; --neg:#D9705F;
+    --sombra:rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14100E; --bg-2:#1C1714; --bg-3:#241D19;
+  --ink:#EDE5D9; --ink-2:#B3A79A; --ink-3:#877B6E;
+  --linha:#332A24; --linha-forte:#4A3E35;
+  --acento:var(--ferrugem-viva); --acento-suave:rgba(210,112,63,.14);
+  --pos:#5FA37E; --neg:#D9705F;
+  --sombra:rgba(0,0,0,.4);
+}
+
+*{box-sizing:border-box;}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:var(--corpo); font-weight:300; font-size:16.5px; line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:var(--display); font-weight:800; line-height:1.06;
+  letter-spacing:-.028em; text-wrap:balance; margin:0;}
+p{margin:0;}
+a{color:var(--acento); text-decoration-thickness:1px; text-underline-offset:2px;}
+:focus-visible{outline:2px solid var(--acento); outline-offset:3px; border-radius:2px;}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
+
+.wrap{max-width:1140px; margin:0 auto; padding:0 var(--pad);}
+.prosa{max-width:var(--medida);}
+.num{font-family:var(--dado); font-variant-numeric:tabular-nums;}
+
+/* ---------- eyebrow / rótulos ---------- */
+.olho{font-family:var(--dado); font-size:10.5px; font-weight:600;
+  letter-spacing:.2em; text-transform:uppercase; color:var(--acento);}
+.olho-n{color:var(--ink-3);}
+
+/* ============================================================
+   CABEÇALHO — sem hero de tela cheia: o veredito é a abertura
+   ============================================================ */
+.topo{border-bottom:1px solid var(--linha); background:var(--bg-2);}
+.topo-in{padding:clamp(28px,4.5vw,52px) 0 clamp(24px,3.5vw,40px);
+  display:flex; flex-direction:column; gap:22px;}
+.crumb{display:flex; flex-wrap:wrap; gap:8px 18px; align-items:baseline;}
+.crumb span{font-family:var(--dado); font-size:10.5px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--ink-3);}
+.crumb .marca{color:var(--acento); font-weight:600;}
+h1{font-size:clamp(38px,7.4vw,80px); max-width:15ch;}
+h1 em{font-style:normal; color:var(--acento);}
+.sub{max-width:58ch; color:var(--ink-2); font-size:clamp(15px,1.6vw,18px);}
+
+/* ---------- barra de capítulos ---------- */
+.nav{position:sticky; top:0; z-index:50; background:color-mix(in srgb,var(--bg) 92%,transparent);
+  backdrop-filter:blur(10px); border-bottom:1px solid var(--linha);}
+.nav ol{list-style:none; margin:0; padding:0; display:flex; gap:0;
+  overflow-x:auto; scrollbar-width:thin;}
+.nav a{display:block; padding:11px 15px; white-space:nowrap; text-decoration:none;
+  font-family:var(--dado); font-size:10.5px; letter-spacing:.11em; text-transform:uppercase;
+  color:var(--ink-2); border-bottom:2px solid transparent;}
+.nav a:hover{color:var(--acento); border-bottom-color:var(--acento); background:var(--acento-suave);}
+
+/* ============================================================
+   VEREDITO
+   ============================================================ */
+/* ilha deliberadamente escura nos dois temas — cores literais, sem tokens */
+.veredito{background:var(--ferro); color:#EDE5D9; padding:clamp(32px,5vw,60px) 0;}
+.veredito .olho{color:var(--ferrugem-viva);}
+.vd-grid{display:grid; gap:clamp(26px,4vw,52px); grid-template-columns:1fr;}
+@media(min-width:900px){.vd-grid{grid-template-columns:1.35fr 1fr; align-items:start;}}
+.vd-frase{font-family:var(--display); font-weight:800; letter-spacing:-.03em;
+  font-size:clamp(26px,4.1vw,45px); line-height:1.1; margin:14px 0 0; text-wrap:balance;}
+.vd-frase b{color:var(--ferrugem-viva); font-weight:800;}
+.vd-frase s{color:#8A7F73; text-decoration-color:var(--ferrugem-viva);
+  text-decoration-thickness:2px; font-weight:400;}
+.vd-nota{margin-top:20px; color:#B3A79A; font-size:15px; max-width:52ch;}
+.vd-razoes{display:flex; flex-direction:column; gap:1px; background:#2A2320;
+  border:1px solid #2A2320;}
+.vd-razao{background:#191411; padding:16px 18px; display:grid;
+  grid-template-columns:auto 1fr; gap:16px; align-items:baseline;}
+.vd-razao .n{font-family:var(--dado); font-size:22px; font-weight:600; color:var(--ferrugem-viva);}
+.vd-razao p{font-size:14.5px; line-height:1.5; color:#D5CABC;}
+.vd-razao strong{color:#F2EAE0; font-weight:600;}
+
+/* ============================================================
+   SEÇÕES
+   ============================================================ */
+section{padding:clamp(46px,6.5vw,88px) 0; border-bottom:1px solid var(--linha);}
+.sec-cab{display:flex; flex-direction:column; gap:12px; margin-bottom:clamp(26px,3.5vw,42px);}
+h2{font-size:clamp(26px,3.9vw,44px); max-width:20ch;}
+h3{font-size:clamp(18px,2.1vw,23px); font-weight:600; letter-spacing:-.02em;}
+.wrap > h3{margin-top:clamp(34px,4.6vw,56px);}
+.wrap > h3 + .dizer{margin-top:12px;}
+.painel h3,.alerta h3{margin-top:0;}
+.dizer{color:var(--ink-2); margin-top:14px;}
+.dizer + .dizer{margin-top:12px;}
+strong{font-weight:600; color:var(--ink);}
+
+/* ---------- destaque tipográfico ---------- */
+.regra{margin:clamp(28px,4vw,46px) 0; padding:clamp(20px,3vw,30px) 0;
+  border-top:2px solid var(--acento); border-bottom:1px solid var(--linha);}
+.regra p{font-family:var(--display); font-weight:600; letter-spacing:-.025em;
+  font-size:clamp(19px,2.7vw,30px); line-height:1.22; text-wrap:balance; max-width:24ch;}
+.regra p b{color:var(--acento); font-weight:800;}
+.regra .apoio{font-family:var(--corpo); font-size:15px; font-weight:300;
+  color:var(--ink-2); letter-spacing:0; line-height:1.6; margin-top:14px; max-width:56ch;}
+
+/* ---------- tabelas ---------- */
+.rolo{overflow-x:auto; margin:26px 0; border:1px solid var(--linha); background:var(--bg-2);}
+table{border-collapse:collapse; width:100%; min-width:520px; font-size:14px;}
+caption{caption-side:top; text-align:left; padding:14px 16px 0;
+  font-family:var(--dado); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--ink-3);}
+th,td{padding:10px 16px; text-align:right; border-bottom:1px solid var(--linha);}
+th:first-child,td:first-child{text-align:left;}
+thead th{font-family:var(--dado); font-size:10px; font-weight:600; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--ink-3); border-bottom:1px solid var(--linha-forte);
+  white-space:nowrap;}
+tbody td{font-variant-numeric:tabular-nums;}
+tbody td:not(:first-child){font-family:var(--dado); font-size:13px;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr.total td{background:var(--bg-3); font-weight:600; border-top:1px solid var(--linha-forte);}
+tbody tr.melhor td{background:var(--acento-suave);}
+tbody tr.melhor td:first-child{box-shadow:inset 3px 0 0 var(--acento);}
+.pos{color:var(--pos); font-weight:600;}
+.neg{color:var(--neg); font-weight:600;}
+
+/* ---------- tiles ---------- */
+.tiles{display:grid; gap:1px; background:var(--linha); border:1px solid var(--linha);
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); margin:28px 0;}
+.tile{background:var(--bg-2); padding:20px; display:flex; flex-direction:column; gap:7px;}
+.tile .v{font-family:var(--display); font-weight:800; font-size:clamp(26px,3.4vw,36px);
+  letter-spacing:-.035em; line-height:1; font-variant-numeric:tabular-nums;}
+.tile .v.ac{color:var(--acento);} .tile .v.ng{color:var(--neg);} .tile .v.ps{color:var(--pos);}
+.tile .k{font-family:var(--dado); font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--ink-3);}
+.tile .d{font-size:13.5px; color:var(--ink-2); line-height:1.45;}
+
+/* ---------- gráficos ---------- */
+figure{margin:30px 0; }
+figure svg{display:block; width:100%; height:auto;}
+figcaption{font-size:13px; color:var(--ink-3); margin-top:12px; max-width:62ch;}
+.grafico{border:1px solid var(--linha); background:var(--bg-2); padding:clamp(16px,2.4vw,26px);}
+
+/* ---------- barras horizontais ---------- */
+.barras{display:flex; flex-direction:column; gap:1px; background:var(--linha);
+  border:1px solid var(--linha); margin:28px 0;}
+.barra{background:var(--bg-2); padding:14px 18px; display:grid; gap:4px 16px;
+  grid-template-columns:1fr auto; align-items:center;}
+.barra .rot{font-size:14px; font-weight:400;}
+.barra .rot small{display:block; font-family:var(--dado); font-size:10.5px;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); margin-top:3px;}
+.barra .val{font-family:var(--dado); font-size:15px; font-weight:600; font-variant-numeric:tabular-nums;}
+.barra .trilho{grid-column:1/-1; height:9px; background:var(--bg-3); position:relative;
+  overflow:hidden; margin-top:5px;}
+.barra .fill{position:absolute; top:0; bottom:0; }
+.barra .zero{position:absolute; top:-3px; bottom:-3px; width:1px; background:var(--linha-forte);}
+.barra.win{background:var(--acento-suave); box-shadow:inset 3px 0 0 var(--acento);}
+
+/* ---------- alerta ---------- */
+.alerta{border:1px solid var(--acento); border-left-width:4px; background:var(--acento-suave);
+  padding:clamp(18px,2.6vw,28px); margin:30px 0; display:flex; flex-direction:column; gap:12px;}
+.alerta h3{color:var(--acento);}
+.alerta ol,.alerta ul{margin:0; padding-left:20px; display:flex; flex-direction:column; gap:7px;
+  font-size:15px; color:var(--ink-2);}
+
+/* ---------- listas ---------- */
+.lista{list-style:none; margin:24px 0; padding:0; display:flex; flex-direction:column; gap:1px;
+  background:var(--linha); border:1px solid var(--linha);}
+.lista li{background:var(--bg-2); padding:15px 18px; display:grid; gap:4px 18px;
+  grid-template-columns:auto 1fr; align-items:baseline; font-size:15px;}
+.lista .mk{font-family:var(--dado); font-size:11px; letter-spacing:.1em; color:var(--acento);
+  text-transform:uppercase; min-width:6ch;}
+.lista .mk.n{color:var(--ink-3);}
+.lista p{color:var(--ink-2); font-size:14.5px;}
+.lista b{color:var(--ink); font-weight:600;}
+
+/* ---------- duas colunas ---------- */
+.duas{display:grid; gap:clamp(22px,3.4vw,44px); grid-template-columns:1fr; margin:28px 0;}
+@media(min-width:820px){.duas{grid-template-columns:1fr 1fr;}}
+.painel{border:1px solid var(--linha); background:var(--bg-2); padding:clamp(18px,2.6vw,26px);
+  display:flex; flex-direction:column; gap:12px;}
+.painel.pro{border-top:3px solid var(--pos);}
+.painel.contra{border-top:3px solid var(--neg);}
+.painel ul{margin:0; padding-left:19px; display:flex; flex-direction:column; gap:8px;
+  font-size:14.5px; color:var(--ink-2);}
+
+/* ---------- rodapé ---------- */
+footer{padding:clamp(38px,5vw,66px) 0; background:var(--bg-2); border-bottom:none;}
+.fontes{columns:2 260px; column-gap:34px; font-size:13.5px; line-height:1.7;}
+.fontes a{display:block; break-inside:avoid; color:var(--ink-2); text-decoration:none;
+  padding:3px 0; border-bottom:1px solid transparent;}
+.fontes a:hover{color:var(--acento); border-bottom-color:var(--linha);}
+.assina{margin-top:34px; padding-top:20px; border-top:1px solid var(--linha);
+  display:flex; flex-wrap:wrap; gap:8px 24px; font-family:var(--dado); font-size:10.5px;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3);}
+</style>
+
+<header class="topo">
+  <div class="wrap topo-in">
+    <div class="crumb">
+      <span class="marca">S7 · Estudo de viabilidade</span>
+      <span>Praia da Ferrugem · Garopaba · SC</span>
+      <span>Setembro 2026</span>
+    </div>
+    <h1>Açaí na <em>Ferrugem</em>: franquia ou marca própria?</h1>
+    <p class="sub">Ponto na rua principal, duas quadras da praia. Modelo financeiro com sazonalidade
+      real, teste adversarial contra a própria conclusão, e o risco contratual que ninguém enxerga.</p>
+  </div>
+</header>
+
+<nav class="nav" aria-label="Capítulos">
+  <ol>
+    <li><a href="#veredito">Veredito</a></li>
+    <li><a href="#terreno">O terreno</a></li>
+    <li><a href="#franquia">A franquia</a></li>
+    <li><a href="#numeros">Os números</a></li>
+    <li><a href="#teste">Teste adversarial</a></li>
+    <li><a href="#colisao">A colisão com a HERA</a></li>
+    <li><a href="#posicao">Roots ou chique</a></li>
+    <li><a href="#caminho">O caminho</a></li>
+    <li><a href="#duediligence">Due diligence</a></li>
+  </ol>
+</nav>
+
+<!-- ============================ VEREDITO ============================ -->
+<div class="veredito" id="veredito">
+  <div class="wrap vd-grid">
+    <div>
+      <p class="olho">O veredito</p>
+      <p class="vd-frase"><s>Franquia D'gusta.</s><br><b>Marca própria</b>, self-service por peso,
+        sob o guarda-chuva da HERA, operando por temporada.</p>
+      <p class="vd-nota">Não porque franquia seja ruim. Porque vocês são o comprador errado
+        para este produto — já são donos de tudo que ela vende.</p>
+    </div>
+    <div class="vd-razoes">
+      <div class="vd-razao"><span class="n">01</span>
+        <p>No cenário base a franquia dá <strong>prejuízo de R$ 8 mil/ano</strong>.
+          A marca própria dá <strong>R$ 61 a 107 mil de lucro</strong>.</p></div>
+      <div class="vd-razao"><span class="n">02</span>
+        <p>Você pagaria <strong>~R$ 330 mil em 5 anos</strong> por cozinha, marca, marketing e
+          conhecimento de praça que <strong>já estão no seu galpão</strong>.</p></div>
+      <div class="vd-razao"><span class="n">03</span>
+        <p>A cláusula de raio da franquia pode <strong>proibir a HERA</strong> de vender açaí,
+          gelato ou smoothie — na rua onde vocês querem o piloto.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ TERRENO ============================ -->
+<section id="terreno">
+  <div class="wrap">
+    <div class="sec-cab">
+      <p class="olho">01 · O terreno</p>
+      <h2>Uma cidade de 30 mil que recebe 150 mil no verão</h2>
+    </div>
+    <div class="prosa">
+      <p class="dizer">Garopaba tem <strong>29.959 habitantes</strong> (Censo 2022), PIB de
+        R$ 773 milhões com <strong>64,8% em serviços</strong>, e entrou na <strong>Categoria A do
+        Mapa do Turismo</strong> — a elite nacional. A Ferrugem é o bairro que concentra o maior
+        movimento de turistas, surfe e vida noturna da região. É também o que mais esvazia.</p>
+      <p class="dizer">O inimigo deste negócio não é o produto. É o calendário.</p>
+    </div>
+
+    <figure class="grafico">
+      <svg viewBox="0 0 900 300" role="img" aria-label="Fluxo estimado de clientes por dia ao longo do ano na Praia da Ferrugem: pico de 170 em janeiro, mínimo de 14 em junho e agosto.">
+        <g font-family="JetBrains Mono, monospace" font-size="11">
+          <!-- eixo -->
+          <line x1="52" y1="238" x2="880" y2="238" stroke="var(--linha-forte)" stroke-width="1"/>
+          <text x="52" y="30" fill="var(--ink-3)" font-size="10" letter-spacing="1.6">CLIENTES / DIA · ESTIMATIVA</text>
+          <!-- grid -->
+          <line x1="52" y1="60" x2="880" y2="60" stroke="var(--linha)" stroke-width="1"/>
+          <line x1="52" y1="149" x2="880" y2="149" stroke="var(--linha)" stroke-width="1"/>
+          <text x="20" y="64" fill="var(--ink-3)" font-size="10">180</text>
+          <text x="20" y="153" fill="var(--ink-3)" font-size="10">90</text>
+          <text x="26" y="242" fill="var(--ink-3)" font-size="10">0</text>
+        </g>
+        <g id="barras-ano"></g>
+        <g font-family="JetBrains Mono, monospace" font-size="10" fill="var(--ink-3)" id="rotulos-ano"></g>
+        <!-- faixa de temporada -->
+        <rect x="55" y="46" width="140" height="192" fill="var(--acento-suave)"/>
+        <rect x="795" y="46" width="82" height="192" fill="var(--acento-suave)"/>
+        <text x="60" y="58" font-family="JetBrains Mono, monospace" font-size="9.5"
+              letter-spacing="1.4" fill="var(--acento)">TEMPORADA</text>
+      </svg>
+      <figcaption>Dezembro, janeiro e fevereiro concentram <strong>61,7% do faturamento anual</strong>
+        em 2,5 meses. Os oito meses de abril a novembro somam menos que janeiro sozinho.</figcaption>
+    </figure>
+
+    <div class="tiles">
+      <div class="tile"><span class="k">Concentração</span><span class="v ac">61,7%</span>
+        <span class="d">do faturamento do ano cai em dez, jan e fev</span></div>
+      <div class="tile"><span class="k">Gasto do turista · SC 2026</span><span class="v ng">−16,4%</span>
+        <span class="d">R$ 9.833 → R$ 8.224 por grupo (Fecomércio SC)</span></div>
+      <div class="tile"><span class="k">Alimentação fora do lar</span><span class="v ng">−26,6%</span>
+        <span class="d">R$ 3.563 → R$ 2.614. O turista cozinhou na casa alugada</span></div>
+      <div class="tile"><span class="k">Empresários</span><span class="v">43,8%</span>
+        <span class="d">avaliaram a temporada abaixo do esperado</span></div>
+    </div>
+
+    <div class="regra">
+      <p>Este é um bom momento para investir com estrutura leve.<br>
+        É um <b>péssimo momento</b> para assinar cinco anos de royalties fixos.</p>
+      <p class="apoio">A queda de 26,6% em alimentação fora do lar é o pior indicador possível para
+        um negócio de impulso na calçada — e é exatamente o consumo que o turista cortou primeiro.</p>
+    </div>
+
+    <h3>O ponto e o aluguel</h3>
+    <p class="dizer prosa">Referências reais de mercado na Ferrugem: <strong>89 m² a 150 m do mar
+      por R$ 45.000/ano</strong> — cerca de R$ 3.750/mês, com 46,77 m² internos e deck exclusivo de
+      42 m². Pontos de esquina na rua principal pedem mais, frequentemente com luvas.</p>
+    <div class="alerta">
+      <h3>Correção necessária no plano da HERA</h3>
+      <p>A estimativa de <strong>R$ 1.500/mês</strong> para a Ferrugem que consta no plano v1.1 está
+        desatualizada para a rua principal. O mercado real de um ponto bom com fachada e fluxo está
+        em <strong>R$ 3.750 a 6.000/mês</strong> em contrato anual. Isso precisa ser corrigido nas
+        duas projeções — açaí e HERA.</p>
+    </div>
+
+    <h3>Quem já está lá</h3>
+    <div class="rolo"><table>
+      <caption>Concorrência mapeada — Garopaba</caption>
+      <thead><tr><th>Operação</th><th>Onde</th><th>Formato</th></tr></thead>
+      <tbody>
+        <tr><td>Açaí Concept</td><td>Garopaba centro</td><td>Franquia global do segmento</td></tr>
+        <tr><td>OKA Açaí</td><td>Garopaba</td><td>Independente</td></tr>
+        <tr><td>Ice Mix Fruits</td><td>Campo Duna</td><td>Fábrica e distribuidora local de açaí</td></tr>
+        <tr><td>Gelomel e lanchonetes</td><td>Centro / Ferrugem</td><td>Açaí como item secundário</td></tr>
+      </tbody>
+    </table></div>
+    <p class="dizer prosa">Duas leituras. <strong>Uma franquia grande já ocupou o centro</strong> —
+      chegar depois com outra franquia média é a pior posição competitiva possível: nem é a marca
+      conhecida, nem é a autoral. E a <strong>Ice Mix Fruits, fábrica de açaí dentro de Garopaba</strong>,
+      derruba o maior argumento a favor de franquear: a cadeia de suprimento.</p>
+  </div>
+</section>
+
+<!-- ============================ FRANQUIA ============================ -->
+<section id="franquia">
+  <div class="wrap">
+    <div class="sec-cab">
+      <p class="olho">02 · A franquia</p>
+      <h2>O que a D'gusta cobra e o que ela entrega</h2>
+    </div>
+
+    <div class="alerta">
+      <h3>Antes de tudo: confirme de qual marca estamos falando</h3>
+      <p>Existem <strong>três marcas com nome quase idêntico</strong>. A <strong>Degusta Açaí</strong>
+        (Ijuí/RS) é franqueadora ativa expandindo em SC — inaugurou em Navegantes em nov/2024, buffet
+        self-service a R$ 5,99/100 g. É quase certamente a que você viu. Há também a
+        <strong>D'Gusta Açaí</strong> (Alfenas/Varginha, MG) e a <strong>D'gust Açaíteria</strong>.</p>
+      <p><strong>Peça o CNPJ da franqueadora.</strong> Nome disputado por três redes é sinal de marca
+        fraca — e valor de nome é exatamente o que você estaria comprando.</p>
+    </div>
+
+    <div class="rolo"><table>
+      <caption>Benchmark de redes — a Degusta é a que menos informa e menos escala</caption>
+      <thead><tr><th>Rede</th><th>Investimento</th><th>Taxa</th><th>Royalties</th><th>Unidades</th></tr></thead>
+      <tbody>
+        <tr><td>The Best Açaí</td><td>R$ 290–450k</td><td>R$ 70k</td><td>R$ 1.160 fixo</td><td>+1.100</td></tr>
+        <tr><td>Açaí Concept</td><td>R$ 90–220k</td><td>—</td><td>R$ 1,5–2,5k fixo</td><td>10 países</td></tr>
+        <tr><td>Oakberry</td><td>a partir de R$ 170k</td><td>R$ 50k</td><td>6% + 2% mkt</td><td>600+</td></tr>
+        <tr><td>Maria Açaí <small>(fábrica em Joinville)</small></td><td>R$ 190–250k</td><td>—</td><td>R$ 1.500 fixo máx.</td><td>70+</td></tr>
+        <tr class="melhor"><td>Degusta Açaí</td><td>não divulgado</td><td>R$ 40k</td><td>fixo ou variável</td><td>não divulgado</td></tr>
+      </tbody>
+    </table></div>
+
+    <p class="dizer prosa">Se o argumento para franquear é <em>"compro escala e reputação"</em>,
+      a Degusta é justamente a que menos entrega isso. A The Best Açaí — 1.100 lojas, R$ 80 milhões
+      de aporte da Auster Capital, royalty fixo de R$ 1.160 — seria estruturalmente superior. E ainda
+      assim perde para marca própria neste caso específico.</p>
+
+    <div class="regra">
+      <p>Redes que anunciam <b>"não cobramos royalties sobre o faturamento"</b> ganham no markup do
+        insumo obrigatório.</p>
+      <p class="apoio">É royalty com outro nome — e pior, porque é invisível e incide sobre o CMV, não
+        sobre o lucro. Relato público de franqueado de açaí: R$ 3.000/mês de royalties
+        <em>mais</em> R$ 11.000/mês de compras obrigatórias da fábrica. Polpa no atacado livre custa
+        R$ 15 a 22/kg — a pergunta obrigatória na COF é quanto a franqueadora cobra pela mesma coisa.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ NÚMEROS ============================ -->
+<section id="numeros">
+  <div class="wrap">
+    <div class="sec-cab">
+      <p class="olho">03 · Os números</p>
+      <h2>Nove meses no vermelho</h2>
+    </div>
+    <p class="dizer prosa">DRE mês a mês da franquia em operação padrão de 12 meses, cenário base de
+      fluxo. Ticket de R$ 25, CMV de 38,5%, Simples Nacional Anexo I, aluguel de R$ 6.000 na alta e
+      R$ 3.800 na baixa.</p>
+
+    <figure class="grafico">
+      <svg viewBox="0 0 900 260" role="img" aria-label="Lucro mensal da franquia: positivo em dezembro, janeiro e fevereiro; negativo nos outros nove meses, com pior resultado de menos R$ 11.579 em junho.">
+        <g id="dre-barras"></g>
+        <line x1="52" y1="112" x2="880" y2="112" stroke="var(--linha-forte)" stroke-width="1"/>
+        <text x="14" y="116" font-family="JetBrains Mono, monospace" font-size="10" fill="var(--ink-3)">R$ 0</text>
+        <text x="880" y="24" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10"
+              letter-spacing="1.6" fill="var(--ink-3)">LUCRO MENSAL · FRANQUIA · 12 MESES</text>
+        <g id="dre-rotulos" font-family="JetBrains Mono, monospace" font-size="10" fill="var(--ink-3)"></g>
+      </svg>
+      <figcaption>Janeiro entrega R$ 27.552 de lucro. Junho, julho, agosto e setembro devolvem
+        R$ 41.676. <strong>R$ 75 mil de caixa queimado na baixa — mais que o lucro de janeiro inteiro.</strong>
+        Royalty fixo não sabe que é junho.</figcaption>
+    </figure>
+
+    <div class="rolo"><table>
+      <caption>DRE anual · Franquia D'gusta, operação padrão</caption>
+      <thead><tr><th>Mês</th><th>Receita</th><th>CMV</th><th>Folha</th><th>Aluguel</th><th>Royalties</th><th>Lucro</th></tr></thead>
+      <tbody id="dre-tabela"></tbody>
+    </table></div>
+
+    <h3>Todos os caminhos, lado a lado</h3>
+    <div class="barras" id="caminhos"></div>
+
+    <h3>Quanto fluxo cada modelo exige só para empatar</h3>
+    <p class="dizer prosa">Esta é a tabela mais importante do estudo. A franquia precisa de
+      <strong>quase o dobro do fluxo</strong> da melhor alternativa — ela transforma um ponto bom em
+      obrigatoriamente excepcional.</p>
+    <div class="rolo"><table>
+      <caption>Ponto de equilíbrio anual</caption>
+      <thead><tr><th>Caminho</th><th>% do fluxo base</th><th>Clientes/dia em janeiro</th></tr></thead>
+      <tbody>
+        <tr><td>Franquia · 12 meses</td><td class="neg">116%</td><td class="neg">197</td></tr>
+        <tr><td>Franquia · enxuta na baixa</td><td class="neg">104%</td><td class="neg">177</td></tr>
+        <tr><td>Marca própria · 12 meses</td><td>77%</td><td>114</td></tr>
+        <tr><td>Marca própria · hiberna mai–ago</td><td>74%</td><td>111</td></tr>
+        <tr><td>Marca própria HERA · hiberna</td><td class="pos">61%</td><td class="pos">95</td></tr>
+        <tr class="melhor"><td>Marca própria HERA · só temporada</td><td class="pos">59%</td><td class="pos">93</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>O teto de aluguel</h3>
+    <div class="rolo"><table>
+      <caption>Lucro anual por faixa de aluguel (alta / baixa temporada)</caption>
+      <thead><tr><th>Aluguel</th><th>Franquia</th><th>Marca própria</th><th>Sob HERA</th></tr></thead>
+      <tbody>
+        <tr><td>R$ 4.000 / 2.500</td><td class="pos">+10.151</td><td class="pos">+79.014</td><td class="pos">+124.818</td></tr>
+        <tr><td>R$ 6.000 / 3.800</td><td class="neg">−8.249</td><td class="pos">+60.614</td><td class="pos">+106.418</td></tr>
+        <tr><td>R$ 8.000 / 5.000</td><td class="neg">−25.849</td><td class="pos">+43.014</td><td class="pos">+88.818</td></tr>
+        <tr><td>R$ 10.000 / 6.000</td><td class="neg">−41.849</td><td class="pos">+27.014</td><td class="pos">+72.818</td></tr>
+        <tr><td>R$ 14.000 / 8.000</td><td class="neg">−73.849</td><td class="neg">−4.986</td><td class="pos">+40.818</td></tr>
+      </tbody>
+    </table></div>
+    <div class="regra">
+      <p>Acima de <b>R$ 8 mil/mês na alta temporada</b>, nenhum modelo de açaí fecha na Ferrugem —
+        nem o melhor deles.</p>
+      <p class="apoio">Esse é o teto rígido de aluguel que vocês podem aceitar. Negociem valor menor
+        na baixa e recusem luvas altas.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ TESTE ADVERSARIAL ============================ -->
+<section id="teste">
+  <div class="wrap">
+    <div class="sec-cab">
+      <p class="olho">04 · Teste adversarial</p>
+      <h2>Rodei o modelo tentando fazer a franquia vencer</h2>
+    </div>
+    <p class="dizer prosa">É o teste que dá honestidade à recomendação. Se a conclusão só sobrevive
+      com premissas favoráveis a ela, não vale nada.</p>
+
+    <div class="duas">
+      <div class="painel contra">
+        <p class="olho olho-n">Teste 1 · insumo sem markup</p>
+        <h3>A franquia perde mesmo com CMV melhor que o da marca própria</h3>
+        <p class="dizer">Com CMV de 30% — <em>abaixo</em> dos 32,5% da marca própria — a franquia
+          entrega R$ 31.095 contra R$ 72.705. <strong>O custo do sistema não é o insumo. É a estrutura.</strong></p>
+      </div>
+      <div class="painel contra">
+        <p class="olho olho-n">Teste 2 · royalty zero</p>
+        <h3>A franquia perde mesmo sem pagar royalty nenhum</h3>
+        <p class="dizer">Com royalty de R$ 0, a franquia entrega R$ 15.751 contra R$ 72.705 — porque
+          continua presa ao ticket popular e ao CMV da rede.</p>
+      </div>
+    </div>
+
+    <h3>Teste 3 · o único caminho da franquia: puxar mais gente</h3>
+    <figure class="grafico">
+      <svg viewBox="0 0 900 300" role="img" aria-label="Lucro da franquia conforme o fluxo extra trazido pela marca: cruza o resultado da marca própria de R$ 72.705 apenas a partir de mais 40% de fluxo.">
+        <g id="pull"></g>
+      </svg>
+      <figcaption>Cada ponto é o lucro anual da franquia com aquele fluxo extra. A linha tracejada é
+        o resultado da marca própria sem nenhuma vantagem empilhada.</figcaption>
+    </figure>
+
+    <div class="regra">
+      <p>A franquia só se paga se puxar <b>40% mais gente</b> para a porta do que uma marca sua bem feita.</p>
+      <p class="apoio">Na Ferrugem, o turista decide na calçada, na hora. Quem puxa é a vitrine, o
+        cheiro, a fila e o preço na fachada — não o logo. Uma marca de Ijuí pode ter algum
+        reconhecimento com o turista gaúcho, o que é um ponto real a favor. Mas +40% é um salto que
+        nenhuma marca média de açaí entrega em praia.</p>
+    </div>
+
+    <h3>Teste 4 · o custo puro de ser franqueado</h3>
+    <p class="dizer prosa">Com o <strong>mesmo ticket</strong> dos dois lados, tirando toda a vantagem
+      de posicionamento da marca própria:</p>
+    <div class="rolo"><table>
+      <caption>Lucro anual com ticket idêntico</caption>
+      <thead><tr><th>Ticket médio</th><th>Franquia</th><th>Marca própria</th><th>Custo de franquear</th></tr></thead>
+      <tbody>
+        <tr><td>R$ 25</td><td class="neg">−8.249</td><td class="pos">+43.524</td><td><strong>R$ 51.772</strong></td></tr>
+        <tr><td>R$ 28</td><td>+16.122</td><td class="pos">+71.227</td><td><strong>R$ 55.105</strong></td></tr>
+        <tr><td>R$ 32</td><td>+48.617</td><td class="pos">+108.165</td><td><strong>R$ 59.549</strong></td></tr>
+        <tr><td>R$ 36</td><td>+81.111</td><td class="pos">+145.103</td><td><strong>R$ 63.992</strong></td></tr>
+      </tbody>
+    </table></div>
+    <p class="dizer prosa">Ser franqueado custa <strong>R$ 52 a 64 mil por ano, independentemente de
+      quão bem a loja vai</strong>. É um imposto sobre a operação, não uma participação no risco.</p>
+
+    <h3>Teste 5 · o melhor caso possível da franquia</h3>
+    <p class="dizer prosa">Empilhando todas as premissas favoráveis ao mesmo tempo — royalty de
+      R$ 1.160, CMV competitivo de 33%, +25% de fluxo por reconhecimento de marca, CAPEX menor por
+      projeto pronto, custo zero de criação de marca — contra a marca própria no caso base, sem
+      nenhuma vantagem empilhada:</p>
+    <div class="tiles">
+      <div class="tile"><span class="k">Franquia · melhor caso</span><span class="v">R$ 98.863</span>
+        <span class="d">payback de 24 meses</span></div>
+      <div class="tile"><span class="k">Marca própria · caso base</span><span class="v">R$ 72.705</span>
+        <span class="d">payback de 39 meses</span></div>
+      <div class="tile"><span class="k">Diferença</span><span class="v ac">R$ 26 mil</span>
+        <span class="d">por ano, a favor da franquia — no cenário em que tudo dá certo para ela</span></div>
+    </div>
+    <p class="dizer prosa">E contra esses R$ 26 mil você entrega: cinco anos de contrato, cláusula de
+      raio, dependência de fornecedor único, e o ativo de marca no fim — que fica com eles.
+      <strong>Não é um trade aceitável.</strong></p>
+  </div>
+</section>
+
+<!-- ============================ COLISÃO ============================ -->
+<section id="colisao">
+  <div class="wrap">
+    <div class="sec-cab">
+      <p class="olho">05 · O risco estrutural</p>
+      <h2>A cláusula de raio pode inviabilizar a HERA</h2>
+    </div>
+    <p class="dizer prosa">Este é o ponto que, sozinho, deveria encerrar a discussão. O plano da HERA
+      coloca a <strong>loja-piloto na Praia da Ferrugem</strong>. O ponto de açaí em avaliação está na
+      rua principal da Ferrugem. Mesmo bairro, provavelmente a mesma rua.</p>
+    <p class="dizer prosa">Contratos de franquia contêm rotineiramente cláusula de raio (você não pode
+      operar negócio similar dentro de um território, durante o contrato) e de não-concorrência
+      pós-contratual, que sobrevive ao fim do contrato por 1 a 2 anos. A jurisprudência brasileira
+      valida essas cláusulas quando têm território, prazo e área de atuação claramente delimitados.</p>
+
+    <div class="alerta">
+      <h3>As cinco perguntas que precisam de resposta escrita antes de qualquer assinatura</h3>
+      <ol>
+        <li>O que exatamente conta como "negócio similar"? Açaí? Sorvete? Smoothie? <strong>Sobremesa gelada em geral?</strong></li>
+        <li>A HERA, vendendo açaí ou gelato no cardápio, viola o contrato?</li>
+        <li>O raio cobre a Ferrugem inteira? Garopaba inteira? A região?</li>
+        <li>A restrição vale para você pessoalmente, para o CNPJ, ou para <strong>sócios e cônjuges</strong>?</li>
+        <li>Ela sobrevive à rescisão — inclusive se você fechar a loja no ano 2?</li>
+      </ol>
+    </div>
+
+    <div class="regra">
+      <p>O próprio plano da HERA impõe ao parceiro: <b>"você não pode abrir um lugar parecido sem a
+        gente, em nenhum lugar"</b>.</p>
+      <p class="apoio">Vocês conhecem o poder dessa cláusula — porque a escreveram. Assinar a versão
+        espelhada dela, com uma franqueadora, no mesmo bairro do seu piloto, é dar a uma marca de Ijuí
+        poder de veto sobre o cardápio da HERA. E um cardápio de empório-café sem açaí, sem gelato e
+        sem smoothie na Praia da Ferrugem é um cardápio mutilado.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ POSICIONAMENTO ============================ -->
+<section id="posicao">
+  <div class="wrap">
+    <div class="sec-cab">
+      <p class="olho">06 · Posicionamento</p>
+      <h2>Roots ou chique? As duas coisas — em camadas diferentes</h2>
+    </div>
+    <p class="dizer prosa">A leitura de vocês — <em>"a Ferrugem é bem roots, mas a ideia é começar a
+      evoluir o local com os negócios novos, não o contrário"</em> — está estrategicamente certa e
+      taticamente perigosa. Vale separar as camadas.</p>
+
+    <div class="duas">
+      <div class="painel pro">
+        <p class="olho olho-n">A favor de elevar</p>
+        <ul>
+          <li>Garopaba entrou na <strong>Categoria A</strong> do Mapa do Turismo</li>
+          <li>Rosa e Ferrugem concentram <strong>pousadas boutique</strong> em expansão</li>
+          <li>Açaí premium cresce <strong>15% ao ano</strong> em mercado A/B; bowls em taça chegam a ticket de R$ 32–45</li>
+          <li>Boom imobiliário em curso no litoral catarinense</li>
+        </ul>
+      </div>
+      <div class="painel contra">
+        <p class="olho olho-n">Contra elevar demais</p>
+        <ul>
+          <li>O visitante dominante de SC tem renda de <strong>2 a 8 salários mínimos (61,6%)</strong></li>
+          <li>Gasto com alimentação fora do lar <strong>caiu 26,6%</strong></li>
+          <li>A Ferrugem é a praia <strong>jovem, de surfe, festa e volume</strong> — não é o Rosa</li>
+          <li>A janela real tem <strong>45 dias</strong>. Nesses 45 dias, o que importa é vazão</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="rolo"><table>
+      <caption>A síntese — onde elevar e onde não mexer</caption>
+      <thead><tr><th>Camada</th><th>Decisão</th><th>Por quê</th></tr></thead>
+      <tbody>
+        <tr><td>Formato operacional</td><td style="text-align:left"><strong>Self-service por peso. Sem exceção.</strong></td>
+          <td style="text-align:left">É a máquina de vazão. Em janeiro, é a diferença entre 170 e 90 clientes/dia</td></tr>
+        <tr><td>Produto</td><td style="text-align:left"><strong>Elevado</strong></td>
+          <td style="text-align:left">Polpa premium, frutas frescas, granola da cozinha central. Ninguém na Ferrugem faz isso</td></tr>
+        <tr><td>Preço</td><td style="text-align:left"><strong>+20 a 25%</strong></td>
+          <td style="text-align:left">R$ 7,49/100 g contra R$ 5,99 da Degusta — sustentado pelo produto, não pelo logo</td></tr>
+        <tr><td>Loja</td><td style="text-align:left"><strong>Elevada</strong></td>
+          <td style="text-align:left">Madeira, concreto, luz quente, vegetação. É gratuito em termos de vazão</td></tr>
+        <tr><td>Marca</td><td style="text-align:left"><strong>Sua</strong></td>
+          <td style="text-align:left">O ativo fica com vocês</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="regra">
+      <p>Não vendam açaí <s>mais caro</s>. Vendam açaí <b>melhor</b>, num lugar bonito,
+        <b>na mesma balança</b>.</p>
+      <p class="apoio">Bowl montado por atendente é uma decisão que parece premium e é, na prática,
+        uma redução deliberada da capacidade de atendimento no único mês que paga o ano.
+        Premium na Ferrugem é o balcão, não a fila.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ CAMINHO ============================ -->
+<section id="caminho">
+  <div class="wrap">
+    <div class="sec-cab">
+      <p class="olho">07 · O caminho</p>
+      <h2>Marca própria sob a HERA, concentrada na temporada</h2>
+    </div>
+
+    <div class="tiles">
+      <div class="tile"><span class="k">CAPEX</span><span class="v">R$ 140–185k</span>
+        <span class="d">contra R$ 225k da franquia</span></div>
+      <div class="tile"><span class="k">Lucro anual</span><span class="v ps">R$ 100–110k</span>
+        <span class="d">margem de 22 a 26%</span></div>
+      <div class="tile"><span class="k">Payback</span><span class="v ac">16–21 meses</span>
+        <span class="d">a franquia não paga nunca no cenário base</span></div>
+      <div class="tile"><span class="k">ROI</span><span class="v ps">58–77% a.a.</span>
+        <span class="d">sobre o capital investido</span></div>
+    </div>
+
+    <h3>Por que a sinergia com a HERA é o pulo do gato</h3>
+    <p class="dizer prosa">A mesma loja, sozinha, dá <strong>R$ 60 mil</strong>. Sob a HERA, dá
+      <strong>R$ 106 mil</strong>. A diferença de R$ 46 mil/ano não vem de vender mais:</p>
+    <ul class="lista">
+      <li><span class="mk">CMV</span><p><b>32,5% → 30,0%.</b> Cozinha central produz toppings, granola e caldas; compra de fruta em escala</p></li>
+      <li><span class="mk">Folha</span><p>Gerente regional e equipe circulam entre HERA e açaí; os picos do dia não coincidem</p></li>
+      <li><span class="mk">Overhead</span><p>Contador, PDV, sistema, marketing digital e jurídico — um só para dois negócios</p></li>
+      <li><span class="mk">Mkt</span><p>Tráfego pago da S7 já roda para a região. CAC compartilhado</p></li>
+      <li><span class="mk">Ponto</span><p>Poder de negociação maior com dois contratos na mesma rua</p></li>
+      <li><span class="mk">Horário</span><p>Café pela manhã, açaí à tarde e à noite. Mesma rua, mesmo cliente, dois momentos</p></li>
+    </ul>
+    <p class="dizer prosa">E o mais importante: <strong>o açaí resolve o maior problema estrutural da
+      HERA.</strong> A HERA é um empório de recorrência que sofre nos oito meses vazios. O açaí é
+      colheita rápida que injeta caixa no verão. Juntos, um financia o outro.</p>
+
+    <h3>Sequenciamento</h3>
+    <p class="dizer prosa">Abrir açaí e HERA na mesma temporada, na mesma rua, com a mesma cozinha e a
+      mesma gente, é o risco que o próprio documento de vocês nomeia:
+      <em>"quem abre seis ao mesmo tempo, quebra seis ao mesmo tempo"</em>.</p>
+    <div class="regra">
+      <p>Açaí primeiro — se a decisão for sua e o capital for seu.</p>
+      <p class="apoio">É o negócio mais simples, mais rápido, mais barato e mais rentável por real
+        investido dos dois. A cozinha central já existe. Ele prova a operação e financia o resto.
+        Se a sociedade da HERA já estiver fechada e o capital for do parceiro, inverta a ordem.</p>
+    </div>
+
+    <h3>Doze semanas até a temporada</h3>
+    <ul class="lista">
+      <li><span class="mk">Sem 1–2</span><p><b>Validação de campo.</b> Contagem de fluxo no ponto, 3 propostas de aluguel, mapeamento de concorrência num raio de 3 km</p></li>
+      <li><span class="mk">Sem 3–4</span><p><b>Ponto e marca.</b> Contrato com teto de R$ 8 mil na alta, registro INPI, identidade visual</p></li>
+      <li><span class="mk">Sem 3–5</span><p><b>Fornecimento.</b> Ice Mix Fruits + 2 alternativos, teste cego de 4 polpas, ficha técnica e CMV fechados</p></li>
+      <li><span class="mk">Sem 4–10</span><p><b>Obra e licenças</b>, em paralelo. Fachada, alvará da Prefeitura de Garopaba, Vigilância Sanitária</p></li>
+      <li><span class="mk">Sem 6–8</span><p><b>Equipamentos.</b> Balcão self-service refrigerado, freezers, balanças homologadas pelo INMETRO, PDV</p></li>
+      <li><span class="mk">Sem 7–9</span><p><b>Cozinha central.</b> Linha de toppings, granola e caldas rodando na estrutura HERA</p></li>
+      <li><span class="mk">Sem 9–11</span><p><b>Equipe.</b> Contratação sazonal por prazo determinado, treino de 2 semanas</p></li>
+      <li><span class="mk">Sem 10–12</span><p><b>Pré-abertura.</b> Tráfego pago geolocalizado, parcerias com pousadas e escolas de surfe, lista de espera</p></li>
+      <li><span class="mk n">Dez</span><p><b>Abertura, no início de dezembro.</b> Abrir em janeiro é perder metade da temporada. Em fevereiro, o ano inteiro. Se em outubro a obra não estiver em pé, adiem</p></li>
+    </ul>
+
+    <h3>O teste de campo que vale mais que este estudo inteiro</h3>
+    <p class="dizer prosa">Todas as projeções aqui partem de <strong>170 clientes/dia em janeiro</strong>.
+      Esse número é a espinha dorsal do modelo — e é uma <strong>estimativa minha</strong>, não um dado
+      medido. Vocês têm a capacidade rara de medir de verdade: fiquem na calçada do ponto contando
+      pessoas a pé, em blocos de 15 minutos, das 11h às 23h, em três dias de alta e um de baixa.
+      Conversão realista de calçada para açaí em praia: <strong>3% a 6%</strong>.</p>
+    <div class="rolo"><table>
+      <caption>Regra de decisão · fluxo pedestre medido em janeiro</caption>
+      <thead><tr><th>Pessoas a pé por dia</th><th>Leitura</th></tr></thead>
+      <tbody>
+        <tr><td>acima de 4.000</td><td style="text-align:left" class="pos">Ponto excelente. Vão com tudo</td></tr>
+        <tr><td>2.800 – 4.000</td><td style="text-align:left">Ponto bom. Funciona com marca própria; não funciona como franquia</td></tr>
+        <tr><td>1.800 – 2.800</td><td style="text-align:left">Marginal. Só temporada, CAPEX mínimo, aluguel abaixo de R$ 5 mil</td></tr>
+        <tr><td>abaixo de 1.800</td><td style="text-align:left" class="neg">Não abram neste ponto. Procurem outro</td></tr>
+      </tbody>
+    </table></div>
+    <p class="dizer prosa">Esse levantamento custa quatro dias do verão e vale mais que qualquer
+      projeção — a minha inclusive.</p>
+  </div>
+</section>
+
+<!-- ============================ DUE DILIGENCE ============================ -->
+<section id="duediligence">
+  <div class="wrap">
+    <div class="sec-cab">
+      <p class="olho">08 · Se ainda quiserem avaliar a franquia</p>
+      <h2>A due diligence mínima</h2>
+    </div>
+    <p class="dizer prosa">Pela <strong>Lei 13.966/2019, art. 2º</strong>, a Circular de Oferta de
+      Franquia deve ser entregue <strong>no mínimo 10 dias antes</strong> de qualquer assinatura ou
+      pagamento. Descumprido o prazo, o contrato é anulável e os valores pagos devem ser devolvidos
+      corrigidos. <strong>Nunca paguem nada antes de ter a COF há 10 dias.</strong></p>
+
+    <ul class="lista">
+      <li><span class="mk">01</span><p><b>Valor exato do royalty</b> — fixo, variável ou misto</p></li>
+      <li><span class="mk">02</span><p><b>Tabela de preços dos insumos obrigatórios.</b> Compare com R$ 15–22/kg de mercado. O markup é o royalty invisível</p></li>
+      <li><span class="mk">03</span><p><b>Lista de todos os franqueados, ativos e desligados, dos últimos 24 meses.</b> A Lei obriga. Liguem para os desligados — são a fonte mais honesta que existe</p></li>
+      <li><span class="mk">04</span><p><b>Faturamento real de unidades em cidades turísticas sazonais.</b> "R$ 90 mil/mês" é média de loja urbana. Peçam o número de Navegantes, Torres, Capão</p></li>
+      <li><span class="mk">05</span><p><b>Cláusula de raio e de não-concorrência, na íntegra.</b> Este é o item que pode matar a HERA</p></li>
+      <li><span class="mk">06</span><p><b>Obrigação de horário e dias mínimos de funcionamento.</b> Se não puderem fechar de maio a agosto, o modelo de 12 meses é obrigatório — e ele dá prejuízo</p></li>
+      <li><span class="mk">07</span><p><b>Multa rescisória e condições de saída antecipada.</b> Quanto custa errar</p></li>
+      <li><span class="mk">08</span><p><b>Taxa de renovação</b> ao fim dos 5 anos</p></li>
+      <li><span class="mk">09</span><p><b>Quem paga a reforma de padronização</b> se a rede mudar de identidade visual</p></li>
+      <li><span class="mk">10</span><p><b>CNPJ e registro da marca no INPI.</b> Confirma qual das três marcas homônimas é</p></li>
+    </ul>
+
+    <div class="alerta">
+      <h3>A regra de decisão</h3>
+      <p>Só reconsiderem a franquia se, <strong>cumulativamente</strong>:</p>
+      <ul>
+        <li>o royalty total (fixo + fundo) ficar <strong>abaixo de R$ 1.200/mês</strong>, <em>e</em></li>
+        <li>os insumos obrigatórios custarem <strong>no máximo 5% acima</strong> da cotação livre, <em>e</em></li>
+        <li>a cláusula de raio <strong>excluir explicitamente e por escrito</strong> o negócio da HERA, <em>e</em></li>
+        <li>o contrato permitir <strong>fechamento sazonal sem multa</strong>, <em>e</em></li>
+        <li>pelo menos <strong>três franqueados em cidade litorânea sazonal</strong> confirmarem os números.</li>
+      </ul>
+      <p>Se qualquer um dos cinco falhar, a resposta é não. <strong>Pela análise disponível, ao menos
+        três já falham.</strong></p>
+    </div>
+
+    <h3>Riscos do caminho recomendado</h3>
+    <p class="dizer prosa">Marca própria não é isenta de risco. Estes são os reais:</p>
+    <div class="rolo"><table>
+      <caption>Riscos e mitigação</caption>
+      <thead><tr><th>Risco</th><th>Grav.</th><th>Mitigação</th></tr></thead>
+      <tbody>
+        <tr><td>Cadeia de suprimento de açaí</td><td>Alta</td><td style="text-align:left">Ice Mix Fruits (Garopaba) + Maria Açaí (fábrica em Joinville) + 1 distribuidor RS de backup. Teste cego antes de fechar</td></tr>
+        <tr><td>Aluguel acima do teto</td><td>Alta</td><td style="text-align:left">R$ 8 mil/mês na alta é limite rígido. Valor menor na baixa. Recusar luvas altas</td></tr>
+        <tr><td>Temporada fraca como 2026</td><td>Alta</td><td style="text-align:left">O modelo de temporada mantém lucro mesmo a −30% de fluxo (R$ 28,5 mil no pior cenário HERA)</td></tr>
+        <tr><td>Sobreposição de gestão com a HERA</td><td>Média-alta</td><td style="text-align:left">Sequenciar. Nunca abrir os dois na mesma temporada</td></tr>
+        <tr><td>Falta de padrão sem manual de rede</td><td>Média</td><td style="text-align:left">Ficha técnica escrita, foto de montagem, checklist de abertura e fechamento</td></tr>
+        <tr><td>Curva de aprendizado em açaí</td><td>Média</td><td style="text-align:left">Contratar um ex-gerente de açaiteria por uma temporada custa menos de 1 mês de royalty</td></tr>
+        <tr><td>Concorrente forte na mesma rua</td><td>Média</td><td style="text-align:left">Exclusividade de categoria com o locador, se possível. Marca forte e produto melhor são a defesa real</td></tr>
+        <tr><td>Balança e Vigilância Sanitária</td><td>Baixa</td><td style="text-align:left">Balança homologada pelo INMETRO é obrigatória em venda por peso. Protocolar junto com o alvará</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ============================ FECHO ============================ -->
+<section>
+  <div class="wrap">
+    <div class="sec-cab"><p class="olho">Conclusão</p></div>
+    <div class="prosa">
+      <p class="dizer">Franquia é um atalho vendido para quem não tem operação, não tem marca, não tem
+        marketing e não conhece a praça. Vocês têm as quatro coisas: cozinha central montada com
+        R$ 90–135 mil em equipamento, marca registrada, tráfego pago próprio e dois anos de Garopaba
+        por dentro.</p>
+      <p class="dizer">Pagar R$ 330 mil em cinco anos por um manual, um logo desconhecido e um
+        fornecedor obrigatório é comprar o que já está no galpão. E, pior, é dar a uma franqueadora de
+        Ijuí um direito de veto sobre o cardápio da HERA na rua onde vocês querem plantar o piloto.</p>
+      <p class="dizer">O instinto de elevar a Ferrugem está certo — quem chega primeiro com padrão
+        melhor colhe a subida. Executem isso no produto, no salão e na marca. Nunca no formato.</p>
+    </div>
+    <div class="regra">
+      <p>Em janeiro, na Ferrugem, <b>vazão é margem</b>.</p>
+      <p class="apoio">Marca sua, self-service por peso, R$ 7,49/100 g, loja bonita, cozinha central da
+        HERA por trás, aberta de novembro a março, aluguel travado abaixo de R$ 8 mil na alta, CAPEX de
+        R$ 140–185 mil. E o ativo de marca fica com vocês — não com Ijuí.</p>
+    </div>
+
+    <h3>Notas metodológicas</h3>
+    <ul class="lista">
+      <li><span class="mk n">01</span><p>A curva de <b>170 clientes/dia em janeiro é estimativa minha</b>, calibrada por benchmarks de quiosque de praia e pelo perfil da Ferrugem. É a premissa mais sensível do estudo</p></li>
+      <li><span class="mk n">02</span><p>Os números da Degusta vêm de <b>portais de franquia terceiros, não da COF</b> — o site da franqueadora está bloqueado pela política de rede desta sessão</p></li>
+      <li><span class="mk n">03</span><p>O <b>CMV da franquia (38,5%) é estimado</b>, assumindo 6 p.p. de markup de insumo. O Teste 1 verifica a conclusão contra essa premissa e ela se sustenta mesmo com markup zero</p></li>
+      <li><span class="mk n">04</span><p>A <b>cláusula de raio é risco identificado, não confirmado</b> — depende do contrato específico. É a primeira coisa a verificar</p></li>
+      <li><span class="mk n">05</span><p>Valores em reais correntes de 2026, sem inflação projetada. Simples Nacional Anexo I. Não inclui pró-labore dos sócios nem custo de capital</p></li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p class="olho">Fontes consultadas</p>
+    <div class="fontes" style="margin-top:18px">
+      <a href="https://franqueadora.degustaacai.com/">Degusta Açaí — Seja um Franqueado</a>
+      <a href="https://jornalnosbairros.com.br/wp/2024/11/franquia-do-degusta-acai-e-inaugurada-em-navegantes/">Degusta Açaí inaugura em Navegantes/SC</a>
+      <a href="https://franquiadeacai.com/the-best-acai/">Franquia The Best Açaí</a>
+      <a href="https://mercadoeconsumo.com.br/13/04/2026/franquias/como-abrir-uma-loja-da-the-best-acai/">The Best Açaí chega aos EUA — Mercado&amp;Consumo</a>
+      <a href="https://www.franquia.com.br/franquia/acai-concept">Franquia Açaí Concept</a>
+      <a href="https://investidor10.com.br/conteudo/descubra-a-franquia-oakberry-de-acai-quanto-custa-investir-lojas-e-como-abrir-106122/">Franquia Oakberry — Investidor10</a>
+      <a href="https://www.suafranquia.com/franquias/alimentacao-e-food-service/sorvetes/maria-acai/">Franquia Maria Açaí</a>
+      <a href="https://abf.com.br/mercado-de-franquias-supera-os-r-300-bilhoes-em-2025-e-impulsiona-o-crescimento-da-economia-brasileira/">Mercado de franquias 2025 — ABF</a>
+      <a href="https://www.reclameaqui.com.br/jah-franchising/alerta-sobre-a-franquia-jah-do-acai-experiencia-de-um-franqueado_Z7I0oHq8CQL41KGR/">Relato de franqueado de açaí — Reclame Aqui</a>
+      <a href="https://pedromiguellaw.com/lei-de-franquias-13966-2019-guia-completo/">Lei de Franquias 13.966/2019</a>
+      <a href="https://www.serasaexperian.com.br/conteudos/circular-de-oferta-de-franquias/">Circular de Oferta de Franquia — Serasa</a>
+      <a href="https://www.migalhas.com.br/depeso/406199/a-validade-da-clausula-de-nao-concorrencia-nos-contratos-de-franquia">Cláusula de não concorrência — Migalhas</a>
+      <a href="https://www.conjur.com.br/2023-dez-22/aplicacao-da-clausula-de-nao-concorrencia-nos-contratos-de-franquia/">Não concorrência em franquia — Conjur</a>
+      <a href="https://cidades.ibge.gov.br/brasil/sc/garopaba/panorama">IBGE Cidades — Garopaba/SC</a>
+      <a href="https://www.gov.br/turismo/pt-br/assuntos/noticias/garopaba-atrai-turistas-com-praias-dunas-e-a-cultura-do-surfe-no-litoral-catarinense">Garopaba no Ministério do Turismo</a>
+      <a href="https://unitv.com.br/turismo/garopaba-entra-para-elite-do-turismo-nacional-com-nota-maxima-em-avaliacao-federal/">Garopaba na Categoria A do Mapa do Turismo</a>
+      <a href="https://www.fecomercio-sc.com.br/wp-content/uploads/2026/03/Temporada-de-Verao-2026.pdf">Turismo de Verão no Litoral Catarinense 2026 — Fecomércio SC</a>
+      <a href="https://ocp.news/economia/temporada-de-verao-em-sc-gasto-medio-dos-turistas-cai-164-em-2026-no-litoral">Gasto do turista cai 16,4% em 2026</a>
+      <a href="https://www.santacatarinaempauta.com.br/2026/03/27/turismo-de-verao-de-2026-no-litoral-de-sc-teve-turista-mais-cauteloso-e-comercio-com-desempenho-desigual/">Turista mais cauteloso no verão 2026</a>
+      <a href="https://ecogaropaba.com.br/praias/praia-da-ferrugem-garopaba/">Praia da Ferrugem — Eco Garopaba</a>
+      <a href="https://zaluski.com.br/como-abrir-um-negocio-em-garopaba/">Como abrir um negócio em Garopaba</a>
+      <a href="https://www.chavesnamao.com.br/ponto-comercial/sc-garopaba/praia-da-ferrugem/">Pontos comerciais na Praia da Ferrugem</a>
+      <a href="https://olaclick.com/sistema-para/acaiteria/como-precificar-acai/">Como precificar açaí: CMV e markup</a>
+      <a href="https://www.foodbit.com.br/blog/acai/preco-medio-acai-brasil-2026">Preço médio do açaí no Brasil em 2026</a>
+      <a href="https://www.custoporprato.com.br/precificacao/acaiteria">CMV e margem de açaiteria 2026</a>
+      <a href="https://olaclick.com/sistema-para/acaiteria/quanto-custa-abrir-acaiteria/">Quanto custa abrir uma açaiteria</a>
+      <a href="https://reidodelivery.com.br/blog/quanto-fatura-um-quiosque-de-praia">Quanto fatura um quiosque de praia</a>
+      <a href="https://olaclick.com/sistema-para/acaiteria/acai-gourmet/">Açaí gourmet: criar e vender premium</a>
+      <a href="https://www.contabilizei.com.br/contabilidade-online/tabela-simples-nacional-completa/">Tabela Simples Nacional 2026</a>
+      <a href="https://blog-parceiros.ifood.com.br/aliquota-simples-nacional/">Simples Nacional para restaurantes 2026</a>
+      <a href="https://razonet.com.br/contabilidade-digital/quanto-custa-um-empregado-clt-em-2026-para-a-empresa">Custo de um empregado CLT em 2026</a>
+      <a href="https://brendi.com.br/blog/ifood-taxa-comissao-2026/">Taxa de comissão do iFood 2026</a>
+      <a href="https://olaclick.com/sistema-para/acaiteria/como-vender-acai-no-inverno/">Como vender açaí no inverno</a>
+    </div>
+    <div class="assina">
+      <span>S7 Strategy · Estudo de viabilidade</span>
+      <span>Praia da Ferrugem · Garopaba · SC</span>
+      <span>Setembro 2026</span>
+      <span>Modelo reproduzível: analise/modelo-acai-ferrugem.py</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var NS="http://www.w3.org/2000/svg";
+  function el(n,a){var e=document.createElementNS(NS,n);for(var k in a)e.setAttribute(k,a[k]);return e;}
+  var meses=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+
+  /* ---- Gráfico 1: clientes/dia ---- */
+  var cli=[170,120,55,30,18,14,22,14,18,26,35,90];
+  var g1=document.getElementById("barras-ano"), r1=document.getElementById("rotulos-ano");
+  var x0=60, larg=64, gap=5, base=238, esc=178/180;
+  cli.forEach(function(v,i){
+    var h=v*esc, x=x0+i*(larg+gap), y=base-h;
+    var alta=(i===0||i===1||i===11);
+    g1.appendChild(el("rect",{x:x,y:y,width:larg,height:h,
+      fill:alta?"var(--acento)":"var(--maresia)","fill-opacity":alta?"1":".45"}));
+    var t=el("text",{x:x+larg/2,y:y-7,"text-anchor":"middle","font-size":"11.5",
+      "font-family":"JetBrains Mono, monospace","font-weight":"600",
+      fill:alta?"var(--acento)":"var(--ink-2)"});
+    t.textContent=v; g1.appendChild(t);
+    var m=el("text",{x:x+larg/2,y:255,"text-anchor":"middle","font-size":"10.5",
+      fill:alta?"var(--acento)":"var(--ink-3)"});
+    m.textContent=meses[i]; r1.appendChild(m);
+  });
+
+  /* ---- Gráfico 2: lucro mensal da franquia ---- */
+  var lucro=[27552,5171,-6222,-5954,-9962,-11579,-8509,-11415,-10173,-7056,-4197,6492];
+  var g2=document.getElementById("dre-barras"), r2=document.getElementById("dre-rotulos");
+  var zero=112, escL=84/28000;
+  lucro.forEach(function(v,i){
+    var h=Math.abs(v)*escL, x=x0+i*(larg+gap), y=v>=0?zero-h:zero;
+    g2.appendChild(el("rect",{x:x,y:y,width:larg,height:Math.max(h,1.5),
+      fill:v>=0?"var(--pos)":"var(--neg)","fill-opacity":v>=0?".85":".8"}));
+    var t=el("text",{x:x+larg/2,y:v>=0?y-7:y+h+15,"text-anchor":"middle","font-size":"10.5",
+      "font-family":"JetBrains Mono, monospace","font-weight":"600",
+      fill:v>=0?"var(--pos)":"var(--neg)"});
+    t.textContent=(v>=0?"+":"−")+Math.abs(Math.round(v/1000))+"k"; g2.appendChild(t);
+    var m=el("text",{x:x+larg/2,y:v>=0?zero+15:zero-6,"text-anchor":"middle","font-size":"10",
+      fill:"var(--ink-3)"});
+    m.textContent=meses[i]; r2.appendChild(m);
+  });
+
+  /* ---- Tabela DRE ---- */
+  var dre=[["Jan",131750,-50724,-22000,-6000,-4635,27552],["Fev",84000,-32340,-22000,-6000,-3680,5171],
+   ["Mar",42625,-16411,-14000,-6000,-2852,-6222],["Abr",22500,-8662,-6500,-3800,-2450,-5954],
+   ["Mai",13950,-5371,-6500,-3800,-2279,-9962],["Jun",10500,-4042,-6500,-3800,-2210,-11579],
+   ["Jul",17050,-6564,-6500,-3800,-2341,-8509],["Ago",10850,-4177,-6500,-3800,-2217,-11415],
+   ["Set",13500,-5198,-6500,-3800,-2270,-10173],["Out",20150,-7758,-6500,-3800,-2403,-7056],
+   ["Nov",26250,-10106,-6500,-3800,-2525,-4197],["Dez",69750,-26854,-14000,-6000,-3395,6492],
+   ["ANO",462875,-178207,-124000,-54400,-33258,-35849]];
+  var f=function(n){return (n<0?"−":"")+Math.abs(n).toLocaleString("pt-BR");};
+  var tb=document.getElementById("dre-tabela");
+  dre.forEach(function(r,i){
+    var tr=document.createElement("tr");
+    if(i===12) tr.className="total";
+    r.forEach(function(c,j){
+      var td=document.createElement("td");
+      if(j===0){td.textContent=c;}
+      else{td.textContent=f(c); if(j===6) td.className=c>=0?"pos":"neg";}
+      tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+
+  /* ---- Barras: comparativo de caminhos ---- */
+  var caminhos=[
+    ["Franquia D'gusta · 12 meses","CAPEX R$ 225k · payback nunca",-8249,false],
+    ["Franquia D'gusta · só temporada","CAPEX R$ 225k · payback 111 meses",24402,false],
+    ["Marca própria · hiberna mai–ago","CAPEX R$ 235k · payback 47 meses",60614,false],
+    ["Marca própria · só temporada","CAPEX R$ 180k · payback 28 meses",78129,false],
+    ["Marca própria HERA · hiberna","CAPEX R$ 185k · payback 21 meses",106418,false],
+    ["Marca própria HERA · só temporada","CAPEX R$ 140k · payback 16 meses · ROI 77% a.a.",107744,true]
+  ];
+  var maxAbs=110000, cont=document.getElementById("caminhos");
+  caminhos.forEach(function(c){
+    var d=document.createElement("div");
+    d.className="barra"+(c[3]?" win":"");
+    var pctZero=(20).toFixed(0);
+    var w=Math.abs(c[2])/maxAbs*80;
+    var left=c[2]>=0?20:20-w;
+    d.innerHTML='<span class="rot">'+c[0]+'<small>'+c[1]+'</small></span>'+
+      '<span class="val '+(c[2]>=0?'pos':'neg')+'">'+(c[2]>=0?'+':'−')+
+      'R$ '+Math.abs(c[2]).toLocaleString("pt-BR")+'</span>'+
+      '<span class="trilho"><span class="fill" style="left:'+left+'%;width:'+w+'%;background:'+
+      (c[2]>=0?'var(--pos)':'var(--neg)')+'"></span>'+
+      '<span class="zero" style="left:'+pctZero+'%"></span></span>';
+    cont.appendChild(d);
+  });
+
+  /* ---- Gráfico 3: pull de marca ---- */
+  var pts=[[0,-8249],[10,12060],[20,32369],[30,52678],[40,72987],[50,93297]];
+  var alvo=72705, g3=document.getElementById("pull");
+  var px0=70,px1=820,py0=64,py1=230, vmin=-20000,vmax=100000;
+  var X=function(p){return px0+(p/50)*(px1-px0);};
+  var Y=function(v){return py1-((v-vmin)/(vmax-vmin))*(py1-py0);};
+  g3.appendChild(el("line",{x1:px0,y1:Y(0),x2:px1,y2:Y(0),stroke:"var(--linha-forte)","stroke-width":"1"}));
+  g3.appendChild(el("line",{x1:px0,y1:Y(alvo),x2:px1,y2:Y(alvo),stroke:"var(--acento)",
+    "stroke-width":"1.5","stroke-dasharray":"6 5"}));
+  var lbl=el("text",{x:px0+4,y:Y(alvo)-9,"font-family":"JetBrains Mono, monospace","font-size":"10.5",
+    "font-weight":"600",fill:"var(--acento)"});
+  lbl.textContent="MARCA PRÓPRIA · R$ 72.705"; g3.appendChild(lbl);
+  var d="";
+  pts.forEach(function(p,i){d+=(i?" L":"M")+X(p[0])+" "+Y(p[1]);});
+  g3.appendChild(el("path",{d:d,fill:"none",stroke:"var(--maresia)","stroke-width":"2.5"}));
+  pts.forEach(function(p){
+    var venc=p[1]>=alvo;
+    g3.appendChild(el("circle",{cx:X(p[0]),cy:Y(p[1]),r:venc?6:4.5,
+      fill:venc?"var(--acento)":"var(--bg-2)",stroke:venc?"var(--acento)":"var(--maresia)","stroke-width":"2"}));
+    var t=el("text",{x:X(p[0]),y:Y(p[1])-14,"text-anchor":"middle","font-size":"10.5",
+      "font-family":"JetBrains Mono, monospace","font-weight":"600",
+      fill:venc?"var(--acento)":"var(--ink-2)"});
+    t.textContent=(p[1]>=0?"+":"−")+Math.abs(Math.round(p[1]/1000))+"k"; g3.appendChild(t);
+    var x=el("text",{x:X(p[0]),y:py1+22,"text-anchor":"middle","font-size":"10.5",
+      "font-family":"JetBrains Mono, monospace",fill:venc?"var(--acento)":"var(--ink-3)"});
+    x.textContent="+"+p[0]+"%"; g3.appendChild(x);
+  });
+  var cap=el("text",{x:px0,y:38,"font-family":"JetBrains Mono, monospace","font-size":"10",
+    "letter-spacing":"1.6",fill:"var(--ink-3)"});
+  cap.textContent="LUCRO DA FRANQUIA CONFORME O FLUXO EXTRA TRAZIDO PELA MARCA";
+  g3.appendChild(cap);
+  var sec=el("text",{x:px0,y:py1+44,"font-family":"JetBrains Mono, monospace","font-size":"10",
+    "letter-spacing":"1.4",fill:"var(--ink-3)"});
+  sec.textContent="FLUXO EXTRA VS. UMA MARCA PRÓPRIA BEM FEITA";
+  g3.appendChild(sec);
+})();
+</script>
