@@ -1,6 +1,6 @@
-# Açaí na Praia da Ferrugem — manter a Degusta ou plotar marca própria?
+# Açaí na Praia da Ferrugem — manter a Degusta ou fazer a nossa marca?
 
-**Estudo de viabilidade · Garopaba / SC · setembro de 2026 · v3**
+**Estudo de decisão · Garopaba / SC · setembro de 2026 · v4**
 Ponto: nº **2956**, ~**35 m² fechados + pátio com deck sob pergolado**
 Aluguel real: **R$ 2.500** (dez–fev) e **R$ 1.500** (mar–nov) = **R$ 21.000/ano**
 Equipamento **já comprado** — unidade Degusta que quebrou, em estado de nova.
@@ -208,7 +208,7 @@ Numa praia onde a maioria do público é turista de passagem, **o custo de troca
 
 ---
 
-## 6. ⚠️ O que precisa ser resolvido antes — e não é sobre dinheiro
+## 6. O que não está na planilha
 
 Estes pontos não estavam nas versões anteriores porque a situação era outra. Agora são os riscos principais.
 
@@ -225,14 +225,28 @@ Sem taxa, sem royalty e sem COF, **você provavelmente não é franqueado — é
 
 > **A leitura fria:** operar sob uma marca que você não controla, sem contrato, com o fornecedor sendo o dono da marca, é a posição mais frágil possível — e é o argumento mais forte a favor de plotar o seu próprio. Não pelo dinheiro. Pelo controle.
 
-### 6.2 Por que a unidade que você comprou quebrou?
+### 6.2 A unidade não quebrou por causa do negócio
 
-Você comprou equipamento de uma Degusta que fechou. **Isso é dado, não acaso.**
+Na versão anterior eu listei como **risco alto** o fato de o equipamento vir de uma unidade que fechou — porque isso podia sinalizar que o modelo não funciona em praça parecida.
 
-- **Onde ela ficava?** Se era cidade litorânea sazonal parecida, o sinal é relevante.
-- **Quanto tempo operou?** Fechar na primeira temporada é diferente de fechar na quarta.
-- **Foi ponto, operador ou modelo?** Ponto ruim e operador ruim são problemas dela. Modelo ruim seria seu também.
-- **Fale com quem era o dono.** É a fonte mais honesta que existe, e ele não tem motivo para te enganar — já vendeu o equipamento.
+**Fechou porque o dono brigou com a mulher, que era sócia.** Isso é dissolução societária, não falência de modelo. **Risco riscado da lista.** E melhor: significa que o equipamento rodou pouco e parou inteiro, coerente com "está tudo novinho".
+
+### 6.2-B A amizade muda o risco de lugar
+
+Seu pai e o dono da Degusta são amigos — é por isso que ele só compraria dele. Isso reduz muito, na prática, o risco de uso da marca ser revogado: ninguém corta um amigo no meio da temporada. Mas cria três outros, que são reais:
+
+- **Você não negocia preço com amigo.** É a razão mais comum de um markup passar anos sem ser questionado.
+- **Se a relação azedar, você perde marca e fornecimento no mesmo dia** — os dois estão na mesma pessoa.
+- **Fazer marca própria pode ser lido como desfeita.** É um custo real que não aparece em planilha nenhuma.
+
+**A boa notícia: ser amigo torna a pergunta mais fácil, não mais difícil.** Pedir a tabela de preços é conversa de cinco minutos. E existe um caminho que preserva tudo: **marca própria não obriga a trocar de fornecedor — obriga só a poder escolher.** Se o preço dele for competitivo, você faz a sua marca, continua comprando dele, e a amizade segue intacta com um contrato de fornecimento no lugar de um favor.
+
+### 6.2-C A conversa com seu pai, em quatro frases
+
+1. O negócio fecha dos dois jeitos — não é decisão entre fazer e não fazer.
+2. Fazer a nossa marca vale **R$ 28,5 mil por ano** e custa cerca de **R$ 13 mil** de verdade. Se paga em cinco meses e meio.
+3. Metade dessa vantagem depende do preço que ele nos cobra pela polpa — precisamos ver esse número antes de decidir.
+4. **Podemos ter marca nossa e continuar comprando dele.** Não é escolher entre negócio e amizade.
 
 ### 6.3 O equipamento comprado
 
@@ -248,7 +262,7 @@ Você comprou equipamento de uma Degusta que fechou. **Isso é dado, não acaso.
 | Risco | Gravidade | Mitigação |
 |---|---|---|
 | **Fluxo real abaixo do estimado** | Alta | Continua sendo o risco nº 1. Medir antes. Nos dois caminhos o negócio aguenta −35% |
-| **Uso da marca revogado sem contrato** | **Alta** | Autorização por escrito, ou plotar marca própria e eliminar o risco |
+| **Uso da marca revogado sem contrato** | Média | A amizade reduz muito na prática. Ainda assim: autorização por e-mail, com prazo e condições |
 | **Fornecimento cortado em janeiro** | Alta | Sempre ter um segundo fornecedor homologado, mesmo mantendo a Degusta |
 | **Ticket premium não sustentar** | Média-alta | Testar preço nas primeiras 3 semanas. Se R$ 7,49/100 g não pegar, cai para R$ 6,99 e a conta ainda fecha |
 | **Equipamento não caber nos 35 m²** | Média-alta | Layout no papel ANTES de assinar o aluguel |
@@ -312,4 +326,4 @@ Você comprou equipamento de uma Degusta que fechou. **Isso é dado, não acaso.
 
 ---
 
-*Estudo v3 · setembro de 2026 · modelo reproduzível em `analise/modelo-acai-ferrugem.py`*
+*Estudo v4 · setembro de 2026 · modelo reproduzível em `analise/modelo-acai-ferrugem.py`*
