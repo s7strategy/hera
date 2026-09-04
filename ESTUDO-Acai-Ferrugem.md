@@ -127,6 +127,76 @@ Para os R$ 6–8 mil serem líquidos de verdade, alguma dessas teria que ser ver
 
 ---
 
+## 1-B-2. A correção dos 3 a 5 funcionários no verão
+
+Você disse que era **1 funcionário, subindo para 3 a 5 no verão**. Isso muda a reconstrução da loja dele.
+
+Folha refeita: 8 meses com 1 (R$ 18.155) + 4 meses com 4 (R$ 36.310) = **R$ 54.466/ano**, contra os R$ 27.233 que eu havia usado.
+
+Com essa folha, se ele faturasse R$ 15 mil todo mês sobrariam só **R$ 4.566/mês** — abaixo do que ele falou.
+
+> **Conclusão: os R$ 15 mil não podiam ser a média do ano.** Ninguém contrata cinco pessoas para uma loja de R$ 15 mil por mês. Os R$ 15 mil eram quase certamente o **mês fraco**.
+
+A faixa de R$ 6 a 8 mil de sobra volta a bater quando o verão dele fatura entre R$ 40 e 60 mil:
+
+| Se o verão dele fazia | Ano | Sobra antes de fixos | % | Sobra/mês |
+|---|---|---|---|---|
+| R$ 40 mil/mês | 280.000 | 115.494 | 41,2% | R$ 9.625 |
+| **R$ 60 mil/mês** | **360.000** | **164.054** | **45,6%** | **R$ 13.671** |
+| R$ 80 mil/mês | 440.000 | 212.614 | 48,3% | R$ 17.718 |
+
+**Ou seja: a loja dele era do mesmo tamanho da nossa** (projetamos R$ 389 mil/ano). Essa é a melhor validação que este estudo podia ter.
+
+---
+
+## 1-B-3. O plano de R$ 350 mil na alta + R$ 150 mil no resto
+
+| | Meu modelo | Seu plano | Diferença |
+|---|---|---|---|
+| Alta (dez, jan, fev, mar) | R$ 311.875 | R$ 350.000 | **+12,2%** |
+| Resto do ano (hibernando mai–ago) | R$ 77.501 | R$ 150.000 | +93,5% |
+| Resto do ano (operando 12 meses) | R$ 126.288 | R$ 150.000 | +18,8% |
+| **Total** | **R$ 389.376** | **R$ 500.000** | |
+
+### R$ 350 mil na alta — **realista**
+
+É 12% acima do cenário base, e é exatamente a minha premissa de fluxo **sem o desconto de 10%** que apliquei por ser marca nova.
+
+| Mês | Receita | Cli/dia exigidos | Meu modelo |
+|---|---|---|---|
+| Dez | 73.500 | 74 | 67 |
+| Jan | 140.000 | 141 | 126 |
+| Fev | 91.000 | 102 | 90 |
+| Mar | 45.500 | 46 | 40 |
+
+Cuidado só com dezembro: pede 74/dia num mês que só engrena na segunda quinzena.
+
+### R$ 150 mil no resto do ano — **não realista**
+
+São **R$ 18.750/mês, todo mês, de abril a novembro** — cerca de 20 clientes/dia sem parar, inclusive em junho e agosto com a Ferrugem vazia e fria. Hibernando dá R$ 77.501; operando 12 meses dá R$ 126.288; no cenário otimista de 12 meses, R$ 157.860. **Seu plano pede quase o otimista como se fosse o normal.**
+
+> **Um plano de R$ 420 a 460 mil é defensável.** E tem um detalhe que muda a leitura: operar de maio a agosto gera R$ 48.787 de receita a mais e só **R$ 1.333 de lucro a mais** — o custo de manter a porta aberta come tudo. Se for perseguir R$ 500 mil, persiga na alta, não na baixa.
+
+---
+
+## 1-B-4. Como chegar a 30% de margem
+
+| Alavanca | Lucro/ano | Margem | Ganho |
+|---|---|---|---|
+| **Família no balcão** (folha cai para R$ 34.800) | 124.160 | **31,9%** | +33.400 |
+| **Família opera, contrata só no pico** | 139.960 | **35,9%** | +49.200 |
+| Cortar marketing pago | 104.389 | 26,8% | +13.628 |
+| CMV de 32,5% para 29% | 104.389 | 26,8% | +13.628 |
+| Ticket de R$ 32 para R$ 35 (+9%) | 109.495 | 25,8% | +18.734 |
+| Sair do delivery (perde ~8% da receita) | 80.556 | 22,5% | −10.205 |
+| **Família no balcão + ticket R$ 35** | **142.895** | **33,7%** | +52.134 |
+
+**O caminho mais curto para 30% é vocês no balcão** — sozinho já leva a 31,9%, sem depender do mercado. Com equipe toda contratada seria preciso ticket de R$ 35 **e** CMV de 29% ao mesmo tempo.
+
+**Sair do delivery é a única alavanca que sai pela culatra:** economiza a comissão mas leva junto ~8% da receita.
+
+---
+
 ## 1-C. Correção: falta muito menos do que eu disse
 
 Eu tinha colocado **R$ 86 mil** de investimento. Revendo item por item, com o argumento certo de que o equipamento já está comprado:

@@ -327,6 +327,8 @@ footer .olho::before{background:var(--grad-amarelo);}
   <ol>
     <li><a href="#decisao">A decisão</a></li>
     <li><a href="#margem">De onde vem a margem</a></li>
+    <li><a href="#plano">O plano de R$ 500 mil</a></li>
+    <li><a href="#trinta">Chegar a 30%</a></li>
     <li><a href="#tenho">O que falta de verdade</a></li>
     <li><a href="#numeros">Os números</a></li>
     <li><a href="#mercado">Mercado e público</a></li>
@@ -410,7 +412,7 @@ footer .olho::before{background:var(--grad-amarelo);}
 <section id="numeros">
   <div class="wrap">
     <div class="sec-cab">
-      <p class="olho">04 · Os números</p>
+      <p class="olho">06 · Os números</p>
       <h2>O ano inteiro, mês a mês</h2>
       <p class="dizer prosa">A Ferrugem não é uma cidade — é uma temporada. <strong>Dezembro, janeiro
         e fevereiro fazem 61% do faturamento do ano.</strong> Isso não é problema: é a estrutura do
@@ -478,7 +480,7 @@ footer .olho::before{background:var(--grad-amarelo);}
   <div class="wrap">
     <div class="sec-cab">
       <p class="olho">02 · Respondendo direto</p>
-      <h2>Os R$ 6 a 8 mil dele: achei a linha exata</h2>
+      <h2>Os R$ 6 a 8 mil dele: achei a linha — e o tamanho da loja</h2>
       <p class="dizer prosa">Na versão anterior eu disse que a diferença entre a margem dele (40%) e a
         minha (23%) era a folha de pagamento. <strong>Você corrigiu: tinha funcionário sim.</strong>
         Então refiz a conta — e a explicação verdadeira é melhor, porque é exata.</p>
@@ -495,6 +497,28 @@ footer .olho::before{background:var(--grad-amarelo);}
     </figure>
 
     <div class="nota ouro">
+      <h3>Mas tem uma correção sua que muda a leitura</h3>
+      <p>Você disse que era <strong>1 funcionário, subindo para 3 a 5 no verão</strong>. Refazendo com
+        essa folha (R$ 54.466/ano em vez de R$ 27.233), se ele faturasse R$ 15 mil todo mês sobrariam
+        só <strong>R$ 4.566/mês</strong> — abaixo do que ele falou.</p>
+      <p><strong>Conclusão: os R$ 15 mil não podiam ser a média do ano.</strong> Ninguém contrata cinco
+        pessoas para uma loja de R$ 15 mil por mês. Os R$ 15 mil eram quase certamente o
+        <strong>mês fraco</strong>.</p>
+      <p>A faixa de R$ 6 a 8 mil de sobra volta a bater quando o verão dele fatura entre
+        <strong>R$ 40 e 60 mil por mês</strong> — o que dá um ano de R$ 280 a 360 mil.
+        <strong>Ou seja: a loja dele era do mesmo tamanho da nossa.</strong> Isso é a melhor
+        validação que este estudo podia ter.</p>
+      <div class="rolo" style="margin:8px 0 0"><table style="min-width:0">
+        <thead><tr><th>Se o verão dele fazia</th><th>Ano</th><th>Sobra/mês</th><th>%</th></tr></thead>
+        <tbody>
+          <tr><td>R$ 40 mil/mês</td><td>280.000</td><td>9.625</td><td>41,2%</td></tr>
+          <tr class="melhor"><td>R$ 60 mil/mês</td><td>360.000</td><td>13.671</td><td>45,6%</td></tr>
+          <tr><td>R$ 80 mil/mês</td><td>440.000</td><td>17.718</td><td>48,3%</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="nota">
       <h3>O que isso significa na prática</h3>
       <p>Provavelmente <strong>ele e eu estávamos falando de linhas diferentes da mesma conta.</strong>
         Ele: o que sobra depois de repor o produto e pagar o funcionário. Eu: o que sobra depois
@@ -601,11 +625,118 @@ footer .olho::before{background:var(--grad-amarelo);}
   </div>
 </section>
 
+<!-- ══════════════ O PLANO DE R$ 500 MIL ══════════════ -->
+<section id="plano">
+  <div class="wrap">
+    <div class="sec-cab">
+      <p class="olho">03 · Testando o seu plano</p>
+      <h2>R$ 350 mil na alta e R$ 150 mil no resto: dá?</h2>
+      <p class="dizer prosa">Rodei o seu plano contra o modelo, parte por parte.
+        <strong>Você acerta a alta e superestima a baixa.</strong></p>
+    </div>
+
+    <figure class="grafico">
+      <svg viewBox="0 0 940 300" role="img" aria-label="Comparação do plano de R$ 500 mil com o modelo: na alta temporada o plano pede R$ 350 mil contra R$ 311.875 do modelo, uma diferença de 12%. No resto do ano pede R$ 150 mil contra R$ 77.501 hibernando ou R$ 126.288 operando doze meses.">
+        <g id="plano"></g>
+      </svg>
+      <figcaption>Na alta a diferença é de 12% — cabe. No resto do ano o plano pede quase o dobro do
+        que projeto hibernando, e ainda 19% acima do que dá operando os doze meses.</figcaption>
+    </figure>
+
+    <div class="duas">
+      <div class="painel pro">
+        <span class="selo">Realista</span>
+        <h3>R$ 350 mil na alta</h3>
+        <p class="dizer">É 12% acima do meu cenário base — e é exatamente a minha premissa de fluxo
+          <strong>sem o desconto de 10%</strong> que apliquei por ser marca nova. Se o ponto tiver o
+          movimento que estimo, acontece.</p>
+        <div class="rolo" style="margin:6px 0 0"><table style="min-width:0">
+          <thead><tr><th>Mês</th><th>Receita</th><th>Cli/dia</th><th>Modelo</th></tr></thead>
+          <tbody>
+            <tr><td>Dez</td><td>73.500</td><td>74</td><td>67</td></tr>
+            <tr><td>Jan</td><td>140.000</td><td>141</td><td>126</td></tr>
+            <tr><td>Fev</td><td>91.000</td><td>102</td><td>90</td></tr>
+            <tr><td>Mar</td><td>45.500</td><td>46</td><td>40</td></tr>
+          </tbody>
+        </table></div>
+        <p class="dizer"><strong>Cuidado só com dezembro:</strong> o plano pede 74/dia num mês que
+          só engrena na segunda quinzena.</p>
+      </div>
+      <div class="painel contra">
+        <span class="selo">Não realista</span>
+        <h3>R$ 150 mil no resto do ano</h3>
+        <p class="dizer">São <strong>R$ 18.750 por mês, todo mês, de abril a novembro</strong> — cerca
+          de 20 clientes por dia sem parar, inclusive em junho e agosto, com a Ferrugem vazia e fria.</p>
+        <ul>
+          <li>Hibernando mai–ago: <strong>R$ 77.501</strong></li>
+          <li>Operando 12 meses: <strong>R$ 126.288</strong></li>
+          <li>Operando 12 meses, otimista: <strong>R$ 157.860</strong></li>
+          <li>Seu plano: <strong>R$ 150.000</strong> — pede quase o cenário otimista, como se fosse o normal</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="regra">
+      <p>Um plano de <b>R$ 420 a 460 mil</b> é defensável. R$ 500 mil só se a baixa surpreender muito.</p>
+      <p class="apoio">E tem um detalhe que muda a leitura: <strong>faturar mais na baixa temporada
+        quase não aumenta o lucro.</strong> Operar de maio a agosto gera R$ 48.787 de receita a mais
+        e apenas R$ 1.333 de lucro a mais — o custo de manter a porta aberta come tudo. Se for para
+        perseguir R$ 500 mil, persiga na alta, não na baixa.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ COMO CHEGAR A 30% ══════════════ -->
+<section id="trinta">
+  <div class="wrap">
+    <div class="sec-cab">
+      <p class="olho">04 · A meta de margem</p>
+      <h2>Como sair de 23% e chegar a 30%</h2>
+      <p class="dizer prosa">Você perguntou se a margem tem que ser feita para sobrar 30%.
+        <strong>Sim, dá — e tem um caminho muito mais curto que os outros.</strong></p>
+    </div>
+
+    <figure class="grafico">
+      <svg viewBox="0 0 940 380" role="img" aria-label="Alavancas de margem a partir de 23,3%: família no balcão leva a 31,9%, família operando com contratação só no pico leva a 35,9%, cortar marketing pago leva a 26,8%, melhorar o CMV para 29% leva a 26,8%, ticket de R$ 35 leva a 25,8%, e sair do delivery derruba para 22,5%.">
+        <g id="alavancas"></g>
+      </svg>
+      <figcaption>Cada barra é o efeito de uma alavanca isolada sobre a margem líquida.
+        A linha tracejada é a meta de 30%.</figcaption>
+    </figure>
+
+    <div class="rolo"><table>
+      <caption>Alavancas de margem · partindo de 23,3%</caption>
+      <thead><tr><th>Alavanca</th><th>Lucro/ano</th><th>Margem</th><th>Ganho</th></tr></thead>
+      <tbody>
+        <tr class="melhor"><td>Família no balcão <small class="q">folha cai para R$ 34.800</small></td><td>124.160</td><td><strong>31,9%</strong></td><td>+33.400</td></tr>
+        <tr class="melhor"><td>Família opera, contrata só no pico</td><td>139.960</td><td><strong>35,9%</strong></td><td>+49.200</td></tr>
+        <tr><td>Cortar marketing pago</td><td>104.389</td><td>26,8%</td><td>+13.628</td></tr>
+        <tr><td>CMV de 32,5% para 29% <small class="q">comprando melhor</small></td><td>104.389</td><td>26,8%</td><td>+13.628</td></tr>
+        <tr><td>Ticket de R$ 32 para R$ 35 (+9%)</td><td>109.495</td><td>25,8%</td><td>+18.734</td></tr>
+        <tr><td>Sair do delivery <small class="q">perde ~8% da receita junto</small></td><td>80.556</td><td>22,5%</td><td>−10.205</td></tr>
+        <tr class="total"><td><strong>Família no balcão + ticket R$ 35</strong></td><td><strong>142.895</strong></td><td><strong>33,7%</strong></td><td>+52.134</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="nota ouro">
+      <h3>A leitura</h3>
+      <p><strong>O caminho mais curto para 30% é vocês no balcão.</strong> Sozinho, isso já leva a
+        margem para 31,9% — mais do que qualquer outra alavanca, e sem depender do mercado.</p>
+      <p>Com equipe <em>toda</em> contratada, para bater 30% seria preciso <strong>ticket de R$ 35
+        e CMV de 29% ao mesmo tempo</strong>. É possível, mas exige as duas coisas dando certo.</p>
+      <p><strong>Sair do delivery é a única alavanca que sai pela culatra:</strong> economiza a
+        comissão, mas leva junto ~8% da receita e derruba a margem para 22,5%.</p>
+      <p>E vale repetir o aviso: no cenário familiar <strong>o trabalho de vocês não está
+        precificado</strong>. R$ 4 mil/mês para cada um nos cinco meses são R$ 40 mil desse lucro.</p>
+    </div>
+  </div>
+</section>
+
 <!-- ══════════════ O QUE FALTA DE VERDADE ══════════════ -->
 <section id="tenho">
   <div class="wrap">
     <div class="sec-cab">
-      <p class="olho">03 · Corrigindo o que eu inflei</p>
+      <p class="olho">05 · Corrigindo o que eu inflei</p>
       <h2>Você tem razão: falta muito menos do que eu disse</h2>
       <p class="dizer prosa">Eu tinha colocado <strong>R$ 86 mil</strong> de investimento. Revi item
         por item com o seu argumento na mão — você já tem o equipamento, só precisa arrumar o lugar,
@@ -668,7 +799,7 @@ footer .olho::before{background:var(--grad-amarelo);}
 <section id="mercado">
   <div class="wrap">
     <div class="sec-cab">
-      <p class="olho">05 · Mercado e público</p>
+      <p class="olho">07 · Mercado e público</p>
       <h2>Quem está do outro lado do balcão</h2>
       <p class="dizer prosa">Todo dado público que consegui sobre o mercado de açaí, sobre Garopaba
         e sobre o turista que chega aqui no verão. É o pano de fundo que sustenta — ou derruba — a
@@ -762,7 +893,7 @@ footer .olho::before{background:var(--grad-amarelo);}
 <section id="benchmark">
   <div class="wrap">
     <div class="sec-cab">
-      <p class="olho">05-B · Sanidade da projeção</p>
+      <p class="olho">08 · Sanidade da projeção</p>
       <h2>Onde a nossa conta se encaixa no mercado real</h2>
       <p class="dizer prosa">A pergunta certa não é "esse número é bonito?" — é
         <strong>"esse número é normal?"</strong>. Comparei a projeção com o que lojas de açaí de
@@ -820,7 +951,7 @@ footer .olho::before{background:var(--grad-amarelo);}
 <section id="markup">
   <div class="wrap">
     <div class="sec-cab">
-      <p class="olho">05-C · O número que decide</p>
+      <p class="olho">09 · O número que decide</p>
       <h2>Quanto a Degusta cobra pela polpa?</h2>
       <p class="dizer prosa">Sem taxa e sem royalty, <strong>esse é literalmente o único custo de usar
         a marca deles</strong>. Toda a diferença de R$ 28,5 mil entre os dois caminhos passa por aqui.</p>
@@ -896,7 +1027,7 @@ footer .olho::before{background:var(--grad-amarelo);}
 <section id="amizade">
   <div class="wrap">
     <div class="sec-cab">
-      <p class="olho">07 · O que não está na planilha</p>
+      <p class="olho">11 · O que não está na planilha</p>
       <h2>A amizade do seu pai com o dono</h2>
       <p class="dizer prosa">Você me contou duas coisas que mudam o estudo — uma para melhor,
         outra que precisa ser dita com franqueza.</p>
@@ -958,7 +1089,7 @@ footer .olho::before{background:var(--grad-amarelo);}
 <section id="plotar">
   <div class="wrap">
     <div class="sec-cab">
-      <p class="olho">06 · A conta da marca</p>
+      <p class="olho">10 · A conta da marca</p>
       <h2>Mudar a marca é isso só mesmo</h2>
       <p class="dizer prosa">Você perguntou: <em>"se for mudar a marca, uniforme, embalagem, só
         também?"</em> — <strong>É basicamente isso, sim.</strong> Eu tinha posto R$ 22 mil. Com o seu
@@ -1003,7 +1134,7 @@ footer .olho::before{background:var(--grad-amarelo);}
 <section id="perguntas">
   <div class="wrap">
     <div class="sec-cab">
-      <p class="olho">08 · Para bater 100% dos valores</p>
+      <p class="olho">12 · Para bater 100% dos valores</p>
       <h2>O que perguntar pro dono da Degusta</h2>
       <p class="dizer prosa">Estas são <strong>todas</strong> as perguntas que faltam para este estudo
         deixar de ser estimativa e virar conta fechada. Sendo amigo do seu pai, é uma conversa de
@@ -1065,7 +1196,7 @@ footer .olho::before{background:var(--grad-amarelo);}
 <section id="ponto">
   <div class="wrap">
     <div class="sec-cab">
-      <p class="olho">09 · O ponto</p>
+      <p class="olho">13 · O ponto</p>
       <h2>O imóvel já tem cara de marca</h2>
       <p class="dizer prosa">Madeira escura, esquadrias amarelas, telha colonial, vidros grandes e um
         deck sombreado com hortênsias. Isso não se compra e não se recria com dinheiro.
@@ -1103,7 +1234,7 @@ footer .olho::before{background:var(--grad-amarelo);}
 <section id="riscos">
   <div class="wrap">
     <div class="sec-cab">
-      <p class="olho">10 · Riscos e execução</p>
+      <p class="olho">14 · Riscos e execução</p>
       <h2>O que pode dar errado, e a ordem das coisas</h2>
     </div>
 
@@ -1517,6 +1648,77 @@ footer .olho::before{background:var(--grad-amarelo);}
       g.appendChild(tx({x:lx+19,y:37,"font-size":"13","font-weight":"600",fill:"var(--ink-2)"},l[0]));
       lx+=l[0].length*7.4+46;
     });
+  })();
+
+  /* ══════ 8. SEU PLANO x MODELO ══════ */
+  (function(){
+    var g=document.getElementById("plano"); if(!g) return;
+    var d=[["Alta temporada\ndez · jan · fev · mar",311875,350000,null],
+           ["Resto do ano\nhibernando mai–ago",77501,150000,126288]];
+    var x0=250,x1=900, esc=(x1-x0)/360000;
+    [0,100000,200000,300000].forEach(function(v){
+      var x=x0+v*esc;
+      g.appendChild(el("line",{x1:x,y1:56,x2:x,y2:250,stroke:"var(--linha)","stroke-width":"1"}));
+      g.appendChild(tx({x:x,y:270,"text-anchor":"middle","font-size":"11.5","font-weight":"600",
+        fill:"var(--ink-3)"},v?v/1000+"k":"0"));
+    });
+    d.forEach(function(s,i){
+      var y=72+i*94;
+      s[0].split("\n").forEach(function(ln,k){
+        g.appendChild(tx({x:x0-18,y:y+14+k*17,"text-anchor":"end","font-size":k?"12":"14",
+          "font-weight":k?"600":"700",fill:k?"var(--ink-3)":"var(--ink)"},ln));
+      });
+      g.appendChild(el("rect",{x:x0,y:y,width:s[1]*esc,height:26,rx:"7",fill:ROXO}));
+      g.appendChild(tx({x:x0+s[1]*esc+10,y:y+18,"font-size":"12.5","font-weight":"700",
+        fill:"var(--acento)"},"modelo  "+brl(s[1])));
+      g.appendChild(el("rect",{x:x0,y:y+32,width:s[2]*esc,height:26,rx:"7",fill:OURO}));
+      g.appendChild(tx({x:x0+s[2]*esc+10,y:y+50,"font-size":"12.5","font-weight":"800",
+        fill:"var(--dourado)"},"seu plano  "+brl(s[2])));
+      if(s[3]){
+        g.appendChild(el("line",{x1:x0+s[3]*esc,y1:y-6,x2:x0+s[3]*esc,y2:y+64,
+          stroke:"var(--acento)","stroke-width":"2","stroke-dasharray":"5 4"}));
+        g.appendChild(tx({x:x0+s[3]*esc,y:y+80,"text-anchor":"middle","font-size":"11",
+          "font-weight":"700",fill:"var(--acento)"},"12 meses: "+brl(s[3])));
+      }
+    });
+    g.appendChild(tx({x:x0-18,y:36,"text-anchor":"end","font-size":"12","font-weight":"700",
+      "letter-spacing":"1.5",fill:"var(--ink-3)"},"FATURAMENTO"));
+  })();
+
+  /* ══════ 9. ALAVANCAS DE MARGEM ══════ */
+  (function(){
+    var g=document.getElementById("alavancas"); if(!g) return;
+    var d=[["Hoje · equipe toda contratada",23.3,ROXO,0],
+           ["Cortar marketing pago",26.8,"#B57EDC",0],
+           ["CMV de 32,5% para 29%",26.8,"#B57EDC",0],
+           ["Ticket de R$ 32 para R$ 35",25.8,"#B57EDC",0],
+           ["Sair do delivery",22.5,"url(#gNeg)",0],
+           ["Família no balcão",31.9,OURO,1],
+           ["Família opera, contrata só no pico",35.9,OURO,1],
+           ["Família no balcão + ticket R$ 35",33.7,OURO,1]];
+    var x0=290,x1=895, esc=(x1-x0)/40;
+    [0,10,20,30,40].forEach(function(v){
+      var x=x0+v*esc;
+      g.appendChild(el("line",{x1:x,y1:56,x2:x,y2:330,stroke:"var(--linha)","stroke-width":"1"}));
+      g.appendChild(tx({x:x,y:350,"text-anchor":"middle","font-size":"11.5","font-weight":"600",
+        fill:"var(--ink-3)"},v+"%"));
+    });
+    var xm=x0+30*esc;
+    g.appendChild(el("line",{x1:xm,y1:50,x2:xm,y2:332,stroke:"var(--dourado)","stroke-width":"2.5",
+      "stroke-dasharray":"7 5"}));
+    g.appendChild(tx({x:xm+8,y:46,"font-size":"12.5","font-weight":"800",fill:"var(--dourado)"},
+      "META · 30%"));
+    d.forEach(function(s,i){
+      var y=64+i*34;
+      g.appendChild(tx({x:x0-16,y:y+17,"text-anchor":"end","font-size":"13",
+        "font-weight":s[3]?"800":"600",fill:s[3]?"var(--ink)":"var(--ink-2)"},s[0]));
+      g.appendChild(el("rect",{x:x0,y:y,width:s[1]*esc,height:24,rx:"7",fill:s[2]}));
+      g.appendChild(tx({x:x0+s[1]*esc+10,y:y+17,"font-size":"13","font-weight":"800",
+        fill:s[1]>=30?"var(--dourado)":"var(--ink-3)"},
+        s[1].toString().replace(".",",")+"%"));
+    });
+    g.appendChild(tx({x:x0-16,y:36,"text-anchor":"end","font-size":"12","font-weight":"700",
+      "letter-spacing":"1.5",fill:"var(--ink-3)"},"MARGEM LÍQUIDA"));
   })();
 })();
 </script>
