@@ -222,65 +222,82 @@ A diferença entre os caminhos segue em **R$ 27.344/ano** — o markup do insumo
 
 ---
 
-## 1-A. Recalibração com a curva do dono — e um erro meu
+## 1-A. A curva de trabalho
 
-O dono, que conhece a Ferrugem, deu a própria curva: **janeiro pode passar de R$ 200 mil**; abril e outubro no máximo R$ 20–30 mil; maio a setembro R$ 15–20 mil; novembro a março alto, com dezembro e janeiro maiores.
+Projeção conservadora, com espaço kids e operação nos 12 meses.
 
-| Mês | Curva dele (piso–teto) | Minha projeção | Clientes/dia a R$ 32 |
+| Mês | Faturamento | Clientes/dia | % do ano |
 |---|---|---|---|
-| Jan | 190–230k | 125k | **212** |
-| Fev | 110–150k | 81k | 145 |
-| Mar | 50–70k | 40k | 60 |
-| Abr | 20–30k | 21k | 26 |
-| Mai–Set | 15–20k/mês | fechado | 18 |
-| Out | 20–30k | 19k | 25 |
-| Nov | 40–60k | 25k | 52 |
-| Dez | 120–160k | 66k | 141 |
-| **Ano** | **625–830k** | **390k** | |
+| Jan | 170.000 | 171 | 26,6% |
+| Fev | 130.000 | 145 | 20,3% |
+| Mar | 55.000 | 55 | 8,6% |
+| Abr | 25.000 | 26 | 3,9% |
+| Mai | 16.000 | 16 | 2,5% |
+| Jun | 15.000 | 16 | 2,3% |
+| Jul | 17.000 | 17 | 2,7% |
+| Ago | 15.000 | 15 | 2,3% |
+| Set | 17.000 | 18 | 2,7% |
+| Out | 24.000 | 24 | 3,8% |
+| Nov | 45.000 | 47 | 7,0% |
+| Dez | 110.000 | 111 | 17,2% |
+| **Ano** | **639.000** | | **100%** |
 
-**A curva dele dá R$ 727.500/ano contra os R$ 390.000 que projetei — 1,9 vezes mais.**
+**Dezembro, janeiro e fevereiro somam R$ 410.000 — 64% do ano em três meses.** O pico de janeiro, 171 clientes/dia, ocupa 49% do teto do ponto (350/dia com 2 balanças e 5 pessoas).
 
-### O erro que ele apontou sem saber
+### DRE anual · balcão gerido
 
-Ele descreveu 5 pessoas no verão. Eu modelei 5 pessoas — **e projetei 126 clientes/dia**. Isso nunca fechou: ninguém coloca cinco pessoas atrás de um balcão para atender 126 pessoas em 12 horas. **A conta dele é internamente coerente e a minha não era.** Eu dimensionei custo de 200/dia com receita de 126/dia.
+| Linha | R$ | % |
+|---|---|---|
+| Faturamento | 639.000 | 100% |
+| − Insumo (CMV 27,4%) | −175.086 | 27,4% |
+| − Folha | −61.274 | 9,6% |
+| − Impostos (Simples Anexo I, 7,3%) | −46.845 | 7,3% |
+| − Cartão e delivery | −29.394 | 4,6% |
+| − Marketing | −22.365 | 3,5% |
+| − Aluguel (com luz e água inclusas) | −30.000 | 4,7% |
+| − Overhead | −14.400 | 2,3% |
+| − Espaço kids (seguro e monitor) | −7.539 | 1,2% |
+| **Lucro do ano** | **252.097** | **39,5%** |
 
-### Teste de capacidade
+Com balcão solto (CMV 31,5%): lucro de R$ 225.898 e margem de 35,4%.
 
-| | |
+### Sensibilidade
+
+| Cenário | Faturamento | Lucro | Margem | Payback |
+|---|---|---|---|---|
+| Verão 25% abaixo | 479.250 | 164.235 | 34,3% | 6,6 m |
+| Verão 15% abaixo | 543.150 | 199.380 | 36,7% | 5,4 m |
+| **Conforme o plano** | **639.000** | **252.097** | **39,5%** | **4,3 m** |
+| Verão 15% acima | 734.850 | 304.636 | 41,5% | 3,5 m |
+
+### Equipe · 12 meses abertos
+
+| Período | Pessoas | Folha |
+|---|---|---|
+| Janeiro e fevereiro | 5 | 22.694 |
+| Dezembro | 4 | 9.078 |
+| Março e novembro | 3 | 13.616 |
+| Abril a outubro | 1 | 15.886 |
+| **Ano** | | **61.274** |
+
+### Investimento
+
+| Item | R$ |
 |---|---|
-| R$ 210 mil em janeiro, ticket R$ 32 | 212 clientes/dia · 18/hora na média · ~21/hora no pico |
-| Teto real com 2 balanças e 5 pessoas | ~350 clientes/dia |
-| **Ocupação** | **60% do teto — cabe com folga** |
+| Obra e adequação dos 35 m² | 9.000 |
+| Mobiliário do deck | 6.000 |
+| Estoque inicial | 9.000 |
+| Marketing de abertura | 2.500 |
+| Licenças, alvará e balança INMETRO | 1.800 |
+| Abrir a tela do deck | 1.500 |
+| Marca própria (embalagem, adesivagem, INPI, uniforme, cardápio) | 12.380 |
+| Espaço kids | 25.550 |
+| Capital de giro (volta) | 22.000 |
+| **Total** | **89.730** |
 
-### O que ainda me segura
+Equipamento pesado — balcão refrigerado, freezers, vitrine, PDV — já comprado e fora desta conta.
 
-- R$ 727.500/ano em 35 m² = **R$ 20.786 por m² por ano**. A média por loja da The Best Açaí é R$ 12.063/m²/ano (100 m², ano todo). **A curva dele pede 72% a mais por metro quadrado que a líder do setor.**
-- Janeiro a R$ 210 mil exige **3.500 a 5.300 pedestres/dia** passando na porta (conversão de 4% a 6%).
-- Não é impossível — self-service por peso em praia no verão é outro jogo — mas é exatamente o número a medir antes de investir.
-
-> **Quatro dias contando gente resolvem R$ 167 mil de dúvida.** Acima de 3.500 pedestres/dia em janeiro, a curva dele se sustenta. Abaixo de 2.000, a minha.
-
-### Consequência: não fechar no inverno
-
-Eu havia recomendado hibernar de maio a agosto. **Isso era conclusão da minha curva, não da dele.**
-
-| Um mês de baixa a R$ 17.500 | R$ |
-|---|---|
-| Receita | 17.500 |
-| − Insumo (27,4%) | −4.795 |
-| − 1 funcionário | −2.269 |
-| − Aluguel | −2.500 |
-| − Overhead | −1.200 |
-| − Imposto, cartão e marketing | −2.749 |
-| **= Lucro** | **+3.987 (22,8%)** |
-
-A R$ 15–20 mil/mês a porta aberta se paga; a R$ 12 mil, que era minha projeção, dava prejuízo. **Com o movimento dele, abre o ano inteiro** — e ainda mantém o time treinado para dezembro.
-
----
-
-## 1-A-2. O espaço kids
-
-Nenhuma açaiteria da Ferrugem tem espaço kids. Isso muda a pergunta que a família faz: deixa de ser *"quero açaí?"* e passa a ser *"onde eu paro com as crianças?"*.
+### Espaço kids
 
 | Investimento | R$ |
 |---|---|
@@ -292,35 +309,9 @@ Nenhuma açaiteria da Ferrugem tem espaço kids. Isso muda a pergunta que a fam�
 | Sinalização e regras | 800 |
 | **Total** | **25.550** |
 
-| Custo anual | R$ |
-|---|---|
-| Seguro de responsabilidade civil | 3.000 |
-| 1 monitor em janeiro e fevereiro | 4.539 |
-| **Total** | **7.539** |
+Custo anual de manter: R$ 3.000 de seguro de responsabilidade civil e R$ 4.539 de um monitor em janeiro e fevereiro — **R$ 7.539/ano**.
 
-**Se trouxer 2% a mais de faturamento, já se pagou.** E o efeito tende a ser maior: a família para *porque* tem onde a criança ficar, permanência maior puxa segunda rodada, e você deixa de disputar só quem já queria açaí.
-
-| Efeito do kids | Faturamento | Lucro/ano |
-|---|---|---|
-| Sem kids | 727.500 | 300.682 |
-| +8% | 785.700 | 331.994 |
-| +15% | 836.625 | 359.392 |
-| +22% | 887.550 | 386.789 |
-
----
-
-## 1-A-3. A conta final, com as duas curvas
-
-Marca própria, balcão gerido (CMV 27,4%), 12 meses abertos, espaço kids incluído. Investimento total de **R$ 77.350** (R$ 51.800 da operação + R$ 25.550 do kids).
-
-| Cenário | Faturamento | Folha | Lucro/ano | Margem | Payback |
-|---|---|---|---|---|---|
-| Minha conta conservadora | 390.000 | 43.119 | **133.302** | 34,2% | 7,0 m |
-| Curva do dono · piso | 625.000 | 61.274 | **244.397** | 39,1% | 3,8 m |
-| **Curva do dono · média** | **727.500** | 61.274 | **300.682** | **41,3%** | **3,1 m** |
-| Curva do dono · teto | 830.000 | 61.274 | **355.827** | 42,9% | 2,6 m |
-
-**Nos dois casos dá certo. A diferença é o tamanho do certo.**
+Nenhuma açaiteria da Ferrugem tem espaço kids. Se trouxer 2% a mais de faturamento (R$ 12.780/ano), se paga na segunda temporada.
 
 ---
 
