@@ -76,6 +76,23 @@ def dim(t: str) -> str:
     return _c(t, "2")
 
 
+def _blindar_saida() -> None:
+    """Impede que um acento derrube o comando no console do Windows.
+
+    O console padrão do Windows em português é cp850, e nem as aspas curvas
+    (“ ”) nem o travessão (—) que imprimimos existem nessa tabela: a primeira
+    linha de status levantaria UnicodeEncodeError e o lote morreria antes de
+    editar qualquer imagem. Trocar o caractere por "?" é infinitamente melhor
+    do que abortar — e onde o console é UTF-8 (chcp 65001, Mac, Linux) nada
+    muda, porque só mexemos na política de erro, não na codificação.
+    """
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(errors="replace")  # type: ignore[union-attr]
+        except (AttributeError, OSError, ValueError):
+            pass  # stream substituído por um pipe/captura: segue como está
+
+
 def _unicode_ok() -> bool:
     """Alguns terminais Windows ainda são cp1252 — não vamos quebrar neles."""
     enc = getattr(sys.stderr, "encoding", None) or "ascii"
@@ -1070,6 +1087,7 @@ def _version() -> str:
 
 def main(argv: Sequence[str] | None = None) -> int:
     """Ponto de entrada. Devolve 0 (ok), 1 (falhou) ou 2 (uso errado)."""
+    _blindar_saida()
     parser = build_parser()
     try:
         args = parser.parse_args(list(argv) if argv is not None else None)

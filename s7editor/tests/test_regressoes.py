@@ -237,3 +237,54 @@ def test_cor_ancorada_ganha_contraste_quando_herdada_seria_invisivel(settings_of
     luma = 0.299 * recorte[:, 0] + 0.587 * recorte[:, 1] + 0.114 * recorte[:, 2]
     # O fundo ali é quase preto: para o texto existir, tem que haver pixel claro.
     assert luma.max() > 150, "o texto adicionado não tem contraste com o fundo"
+
+
+# --------------------------------------------------------------------------- #
+# Console do Windows
+# --------------------------------------------------------------------------- #
+def test_saida_nao_quebra_em_console_cp850(tmp_path):
+    """O console padrão do Windows em português é cp850 e não tem “ ” nem —.
+
+    Sem blindagem, a primeira linha de status levantava UnicodeEncodeError e o
+    lote morria antes de editar qualquer imagem.
+    """
+    import io
+    import sys
+
+    from s7editor import cli
+
+    buf = io.TextIOWrapper(io.BytesIO(), encoding="cp850", newline="")
+    orig = sys.stdout
+    sys.stdout = buf
+    try:
+        cli._blindar_saida()
+        # Exatamente os caracteres que apareciam nas linhas de status.
+        print("Trocando “ASSINE AGORA” por “TESTE GRÁTIS” — 30 de 30")
+        print("Zero drift verificado: 0 pixels alterados fora da área editada.")
+    finally:
+        sys.stdout = orig
+    buf.flush()
+    assert buf.buffer.getvalue(), "nada foi escrito"
+
+
+def test_acento_sai_correto_na_imagem_mesmo_com_console_limitado(settings_offline, tmp_path):
+    """A degradação do console é cosmética: o texto desenhado continua com acento.
+
+    Confundir as duas coisas seria entregar 30 criativos escritos "TESTE GRTIS".
+    """
+    from s7editor import cli, ocr, pipeline
+
+    if not ocr.ocr_available():
+        pytest.skip("conferir o texto renderizado exige OCR")
+
+    cli._blindar_saida()
+    entrada = tmp_path / "e3"
+    entrada.mkdir()
+    p = _cria_par(entrada, True)
+    m = pipeline.run_replace_text_batch(
+        [p], "ASSINE AGORA", "TESTE GRÁTIS", settings_offline, tmp_path / "s3")
+
+    assert m.ok_count == 1
+    analise = vision.heuristic_analysis(m.results[0].output)
+    lido = " ".join(b.text for b in analise.text_blocks).upper()
+    assert "GRÁTIS" in lido or "GRATIS" in lido, f"não achei o texto novo em {lido!r}"
