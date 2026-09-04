@@ -1,23 +1,27 @@
 # -*- coding: utf-8 -*-
 """
-Viabilidade — açaiteria na Praia da Ferrugem, Garopaba/SC
-Ponto real: ~35 m² fechados + pátio com deck sob pergolado. Nº 2956.
-Compara: (A) Franquia Degusta Açaí (Ijuí/RS)  vs  (B) Marca própria elevada.
-Negócio autônomo — sem relação com nenhum outro projeto.
+Viabilidade — açaiteria na Praia da Ferrugem, Garopaba/SC   ·   v3
+Ponto: nº 2956, ~35 m² fechados + pátio com deck sob pergolado.
+Aluguel real: R$ 2.500 (dez–fev) e R$ 1.500 (mar–nov) = R$ 21.000/ano.
+
+SITUAÇÃO REAL (v3):
+  - NÃO há taxa de franquia nem royalty. O vínculo com a Degusta é de COMPRA
+    de insumo — o único custo de usar a marca está embutido no CMV.
+  - O equipamento JÁ FOI COMPRADO (unidade Degusta que quebrou, estado de nova).
+    É custo afundado: não entra na decisão daqui para frente.
+  - A decisão real: MANTER a plotagem Degusta e comprar deles
+    vs. PLOTAR marca própria e comprar no mercado livre.
 Valores em R$ correntes de 2026.
 """
 MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"]
 DIAS  = [31,28,31,30,31,30,31,31,30,31,30,31]
-ALTA  = ("Dez","Jan","Fev","Mar")
 PICO  = ("Jan","Fev")
+CHEIO = ("Dez","Jan","Fev","Mar")          # meses de operação em capacidade
+ALUGUEL_ALTO = ("Dez","Jan","Fev")         # R$ 2.500
+AL_ALTO, AL_BAIXO = 2_500, 1_500
 
-# Curva de demanda (clientes/dia). Calibrada para rua de pousadas da Ferrugem,
-# NÃO para o calçadão de bares. Premissa a validar em campo — ver PARTE 7.
-CLI = [140,100,45,24,15,11,18,11,15,21,29,74]
-
-# TETO FÍSICO DO PONTO: 35 m² com balcão self-service de ~3,5 m + deck.
-# 2 balanças processam ~60-70 clientes/hora; o gargalo real é fila e assento.
-TETO_DIA = 250
+CLI  = [140,100,45,24,15,11,18,11,15,21,29,74]   # clientes/dia — ESTIMATIVA
+TETO = 250                                        # teto físico do ponto
 
 FAIXAS=[(180_000,.040,0),(360_000,.073,5_940),(720_000,.095,13_860),
         (1_800_000,.107,22_500),(3_600_000,.143,87_300),(4_800_000,.190,378_000)]
@@ -28,165 +32,147 @@ def aliq(r):
 def brl(v): return ("R$ %s" % f"{v:,.0f}").replace(",",".")
 
 class C:
-    def __init__(s,nome,ticket,cmv,fluxo,capex,roy_mes,mkt_rede,
-                 al_alta,al_baixa,f_pico,f_alta,f_baixa,mkt,ovh,fechado=(),curto=""):
+    def __init__(s,nome,ticket,cmv,fluxo,capex,f_pico,f_cheio,f_baixa,mkt,ovh,fechado=()):
         d=dict(locals()); d.pop('s'); s.__dict__.update(d)
 
-def dre(c,mult=1.0,al_alta=None,al_baixa=None,teto=True):
-    aa = c.al_alta if al_alta is None else al_alta
-    ab = c.al_baixa if al_baixa is None else al_baixa
-    cl=[]
-    for x,d in zip(CLI,DIAS):
-        por_dia = x*c.fluxo*mult
-        if teto: por_dia = min(por_dia, TETO_DIA)   # o ponto não estica
-        cl.append(por_dia*d)
+def dre(c,mult=1.0,cmv=None,teto=True):
+    CMV = c.cmv if cmv is None else cmv
+    cl=[min(x*c.fluxo*mult,TETO) if teto else x*c.fluxo*mult for x in CLI]
+    cl=[p*d for p,d in zip(cl,DIAS)]
     rec=[0 if m in c.fechado else x*c.ticket for m,x in zip(MESES,cl)]
     fat=sum(rec); a=aliq(fat); L=[]
     for i,m in enumerate(MESES):
         r=rec[i]; off = m in c.fechado
-        cmv=r*c.cmv
-        taxas=r*.028 + r*.12*.152                    # cartão + iFood sobre ~12% da receita
+        custo=r*CMV
+        taxas=r*.028 + r*.12*.152
         imp=r*a
-        alug=(aa if m in ALTA else ab)               # aluguel corre mesmo fechado
-        folha=0 if off else (c.f_pico if m in PICO else c.f_alta if m in ALTA else c.f_baixa)
+        alug=AL_ALTO if m in ALUGUEL_ALTO else AL_BAIXO
+        folha=0 if off else (c.f_pico if m in PICO else c.f_cheio if m in CHEIO else c.f_baixa)
         ovh=c.ovh*(0.35 if off else 1.0)
-        roy=(0 if off and c.roy_mes else c.roy_mes)+r*c.mkt_rede
         mkt=r*c.mkt
-        lucro=r-cmv-taxas-imp-alug-folha-ovh-roy-mkt
-        L.append(dict(m=m,r=r,cmv=cmv,taxas=taxas,imp=imp,alug=alug,folha=folha,
-                      ovh=ovh,roy=roy,mkt=mkt,lucro=lucro,cli=0 if off else cl[i]))
+        lucro=r-custo-taxas-imp-alug-folha-ovh-mkt
+        L.append(dict(m=m,r=r,cmv=custo,taxas=taxas,imp=imp,alug=alug,folha=folha,
+                      ovh=ovh,mkt=mkt,lucro=lucro,cli=0 if off else cl[i]))
     return L,fat,a
 
 def kpi(c,mult=1.0,**kw):
     L,fat,a=dre(c,mult,**kw); lu=sum(x["lucro"] for x in L)
-    return dict(nome=c.nome,fat=fat,lucro=lu,marg=lu/fat if fat else 0,aliq=a,
-                pb=c.capex/lu*12 if lu>0 else None, capex=c.capex,
+    return dict(fat=fat,lucro=lu,marg=lu/fat if fat else 0,capex=c.capex,
+                pb=c.capex/lu*12 if lu>0 else None,
                 neg=sum(1 for x in L if x["lucro"]<0),
-                burn=-sum(x["lucro"] for x in L if x["lucro"]<0),
-                roy=sum(x["roy"] for x in L), L=L)
+                burn=-sum(x["lucro"] for x in L if x["lucro"]<0),L=L)
 
-# ------------------------------------------------------------------ CENÁRIOS
-FORA=("Abr","Mai","Jun","Jul","Ago","Set","Out")
+# ---------------------------------------------------------------- CENÁRIOS
+# CAPEX = só o que falta gastar. Equipamento já comprado NÃO entra.
+#   obra/adequação 35m² + pia VISA .... 22.000
+#   abrir a tela e ajustar o deck ......  7.000
+#   mobiliário do deck ................. 11.000
+#   estoque inicial ....................  9.000
+#   licenças (alvará, VISA, INMETRO) ...  3.000
+#   marketing de abertura ..............  6.000
+#   capital de giro .................... 28.000
+#   ------------------------------------------
+#   base comum ......................... 86.000
+BASE = 86_000
+PLOTAGEM = 22_000   # identidade própria: marca+INPI, fachada, plotagem de equipamento,
+                    # copos e embalagens personalizados, sinalização do deck
 
-A  = C("A · Franquia Degusta — 12 meses",          27,.385,1.00,195_000,2_000,.02,
-       3_000,2_200, 17_000,11_000,4_500, .015,3_400)
-A2 = C("A2 · Franquia Degusta — enxuta na baixa",  27,.385,1.00,195_000,2_000,.02,
-       3_000,2_200, 17_000,10_000,3_400, .015,3_000)
-B  = C("B · Marca própria elevada — 12 meses",     32,.325,.90,155_000,0,0,
-       3_000,2_200, 17_000,11_000,4_000, .035,3_200)
-B2 = C("B2 · Marca própria — hiberna mai–ago",     32,.325,.90,155_000,0,0,
-       3_000,2_200, 17_000,11_000,4_000, .035,3_200, fechado=("Mai","Jun","Jul","Ago"))
-B3 = C("B3 · Marca própria — só temporada nov–mar",32,.325,.90,132_000,0,0,
-       3_000,2_200, 17_000,10_500,0,     .035,3_000, fechado=FORA)
+DEG = C("A · Mantém Degusta (compra insumo deles)", 27,.385,1.00, BASE,
+        16_000,10_500,3_800, .020,3_000)
+PRO = C("B · Plota marca própria (compra livre)",   32,.325,.90,  BASE+PLOTAGEM,
+        16_000,10_500,3_800, .035,3_000)
+PRO_H = C("B2 · Marca própria — hiberna mai–ago",   32,.325,.90,  BASE+PLOTAGEM,
+        16_000,10_500,3_800, .035,3_000, fechado=("Mai","Jun","Jul","Ago"))
+DEG_H = C("A2 · Degusta — hiberna mai–ago",         27,.385,1.00, BASE,
+        16_000,10_500,3_800, .020,3_000, fechado=("Mai","Jun","Jul","Ago"))
 
-print("="*106)
-print("PARTE 1 · DRE MÊS A MÊS — os dois caminhos principais")
-print("="*106)
-for c in (A2,B2):
+print("="*104)
+print("PARTE 1 · A CONTA COM O ALUGUEL REAL (R$ 2.500 dez–fev · R$ 1.500 mar–nov = R$ 21.000/ano)")
+print("="*104)
+for c in (DEG_H,PRO_H):
     L,fat,a=dre(c)
     print(f"\n### {c.nome}")
-    print(f"    Ticket R$ {c.ticket:.2f} | CMV {c.cmv*100:.1f}% | Simples efetivo {a*100:.2f}% | CAPEX {brl(c.capex)}")
-    print(f"    {'Mês':<5}{'Cli':>7}{'Receita':>11}{'CMV':>10}{'Folha':>9}{'Aluguel':>9}{'Royal.':>8}{'Imposto':>9}{'LUCRO':>11}")
+    print(f"    Ticket R$ {c.ticket:.2f} | CMV {c.cmv*100:.1f}% | Simples {a*100:.2f}% | Falta investir {brl(c.capex)}")
+    print(f"    {'Mês':<5}{'Cli':>7}{'Receita':>11}{'CMV':>10}{'Folha':>9}{'Aluguel':>9}{'Imposto':>9}{'LUCRO':>11}")
     for l in L:
         print(f"    {l['m']:<5}{l['cli']:>7,.0f}{l['r']:>11,.0f}{-l['cmv']:>10,.0f}{-l['folha']:>9,.0f}"
-              f"{-l['alug']:>9,.0f}{-l['roy']:>8,.0f}{-l['imp']:>9,.0f}{l['lucro']:>11,.0f}")
+              f"{-l['alug']:>9,.0f}{-l['imp']:>9,.0f}{l['lucro']:>11,.0f}")
     lu=sum(x['lucro'] for x in L)
     print(f"    {'ANO':<5}{sum(x['cli'] for x in L):>7,.0f}{fat:>11,.0f}{-sum(x['cmv'] for x in L):>10,.0f}"
           f"{-sum(x['folha'] for x in L):>9,.0f}{-sum(x['alug'] for x in L):>9,.0f}"
-          f"{-sum(x['roy'] for x in L):>8,.0f}{-sum(x['imp'] for x in L):>9,.0f}{lu:>11,.0f}")
+          f"{-sum(x['imp'] for x in L):>9,.0f}{lu:>11,.0f}")
     k=kpi(c)
-    print(f"    -> Margem {k['marg']*100:.1f}% | Payback {('%.0f m'%k['pb']) if k['pb'] else 'nunca'} | "
-          f"Meses no vermelho: {k['neg']} | Caixa queimado na baixa: {brl(k['burn'])}")
+    print(f"    -> Margem {k['marg']*100:.1f}% | Payback do que falta investir: "
+          f"{('%.0f meses'%k['pb']) if k['pb'] else 'nunca'} | Meses no vermelho: {k['neg']}")
 
-print("\n"+"="*106)
-print("PARTE 2 · COMPARATIVO DOS CAMINHOS")
-print("="*106)
-print(f"{'Caminho':<44}{'CAPEX':>11}{'Faturam.':>12}{'Lucro/ano':>12}{'Margem':>9}{'Payback':>10}{'ROI':>8}")
-print("-"*106)
-for c in (A,A2,B,B2,B3):
+print("\n"+"="*104)
+print("PARTE 2 · COMPARATIVO")
+print("="*104)
+print(f"{'Caminho':<44}{'Falta investir':>16}{'Faturam.':>12}{'Lucro/ano':>12}{'Margem':>9}{'Payback':>10}")
+print("-"*104)
+for c in (DEG,DEG_H,PRO,PRO_H):
     k=kpi(c); pb=f"{k['pb']:.0f} m" if k['pb'] else "nunca"
-    print(f"{c.nome:<44}{brl(c.capex):>11}{brl(k['fat']):>12}{brl(k['lucro']):>12}"
-          f"{k['marg']*100:>8.1f}%{pb:>10}{k['lucro']/c.capex*100:>7.0f}%")
+    print(f"{c.nome:<44}{brl(c.capex):>16}{brl(k['fat']):>12}{brl(k['lucro']):>12}{k['marg']*100:>8.1f}%{pb:>10}")
 
-print("\n"+"="*106)
-print("PARTE 3 · SENSIBILIDADE AO FLUXO (a premissa mais frágil do estudo)")
-print("="*106)
-print(f"{'Cenário':<30}{'Cli/dia jan':>13}{'Franquia':>16}{'Própria hiberna':>18}{'Própria temporada':>20}")
-print("-"*106)
+print("\n"+"="*104)
+print("PARTE 3 · A ÚNICA PERGUNTA QUE IMPORTA AGORA")
+print("       Sem taxa e sem royalty, usar a marca Degusta custa APENAS o markup do insumo.")
+print("       Quanto o insumo deles precisa ser mais caro para valer a pena plotar marca própria?")
+print("="*104)
+base_livre = .325
+print(f"{'CMV Degusta':>14}{'Markup vs livre':>18}{'Lucro Degusta':>16}{'Lucro própria':>16}{'Diferença':>14}   Veredito")
+print("-"*104)
+lucro_pro = kpi(PRO_H)['lucro']
+for cmvd in (.325,.34,.355,.37,.385,.40,.42):
+    ld = kpi(DEG_H, cmv=cmvd)['lucro']
+    mk = (cmvd-base_livre)/base_livre*100
+    print(f"{cmvd*100:>13.1f}%{mk:>17.0f}%{brl(ld):>16}{brl(lucro_pro):>16}"
+          f"{brl(lucro_pro-ld):>14}   {'PLOTAR PRÓPRIA' if lucro_pro>ld else 'MANTER DEGUSTA'}")
+
+print(f"""
+  Leitura: a marca própria carrega {brl(PLOTAGEM)} de investimento a mais e ganha ticket maior
+  (R$ 32 vs R$ 27) com CMV menor. Se a Degusta vender insumo a preço de mercado, o
+  cálculo depende só do ticket. Se vender com markup, a conta abre rápido.""")
+
+print("\n"+"="*104)
+print("PARTE 4 · E SE O TICKET DA DEGUSTA FOR IGUAL AO DA MARCA PRÓPRIA?")
+print("       (isola o efeito do insumo, tirando a vantagem de posicionamento)")
+print("="*104)
+print(f"{'Ticket':>10}{'CMV Degusta':>14}{'Degusta':>14}{'Própria':>14}{'Diferença':>14}")
+print("-"*104)
+for t in (27,30,32):
+    d=C("d",t,.385,1.00,BASE,16_000,10_500,3_800,.020,3_000,fechado=("Mai","Jun","Jul","Ago"))
+    p=C("p",t,.325,1.00,BASE+PLOTAGEM,16_000,10_500,3_800,.035,3_000,fechado=("Mai","Jun","Jul","Ago"))
+    ld,lp=kpi(d)['lucro'],kpi(p)['lucro']
+    print(f"R$ {t:>7}{'38,5%':>14}{brl(ld):>14}{brl(lp):>14}{brl(lp-ld):>14}")
+
+print("\n"+"="*104)
+print("PARTE 5 · PAYBACK DA PLOTAGEM — em quanto tempo a marca própria se paga sozinha")
+print("="*104)
+for cmvd in (.34,.355,.385,.40):
+    ld=kpi(DEG_H,cmv=cmvd)['lucro']; dif=lucro_pro-ld
+    if dif>0:
+        print(f"  Se a Degusta cobrar CMV de {cmvd*100:.1f}% -> ganho de {brl(dif)}/ano  "
+              f"->  {brl(PLOTAGEM)} de plotagem se pagam em {PLOTAGEM/dif*12:.1f} meses")
+    else:
+        print(f"  Se a Degusta cobrar CMV de {cmvd*100:.1f}% -> marca própria perde {brl(-dif)}/ano — manter Degusta")
+
+print("\n"+"="*104)
+print("PARTE 6 · SENSIBILIDADE AO FLUXO (a premissa que continua sendo a mais frágil)")
+print("="*104)
+print(f"{'Cenário':<28}{'Cli/dia jan':>13}{'Degusta':>16}{'Marca própria':>18}")
+print("-"*104)
 for nome,m in [("Pessimista (−35%)",.65),("Conservador (−15%)",.85),("Base",1.00),
-               ("Otimista (+25%)",1.25),("No teto do ponto (+79%)",1.79)]:
-    cd=min(140*m,TETO_DIA)
-    row=f"{nome:<30}{cd:>13.0f}"
-    for c in (A2,B2,B3): row+=f"{brl(kpi(c,m)['lucro']):>16}" if c is A2 else f"{brl(kpi(c,m)['lucro']):>18}" if c is B2 else f"{brl(kpi(c,m)['lucro']):>20}"
-    print(row)
+               ("Otimista (+25%)",1.25),("No teto do ponto",1.79)]:
+    print(f"{nome:<28}{min(140*m,TETO):>13.0f}{brl(kpi(DEG_H,m)['lucro']):>16}{brl(kpi(PRO_H,m)['lucro']):>18}")
 
-print("\n"+"="*106)
-print("PARTE 4 · PONTO DE EQUILÍBRIO")
-print("="*106)
-for c in (A,A2,B,B2,B3):
-    lo,hi=.05,6.0
+print("\n"+"="*104)
+print("PARTE 7 · PONTO DE EQUILÍBRIO com o aluguel real")
+print("="*104)
+for c in (DEG,DEG_H,PRO,PRO_H):
+    lo,hi=.02,6.0
     for _ in range(90):
         mid=(lo+hi)/2
         if kpi(c,mid)['lucro']<0: lo=mid
         else: hi=mid
-    k=kpi(c,hi)
-    viavel = "" if hi*140<=TETO_DIA else "  << ACIMA DO TETO FÍSICO DO PONTO"
-    print(f"{c.nome:<44} precisa de {hi*100:>5.0f}% do fluxo base "
-          f"(≈{min(hi*140,TETO_DIA):>3.0f} cli/dia em jan · faturamento {brl(k['fat'])}){viavel}")
-
-print("\n"+"="*106)
-print("PARTE 5 · TESTE ADVERSARIAL — em que condições a FRANQUIA vence?")
-print("="*106)
-REF = kpi(B2)['lucro']
-print(f"Referência: marca própria (hiberna mai–ago) entrega {brl(REF)}/ano.\n")
-
-print("5.1 · Se o insumo da franqueadora não tivesse markup nenhum")
-for cmv in (.30,.325,.34,.36,.385):
-    c=C("f",27,cmv,1.00,195_000,2_000,.02,3_000,2_200,17_000,10_000,3_400,.015,3_000)
-    l=kpi(c)['lucro']
-    print(f"     CMV {cmv*100:>5.1f}% -> {brl(l):>12}   {'FRANQUIA VENCE' if l>REF else 'própria vence'}")
-
-print("\n5.2 · Se o royalty fosse o mais baixo do mercado")
-for roy in (0,1_160,1_500,2_000,3_000):
-    c=C("f",27,.385,1.00,195_000,roy,.02,3_000,2_200,17_000,10_000,3_400,.015,3_000)
-    l=kpi(c)['lucro']
-    print(f"     Royalty {brl(roy):>10}/mês -> {brl(l):>12}   {'FRANQUIA VENCE' if l>REF else 'própria vence'}")
-
-print("\n5.3 · Se a marca puxasse mais gente — o único caminho da franquia")
-for ex in (0,.10,.20,.30,.40,.50,.60,.79):
-    c=C("f",27,.385,1.00+ex,195_000,2_000,.02,3_000,2_200,17_000,10_000,3_400,.015,3_000)
-    l=kpi(c)['lucro']; cd=min(140*(1+ex),TETO_DIA)
-    teto = "  << no teto do ponto" if 140*(1+ex)>=TETO_DIA*0.95 else ""
-    print(f"     +{ex*100:>3.0f}% ({cd:>3.0f} cli/dia jan) -> {brl(l):>12}   "
-          f"{'FRANQUIA VENCE' if l>REF else 'própria vence'}{teto}")
-
-print("\n5.4 · Mesmo ticket dos dois lados — custo puro de ser franqueado")
-for t in (25,27,30,32,36):
-    f=C("f",t,.385,1.00,195_000,2_000,.02,3_000,2_200,17_000,10_000,3_400,.015,3_000)
-    p=C("p",t,.325,1.00,155_000,0,0,     3_000,2_200,17_000,11_000,4_000,.035,3_200)
-    lf,lp=kpi(f)['lucro'],kpi(p)['lucro']
-    print(f"     Ticket R$ {t}: franquia {brl(lf):>12} | própria {brl(lp):>12} | custo de franquear {brl(lp-lf)}")
-
-print("\n"+"="*106)
-print("PARTE 6 · SENSIBILIDADE AO ALUGUEL (35 m² + deck — valor ainda a negociar)")
-print("="*106)
-print(f"{'Aluguel alta / baixa':<28}{'Franquia':>18}{'Própria hiberna':>20}{'Própria temporada':>20}")
-print("-"*106)
-for aa,ab in ((2_000,1_500),(3_000,2_200),(4_000,3_000),(5_500,4_000),(7_000,5_000)):
-    row=f"R$ {aa:,} / {ab:,}".replace(",",".").ljust(28)
-    for c in (A2,B2,B3):
-        row+=f"{brl(kpi(c,al_alta=aa,al_baixa=ab)['lucro']):>{18 if c is A2 else 20}}"
-    print(row)
-
-print("\n"+"="*106)
-print("PARTE 7 · O QUE PRECISA SER MEDIDO")
-print("="*106)
-print(f"""  A curva parte de {CLI[0]} clientes/dia em janeiro. É ESTIMATIVA, não medição — e as fotos
-  mostram uma rua de pousadas e casas, com paver e grama, não o calçadão de bares.
-  Isso é o que mais pode derrubar (ou salvar) o negócio.
-
-  Conversão de calçada para açaí em praia: 3% a 6% do fluxo pedestre.
-  Para {CLI[0]} clientes/dia em janeiro são necessários 2.300 a 4.700 pedestres/dia na porta.
-
-  Teto físico do ponto (35 m² + deck): ~{TETO_DIA} clientes/dia.
-  Faturamento máximo teórico em janeiro: {brl(TETO_DIA*31*32)} (marca própria, ticket R$ 32).""")
+    print(f"{c.nome:<44} empata com {hi*100:>5.0f}% do fluxo base  (≈{min(hi*140,TETO):>3.0f} clientes/dia em janeiro)")
