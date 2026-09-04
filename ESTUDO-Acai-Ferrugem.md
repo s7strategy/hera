@@ -222,6 +222,84 @@ A diferença entre os caminhos segue em **R$ 27.344/ano** — o markup do insumo
 
 ---
 
+## 1-B-2c. A ficha técnica de verdade — e por que o preço decide a margem
+
+Com o balde de 10 kg a **R$ 175** (R$ 17,50/kg) e venda por peso, dá para montar a conta item a item. **Tudo sai da mesma balança pelo mesmo preço — mas cada item custa um preço diferente.**
+
+### O que cada item do balcão custa
+
+| Item | Custo/kg | CMV a R$ 59,90 | CMV a R$ 74,90 |
+|---|---|---|---|
+| Banana | 6,00 | 10% | 8% |
+| Manga | 8,00 | 13% | 11% |
+| Aveia em flocos | 10,00 | 17% | 13% |
+| Uva | 14,00 | 23% | 19% |
+| Kiwi | 16,00 | 27% | 21% |
+| **Açaí** (balde 10 kg a R$ 175) | **17,50** | **29%** | **23%** |
+| Calda de chocolate | 18,00 | 30% | 24% |
+| Leite condensado | 19,00 | 32% | 25% |
+| Granola | 20,00 | 33% | 27% |
+| Amendoim triturado | 25,00 | 42% | 33% |
+| Morango | 28,00 | 47% | 37% |
+| Paçoca / bala de goma | 30,00 | 50% | 40% |
+| Leite em pó (Ninho) | 48,00 | 80% | 64% |
+| Confete de chocolate | 50,00 | 83% | 67% |
+| Nutella | 65,00 | 109% ⚠️ | 87% |
+| Ovomaltine | 70,00 | 117% ⚠️ | 93% |
+| Castanha de caju | 75,00 | 125% ⚠️ | 100% |
+
+**Um grama de banana rende 90% de margem. Um grama de castanha de caju dá prejuízo de R$ 15 por quilo.**
+
+### A tigela desmontada — 415 g
+
+| Componente | Balcão solto | Balcão gerido |
+|---|---|---|
+| Açaí | 255 g · R$ 4,46 | 270 g · R$ 4,73 |
+| Frutas | 55 g · R$ 0,49 | 70 g · R$ 0,63 |
+| Granola e aveia | 40 g · R$ 0,64 | 45 g · R$ 0,72 |
+| Calda e leite condensado | 30 g · R$ 0,55 | 25 g · R$ 0,46 |
+| **Ninho, ovomaltine, confete** | **35 g · R$ 2,03** | **5 g · R$ 0,29** |
+| Embalagem (copo, tampa, colher, sacola) | R$ 1,10 | R$ 1,10 |
+| Quebra 3% | R$ 0,25 | R$ 0,20 |
+| **Custo total** | **R$ 9,53** | **R$ 8,13** |
+
+| CMV resultante | a R$ 59,90/kg | a R$ 74,90/kg |
+|---|---|---|
+| Balcão solto | **38%** | 31% |
+| Balcão gerido | 33% | **26%** |
+
+### As duas alavancas — e as duas são suas
+
+1. **O preço por quilo.** De R$ 59,90 para R$ 74,90 derruba o CMV em **7 pontos**. Só a marca própria pode fazer isso — a Degusta ancora em R$ 5,99/100 g.
+2. **O layout do balcão.** Tirar o premium do livre acesso derruba mais **5 pontos**. Fruta, granola e calda na frente; Ninho, ovomaltine, castanha e Nutella em porção fechada ou cobrados à parte.
+
+Juntas, tiram 12 pontos de CMV — cerca de **R$ 46 mil por ano**.
+
+---
+
+## 1-B-2d. A conta do ano sem família no balcão
+
+Equipe toda contratada, com troca de turno no verão:
+
+| Período | Pessoas | Folha |
+|---|---|---|
+| Janeiro e fevereiro (pico) | 5 | R$ 18.155 |
+| Dezembro e março | 3 | R$ 9.078 |
+| Setembro a novembro e abril | 1 | R$ 18.155 |
+| Maio a agosto (fechado) | 0 | R$ 0 |
+| **Folha do ano** | | **R$ 45.388** |
+
+| Caminho | Faturamento | CMV | Lucro/ano | Margem | Payback |
+|---|---|---|---|---|---|
+| Degusta · R$ 59,90 · balcão solto | 365.040 | 38% | **83.460** | 22,9% | 7,4 m |
+| Degusta · R$ 59,90 · balcão gerido | 365.040 | 36% | **94.411** | 25,9% | 6,6 m |
+| Própria · R$ 74,90 · balcão solto | 389.376 | 32% | **122.266** | 31,4% | 5,1 m |
+| **Própria · R$ 74,90 · balcão gerido** | **389.376** | **27%** | **138.231** | **35,5%** | **4,5 m** |
+
+**Diferença entre o pior e o melhor caminho: R$ 54.771 por ano** — e vem inteira de duas decisões que só a marca própria permite tomar.
+
+---
+
 ## 1-B-3. O plano de R$ 350 mil na alta + R$ 150 mil no resto
 
 | | Meu modelo | Seu plano | Diferença |

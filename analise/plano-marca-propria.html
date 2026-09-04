@@ -1,0 +1,626 @@
+<title>Açaí na Ferrugem</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap">
+<style>
+:root{
+  --roxo-abissal:#170824; --roxo-escuro:#2C0E45; --roxo:#4A1A6B; --roxo-vivo:#8134B0;
+  --lilas:#B57EDC; --amarelo:#FFC93C; --laranja:#FF9F2E; --creme:#FFF8EC;
+  --verde:#1F9A61; --coral:#EE5138;
+  --bg:var(--creme); --bg2:#FFFFFF; --bg3:#F6EAFB;
+  --ink:#25092F; --ink2:#5B4269; --ink3:#8E7A9C;
+  --linha:rgba(74,26,107,.12);
+  --acento:var(--roxo-vivo); --ouro:var(--laranja);
+  --pos:var(--verde); --neg:var(--coral);
+  --som:0 4px 10px rgba(37,9,47,.05), 0 20px 50px rgba(37,9,47,.09);
+  --som2:0 8px 20px rgba(37,9,47,.09), 0 40px 90px rgba(37,9,47,.16);
+  --gr:linear-gradient(145deg,#9B45CE 0%,#4A1A6B 55%,#2C0E45 100%);
+  --go:linear-gradient(145deg,#FFDE7A 0%,#FFC93C 45%,#FF9026 100%);
+  --f:"Outfit","Helvetica Neue",Arial,sans-serif;
+  --pad:clamp(20px,4.5vw,72px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#120520; --bg2:#1D0A2E; --bg3:#28103C;
+  --ink:#F7ECFD; --ink2:#C9B3D9; --ink3:#93809F;
+  --linha:rgba(247,236,253,.14);
+  --acento:#C68FE6; --ouro:var(--amarelo);
+  --pos:#4ED596; --neg:#FF8168;
+  --som:0 4px 10px rgba(0,0,0,.35), 0 20px 50px rgba(0,0,0,.45);
+  --som2:0 8px 20px rgba(0,0,0,.4), 0 40px 90px rgba(0,0,0,.55);
+}}
+:root[data-theme="dark"]{
+  --bg:#120520; --bg2:#1D0A2E; --bg3:#28103C;
+  --ink:#F7ECFD; --ink2:#C9B3D9; --ink3:#93809F;
+  --linha:rgba(247,236,253,.14);
+  --acento:#C68FE6; --ouro:var(--amarelo);
+  --pos:#4ED596; --neg:#FF8168;
+  --som:0 4px 10px rgba(0,0,0,.35), 0 20px 50px rgba(0,0,0,.45);
+  --som2:0 8px 20px rgba(0,0,0,.4), 0 40px 90px rgba(0,0,0,.55);
+}
+*{box-sizing:border-box;}
+body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--f);
+  font-size:21px; font-weight:400; line-height:1.55; -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;}
+h1,h2,h3{margin:0; font-weight:800; line-height:.98; letter-spacing:-.04em; text-wrap:balance;}
+p{margin:0;}
+b,strong{font-weight:700;}
+.w{max-width:1240px; margin:0 auto; padding:0 var(--pad);}
+
+/* barra de progresso */
+.prog{position:fixed; top:0; left:0; height:6px; width:0; z-index:100;
+  background:var(--go); transition:width .1s linear;}
+
+/* revelação no scroll — só quando há JS e movimento permitido */
+.anim .r{opacity:0; transform:translateY(46px);
+  transition:opacity .75s cubic-bezier(.2,.7,.2,1), transform .75s cubic-bezier(.2,.7,.2,1);}
+.anim .r.on{opacity:1; transform:none;}
+.anim .r.d1{transition-delay:.09s} .anim .r.d2{transition-delay:.18s}
+.anim .r.d3{transition-delay:.27s} .anim .r.d4{transition-delay:.36s}
+@media (prefers-reduced-motion:reduce){.anim .r{opacity:1!important;transform:none!important}}
+
+/* ───────── seções ───────── */
+section{padding:clamp(60px,10vw,150px) 0; position:relative;}
+.escuro{background:var(--gr); color:#FFF8EC; overflow:hidden; isolation:isolate;}
+.escuro::before{content:""; position:absolute; inset:0; z-index:-1;
+  background:radial-gradient(ellipse 70% 55% at 85% 8%, rgba(255,201,60,.30) 0%, transparent 60%),
+             radial-gradient(ellipse 55% 65% at 5% 92%, rgba(181,126,220,.34) 0%, transparent 58%);}
+.olho{font-size:clamp(14px,1.7vw,19px); font-weight:700; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--acento); display:flex; align-items:center; gap:14px;
+  margin-bottom:clamp(18px,2.4vw,30px);}
+.olho::before{content:""; width:44px; height:5px; border-radius:3px; background:var(--go); flex:none;}
+.escuro .olho{color:var(--amarelo);}
+h2{font-size:clamp(40px,7.6vw,92px); font-weight:900; max-width:16ch;}
+h2 em{font-style:normal; background:var(--go); -webkit-background-clip:text;
+  background-clip:text; -webkit-text-fill-color:transparent;}
+.escuro h2 em{background:var(--go); -webkit-background-clip:text; background-clip:text;
+  -webkit-text-fill-color:transparent;}
+h3{font-size:clamp(26px,3.6vw,44px); font-weight:800; margin-top:clamp(46px,6vw,80px);}
+.sub{font-size:clamp(20px,2.3vw,29px); line-height:1.4; color:var(--ink2);
+  max-width:26ch; margin-top:clamp(18px,2.4vw,30px); font-weight:400;}
+.escuro .sub{color:rgba(255,248,236,.82); max-width:30ch;}
+.nota{font-size:clamp(16px,1.7vw,20px); color:var(--ink3); max-width:52ch; margin-top:20px;
+  line-height:1.5;}
+.escuro .nota{color:rgba(255,248,236,.62);}
+
+/* ───────── número gigante ───────── */
+.mega{font-size:clamp(72px,17vw,220px); font-weight:900; letter-spacing:-.055em;
+  line-height:.82; font-variant-numeric:tabular-nums;}
+.mega.ouro{background:var(--go); -webkit-background-clip:text; background-clip:text;
+  -webkit-text-fill-color:transparent;}
+.mega small{display:block; font-size:clamp(17px,2vw,26px); font-weight:600; letter-spacing:0;
+  line-height:1.3; margin-top:18px; -webkit-text-fill-color:currentColor; color:var(--ink2);}
+.escuro .mega small{color:rgba(255,248,236,.72);}
+
+/* ───────── grade de números ───────── */
+.grid{display:grid; gap:clamp(14px,1.8vw,24px); margin-top:clamp(30px,4vw,54px);
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,225px),1fr));}
+.bx{background:var(--bg2); border-radius:26px; padding:clamp(24px,3vw,40px); box-shadow:var(--som);}
+.escuro .bx{background:rgba(255,248,236,.09); box-shadow:none;
+  border:1px solid rgba(255,248,236,.15);}
+.bx .n{font-size:clamp(30px,3.9vw,54px); font-weight:900; letter-spacing:-.045em; line-height:1;
+  font-variant-numeric:tabular-nums; color:var(--acento);}
+.escuro .bx .n{color:var(--amarelo);}
+.bx .n.ps{color:var(--pos)} .bx .n.ng{color:var(--neg)} .bx .n.ou{color:var(--ouro)}
+.bx .l{font-size:clamp(15px,1.6vw,19px); color:var(--ink2); margin-top:14px; line-height:1.35;
+  font-weight:500;}
+.escuro .bx .l{color:rgba(255,248,236,.72);}
+
+/* ───────── barras de dados ───────── */
+.bars{margin-top:clamp(30px,4vw,52px); display:flex; flex-direction:column; gap:clamp(10px,1.3vw,16px);}
+.bar{background:var(--bg2); border-radius:20px; box-shadow:var(--som);
+  padding:clamp(16px,2vw,26px) clamp(20px,2.4vw,32px);
+  display:grid; grid-template-columns:1fr auto; gap:6px 20px; align-items:center;}
+.bar .nm{font-size:clamp(17px,1.9vw,24px); font-weight:600;}
+.bar .nm small{display:block; font-size:clamp(13px,1.4vw,16px); font-weight:500; color:var(--ink3);
+  margin-top:3px;}
+.bar .vv{font-size:clamp(20px,2.4vw,32px); font-weight:800; font-variant-numeric:tabular-nums;
+  letter-spacing:-.03em;}
+.bar .tr{display:block; grid-column:1/-1; height:16px; border-radius:9px; background:var(--bg3);
+  overflow:hidden; margin-top:8px;}
+.bar .fl{display:block; height:100%; border-radius:9px; width:var(--w);
+  transition:width 1.1s cubic-bezier(.2,.7,.2,1);}
+.anim .bar .fl{width:0;} .anim .bar.on .fl{width:var(--w);}
+.bar.destaque{background:linear-gradient(120deg,rgba(255,201,60,.22),rgba(255,159,46,.08));}
+.bar.perigo{background:linear-gradient(120deg,rgba(238,81,56,.16),rgba(238,81,56,.05));}
+
+/* ───────── duas colunas ───────── */
+.duo{display:grid; gap:clamp(16px,2.2vw,30px); grid-template-columns:1fr;
+  margin-top:clamp(30px,4vw,54px);}
+@media(min-width:900px){.duo{grid-template-columns:1fr 1fr;}}
+.card{border-radius:30px; padding:clamp(26px,3.4vw,48px); box-shadow:var(--som2);
+  display:flex; flex-direction:column; gap:20px; position:relative; overflow:hidden;}
+.card.rx{background:var(--gr); color:#FFF8EC;}
+.card.ou{background:var(--go); color:#2E1A00;}
+.card .tag{font-size:clamp(13px,1.5vw,17px); font-weight:700; letter-spacing:.16em;
+  text-transform:uppercase; opacity:.7;}
+.card h3{margin:0; font-size:clamp(28px,3.8vw,46px); font-weight:900;}
+.card .big{font-size:clamp(50px,8vw,102px); font-weight:900; letter-spacing:-.05em; line-height:.86;
+  font-variant-numeric:tabular-nums;}
+.card.rx .big{color:var(--amarelo);}
+.card .big small{display:block; font-size:clamp(15px,1.7vw,21px); font-weight:600; letter-spacing:0;
+  opacity:.75; margin-top:14px; color:inherit;}
+.card ul{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:14px;}
+.card li{display:grid; grid-template-columns:auto 1fr; gap:14px; align-items:start;
+  font-size:clamp(16px,1.8vw,21px); line-height:1.4;}
+.card li i{font-style:normal; font-weight:900; font-size:clamp(18px,2vw,24px); line-height:1.2;}
+.card.rx li i{color:var(--amarelo);} .card.ou li i{color:#7A3E00;}
+
+/* ───────── frase de impacto ───────── */
+.punch{margin-top:clamp(40px,5.5vw,80px); font-size:clamp(30px,5.4vw,66px); font-weight:900;
+  letter-spacing:-.042em; line-height:1.05; max-width:20ch;}
+.punch em{font-style:normal; background:var(--go); -webkit-background-clip:text;
+  background-clip:text; -webkit-text-fill-color:transparent;}
+
+/* ───────── tabela grande ───────── */
+.tabela{margin-top:clamp(30px,4vw,52px); background:var(--bg2); border-radius:26px;
+  box-shadow:var(--som); overflow:hidden;}
+.tl{display:grid; grid-template-columns:1fr auto auto; gap:14px 22px; align-items:center;
+  padding:clamp(15px,1.8vw,22px) clamp(20px,2.6vw,34px); border-top:1px solid var(--linha);
+  font-size:clamp(16px,1.8vw,21px);}
+.tl:first-child{border-top:none; font-size:clamp(13px,1.4vw,16px); font-weight:700;
+  letter-spacing:.11em; text-transform:uppercase; color:var(--ink3);}
+.tl .v{font-weight:700; font-variant-numeric:tabular-nums; text-align:right; min-width:5ch;}
+.tl.tot{background:var(--bg3); font-weight:800;}
+.tl.win{background:linear-gradient(90deg,rgba(255,201,60,.22),rgba(255,201,60,.05));}
+.tl.bad{background:linear-gradient(90deg,rgba(238,81,56,.15),rgba(238,81,56,.03));}
+
+/* ───────── passos ───────── */
+.passos{margin-top:clamp(30px,4vw,54px); display:flex; flex-direction:column; gap:14px;}
+.passo{background:var(--bg2); border-radius:24px; box-shadow:var(--som);
+  padding:clamp(22px,2.8vw,36px); display:grid; grid-template-columns:auto 1fr; gap:22px;
+  align-items:start;}
+.passo .num{width:clamp(48px,5.5vw,70px); height:clamp(48px,5.5vw,70px); border-radius:18px;
+  background:var(--go); color:#2E1A00; display:grid; place-items:center;
+  font-size:clamp(22px,2.8vw,32px); font-weight:900; flex:none;}
+.passo .num.rx{background:var(--gr); color:#FFF8EC;}
+.passo .tx{font-size:clamp(17px,1.9vw,23px); line-height:1.42;}
+.passo .tx b{display:block; font-size:clamp(20px,2.3vw,28px); font-weight:800; margin-bottom:8px;
+  letter-spacing:-.02em;}
+
+/* ───────── gráfico ───────── */
+figure{margin:clamp(30px,4vw,54px) 0 0;}
+.gr{background:var(--bg2); border-radius:26px; box-shadow:var(--som);
+  padding:clamp(20px,2.8vw,40px);}
+.escuro .gr{background:rgba(255,248,236,.08); box-shadow:none;
+  border:1px solid rgba(255,248,236,.14);}
+.gr svg{display:block; width:100%; height:auto;}
+figcaption{font-size:clamp(16px,1.7vw,20px); color:var(--ink2); margin-top:22px; max-width:56ch;
+  line-height:1.45;}
+.escuro figcaption{color:rgba(255,248,236,.72);}
+
+footer{background:var(--gr); color:#FFF8EC; padding:clamp(50px,7vw,100px) 0;
+  position:relative; overflow:hidden; isolation:isolate;}
+footer::before{content:""; position:absolute; inset:0; z-index:-1;
+  background:radial-gradient(ellipse 60% 70% at 10% 10%, rgba(181,126,220,.3) 0%, transparent 58%);}
+.fim{font-size:clamp(15px,1.6vw,19px); color:rgba(255,248,236,.55); margin-top:40px;
+  display:flex; flex-wrap:wrap; gap:10px 30px; font-weight:600; letter-spacing:.08em;
+  text-transform:uppercase; padding-top:26px; border-top:1px solid rgba(255,248,236,.18);}
+</style>
+
+<div class="prog" id="prog"></div>
+
+<section class="escuro" style="padding-top:clamp(50px,7vw,110px)">
+  <div class="w">
+    <p class="olho r">Plano completo · marca própria · Praia da Ferrugem</p>
+    <h2 class="r d1" style="max-width:14ch">O balde custa <em>R$ 17,50</em> o quilo.</h2>
+    <p class="sub r d2">Você vende a R$ 74,90. O que acontece entre um número e outro é
+      o negócio inteiro.</p>
+    <div class="grid">
+      <div class="bx r d1"><div class="n" data-c="138231" data-pre="R$ ">R$ 138.231</div>
+        <div class="l">lucro por ano com marca própria e balcão bem montado</div></div>
+      <div class="bx r d2"><div class="n" data-c="355" data-dec="1" data-suf="%">35,5%</div>
+        <div class="l">margem líquida, já com 5 pessoas no verão e sem vocês no balcão</div></div>
+      <div class="bx r d3"><div class="n" data-c="51800" data-pre="R$ ">R$ 51.800</div>
+        <div class="l">o que falta ter na mão — R$ 29.800 de gasto e R$ 22.000 de giro</div></div>
+      <div class="bx r d4"><div class="n" data-c="45" data-dec="1" data-suf=" meses">4,5 meses</div>
+        <div class="l">payback. O primeiro verão paga tudo</div></div>
+    </div>
+    <p class="punch r">Manter a Degusta rende <em>R$ 83.460</em>.<br>Fazer a nossa rende
+      <em>R$ 138.231</em>.</p>
+    <p class="nota r d1">A diferença é de R$ 54.771 por ano — e vem de duas coisas que só a marca
+      própria controla: o preço por quilo e o que fica solto no balcão.</p>
+  </div>
+</section>
+
+<section>
+  <div class="w">
+    <p class="olho r">01 · A ficha técnica</p>
+    <h2 class="r d1">Tudo sai da mesma balança. <em>Nem tudo dá lucro.</em></h2>
+    <p class="sub r d2">Cada item custa um preço diferente e é vendido pelo mesmo preço.
+      É aí que a margem se ganha ou se perde.</p>
+
+    <div class="bars" id="balcao"></div>
+
+    <p class="punch r">Um grama de banana rende <em>90%</em>.<br>Um grama de castanha
+      dá <em>prejuízo</em>.</p>
+    <p class="nota r d1">Custo por quilo no atacado, contra a venda a R$ 59,90/kg. Confirme os
+      preços com seu fornecedor — o mecanismo não muda, os números sim.</p>
+  </div>
+</section>
+
+<section class="escuro">
+  <div class="w">
+    <p class="olho r">02 · A tigela desmontada</p>
+    <h2 class="r d1">415 gramas, grama por grama</h2>
+    <p class="sub r d2">A mesma tigela, montada de dois jeitos. A diferença é só onde o premium
+      está no balcão.</p>
+
+    <div class="duo">
+      <div class="card rx r d1" style="box-shadow:none;border:2px solid rgba(255,248,236,.2)">
+        <p class="tag">Balcão solto · cliente carrega no caro</p>
+        <div class="big">38%<small>de CMV a R$ 59,90/kg</small></div>
+        <ul>
+          <li><i>255g</i><span>Açaí — R$ 4,46</span></li>
+          <li><i>55g</i><span>Frutas — R$ 0,49</span></li>
+          <li><i>40g</i><span>Granola e aveia — R$ 0,64</span></li>
+          <li><i>30g</i><span>Calda e leite condensado — R$ 0,55</span></li>
+          <li><i>35g</i><span><b>Ninho, ovomaltine, confete — R$ 2,03</b></span></li>
+          <li><i>—</i><span>Embalagem R$ 1,10 + quebra R$ 0,25</span></li>
+        </ul>
+        <p style="font-size:clamp(18px,2vw,25px);font-weight:700;border-top:1px solid rgba(255,248,236,.22);padding-top:18px">
+          Custo R$ 9,53 · venda R$ 24,86 · <span style="color:var(--amarelo)">sobra R$ 15,33</span></p>
+      </div>
+      <div class="card ou r d2">
+        <p class="tag">Balcão gerido · premium em porção fechada</p>
+        <div class="big">26%<small>de CMV a R$ 74,90/kg</small></div>
+        <ul>
+          <li><i>270g</i><span>Açaí — R$ 4,73</span></li>
+          <li><i>70g</i><span>Frutas — R$ 0,63</span></li>
+          <li><i>45g</i><span>Granola e aveia — R$ 0,72</span></li>
+          <li><i>25g</i><span>Calda e leite condensado — R$ 0,46</span></li>
+          <li><i>5g</i><span><b>Ninho, ovomaltine, confete — R$ 0,29</b></span></li>
+          <li><i>—</i><span>Embalagem R$ 1,10 + quebra R$ 0,20</span></li>
+        </ul>
+        <p style="font-size:clamp(18px,2vw,25px);font-weight:700;border-top:1px solid rgba(46,26,0,.25);padding-top:18px">
+          Custo R$ 8,13 · venda R$ 31,08 · <span style="color:#7A3E00">sobra R$ 22,95</span></p>
+      </div>
+    </div>
+
+    <p class="punch r">A mesma tigela. <em>R$ 7,62 a mais</em> no bolso.</p>
+  </div>
+</section>
+
+<section>
+  <div class="w">
+    <p class="olho r">03 · As duas alavancas</p>
+    <h2 class="r d1">O CMV não vem do fornecedor. <em>Vem de você.</em></h2>
+
+    <figure class="gr r d1">
+      <svg viewBox="0 0 960 380" role="img" aria-label="CMV conforme preço de venda e layout do balcão: com balcão solto a R$ 59,90 o CMV é 38%; a R$ 74,90 cai para 31%; com balcão gerido a R$ 59,90 é 33% e a R$ 74,90 é 26%.">
+        <defs>
+          <linearGradient id="gr" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#9B45CE"/><stop offset="100%" stop-color="#4A1A6B"/></linearGradient>
+          <linearGradient id="go" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFDE7A"/><stop offset="100%" stop-color="#FF9026"/></linearGradient>
+          <linearGradient id="gn" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F5866F"/><stop offset="100%" stop-color="#EE5138"/></linearGradient>
+        </defs>
+        <g id="alav"></g>
+      </svg>
+      <figcaption>Quanto menor a barra, melhor. <b>Subir o preço vale 7 pontos. Fechar o premium
+        vale mais 5.</b> Juntas, tiram 12 pontos do CMV — o equivalente a R$ 46 mil por ano.</figcaption>
+    </figure>
+
+    <div class="duo">
+      <div class="card ou r d1">
+        <p class="tag">Alavanca 1</p>
+        <h3>O preço por quilo</h3>
+        <div class="big">−7 pts<small>de CMV, indo de R$ 59,90 para R$ 74,90</small></div>
+        <p style="font-size:clamp(17px,1.9vw,22px);line-height:1.4">Só a marca própria pode fazer
+          isso. A Degusta ancora em R$ 5,99/100 g e você não muda o preço dela.</p>
+      </div>
+      <div class="card rx r d2">
+        <p class="tag">Alavanca 2</p>
+        <h3>O layout do balcão</h3>
+        <div class="big">−5 pts<small>de CMV, tirando o premium do livre acesso</small></div>
+        <p style="font-size:clamp(17px,1.9vw,22px);line-height:1.4">Fruta, granola e calda na frente.
+          Ninho, ovomaltine, castanha e Nutella em porção fechada ou cobrados à parte.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="escuro">
+  <div class="w">
+    <p class="olho r">04 · A equipe</p>
+    <h2 class="r d1">1 o ano todo. <em>5 nos dois meses</em> que pagam o ano.</h2>
+    <p class="sub r d2">Sem vocês no balcão. Tudo contratado, com troca de turno no verão.</p>
+
+    <div class="tabela r d1" style="background:rgba(255,248,236,.09);border:1px solid rgba(255,248,236,.16);box-shadow:none">
+      <div class="tl"><span>Período</span><span class="v">Pessoas</span><span class="v">Folha</span></div>
+      <div class="tl"><span>Janeiro e fevereiro<br><span style="font-size:.78em;opacity:.65">pico · troca de turno</span></span><span class="v">5</span><span class="v">R$ 18.155</span></div>
+      <div class="tl"><span>Dezembro e março</span><span class="v">3</span><span class="v">R$ 9.078</span></div>
+      <div class="tl"><span>Setembro, outubro, novembro e abril</span><span class="v">1</span><span class="v">R$ 18.155</span></div>
+      <div class="tl"><span>Maio a agosto<br><span style="font-size:.78em;opacity:.65">fechado</span></span><span class="v">0</span><span class="v">R$ 0</span></div>
+      <div class="tl tot"><span>Folha do ano</span><span class="v">—</span><span class="v">R$ 45.388</span></div>
+    </div>
+    <p class="nota r d1">Custo real de CLT no Simples: salário mínimo de R$ 1.621 multiplicado por
+      1,4, já com FGTS, férias, 13º e rescisão provisionados. Contratos por prazo determinado para
+      os extras de verão.</p>
+  </div>
+</section>
+
+<section>
+  <div class="w">
+    <p class="olho r">05 · A conta do ano</p>
+    <h2 class="r d1">Quatro caminhos, <em>um vencedor claro</em></h2>
+
+    <div class="bars" id="caminhos"></div>
+
+    <figure class="gr r d1">
+      <svg viewBox="0 0 960 340" role="img" aria-label="Lucro anual por caminho: Degusta com balcão solto R$ 83.460, Degusta com balcão gerido R$ 94.411, marca própria com balcão solto R$ 122.266 e marca própria com balcão gerido R$ 138.231.">
+        <g id="anual"></g>
+      </svg>
+      <figcaption>Mesmo ponto, mesmo aluguel, mesma equipe de 5 no verão. Muda só o preço por quilo
+        e o que fica solto no balcão.</figcaption>
+    </figure>
+
+    <p class="punch r">A diferença entre o pior e o melhor caminho é de <em>R$ 54.771</em> por ano.</p>
+  </div>
+</section>
+
+<section class="escuro">
+  <div class="w">
+    <p class="olho r">06 · O plano</p>
+    <h2 class="r d1">Da decisão à porta aberta em <em>12 semanas</em></h2>
+
+    <div class="passos">
+      <div class="passo r d1" style="background:rgba(255,248,236,.09);border:1px solid rgba(255,248,236,.16);box-shadow:none">
+        <span class="num">1</span>
+        <span class="tx"><b>Ligar para a Degusta</b>Fazer as perguntas da última seção. É o que
+          define se a marca é nossa ou dele. Uma conversa.</span></div>
+      <div class="passo r d1" style="background:rgba(255,248,236,.09);border:1px solid rgba(255,248,236,.16);box-shadow:none">
+        <span class="num">2</span>
+        <span class="tx"><b>Contar gente na calçada</b>Três dias de alta e um de baixa, das 11h às
+          23h. Toda a projeção parte de 141 clientes/dia em janeiro. É o único número que só vocês
+          podem confirmar.</span></div>
+      <div class="passo r d1" style="background:rgba(255,248,236,.09);border:1px solid rgba(255,248,236,.16);box-shadow:none">
+        <span class="num">3</span>
+        <span class="tx"><b>Layout do equipamento no papel</b>Antes de assinar o aluguel. Confirmar
+          que balcão, freezers, pia da Vigilância e caixa cabem nos 35 m² — e que a carga elétrica
+          do ponto aguenta.</span></div>
+      <div class="passo r d1" style="background:rgba(255,248,236,.09);border:1px solid rgba(255,248,236,.16);box-shadow:none">
+        <span class="num">4</span>
+        <span class="tx"><b>Fechar aluguel com as contas dentro, por escrito</b>R$ 2.500/mês com luz
+          e água inclusas. Se as contas ficarem por fora, a margem cai 4 pontos.</span></div>
+      <div class="passo r d1" style="background:rgba(255,248,236,.09);border:1px solid rgba(255,248,236,.16);box-shadow:none">
+        <span class="num">5</span>
+        <span class="tx"><b>Marca, INPI e embalagem</b>Arte feita na S7. Registro no INPI custa
+          R$ 440 a R$ 880. Embalagem personalizada, R$ 7.000. Total de R$ 12.380 a R$ 22.700.</span></div>
+      <div class="passo r d1" style="background:rgba(255,248,236,.09);border:1px solid rgba(255,248,236,.16);box-shadow:none">
+        <span class="num">6</span>
+        <span class="tx"><b>Três fornecedores de polpa</b>Ice Mix Fruits (fábrica em Campo Duna,
+          dentro de Garopaba), Maria Açaí (fábrica em Joinville) e um distribuidor do RS.
+          Teste cego antes de fechar.</span></div>
+      <div class="passo r d1" style="background:rgba(255,248,236,.09);border:1px solid rgba(255,248,236,.16);box-shadow:none">
+        <span class="num">7</span>
+        <span class="tx"><b>Obra, alvará e Vigilância</b>Adequação elétrica, pia exclusiva de
+          higienização, piso lavável, balança homologada pelo INMETRO. Seis a oito semanas,
+          em paralelo com o resto.</span></div>
+      <div class="passo r d1" style="background:rgba(255,248,236,.09);border:1px solid rgba(255,248,236,.16);box-shadow:none">
+        <span class="num">8</span>
+        <span class="tx"><b>Abrir a tela do deck</b>Hoje uma tela de galinheiro separa o deck da rua,
+          num negócio que vive de impulso. É a obra mais barata e a que mais retorna.</span></div>
+      <div class="passo r d1" style="background:rgba(255,248,236,.09);border:1px solid rgba(255,248,236,.16);box-shadow:none">
+        <span class="num">9</span>
+        <span class="tx"><b>Comprar estoque em agosto</b>De setembro a dezembro a polpa sobe 15% a
+          25% por causa da entressafra amazônica.</span></div>
+      <div class="passo r d1" style="background:rgba(255,248,236,.09);border:1px solid rgba(255,248,236,.16);box-shadow:none">
+        <span class="num">10</span>
+        <span class="tx"><b>Contratar e treinar</b>1 fixo em outubro. Os 4 extras entram em
+          dezembro, com contrato por prazo determinado.</span></div>
+      <div class="passo r d1" style="background:rgba(255,248,236,.09);border:1px solid rgba(255,248,236,.16);box-shadow:none">
+        <span class="num rx">11</span>
+        <span class="tx"><b>Abrir no início de dezembro</b>Janeiro sozinho é 32% do faturamento do
+          ano. Abrir em janeiro é perder metade da temporada.</span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="w">
+    <p class="olho r">07 · Para o Degusta</p>
+    <h2 class="r d1">As perguntas que <em>fecham a conta</em></h2>
+    <p class="sub r d2">Anote a resposta ao lado de cada uma. Com as três primeiras, este plano
+      deixa de ser estimativa.</p>
+
+    <h3 class="r">O preço — decide se a marca é nossa</h3>
+    <div class="passos">
+      <div class="passo r d1"><span class="num">1</span><span class="tx"><b>Quanto custa o quilo da polpa?</b>A tabela inteira, por tipo. Nossa conta usa R$ 17,50/kg — o balde de 10 kg a R$ 175.</span></div>
+      <div class="passo r d1"><span class="num">2</span><span class="tx"><b>A embalagem vem junto no preço, ou é à parte?</b>Copo, tampa, colher e sacola pesam R$ 1,10 por tigela. Muda R$ 7 mil na conta da marca.</span></div>
+      <div class="passo r d1"><span class="num">3</span><span class="tx"><b>E os complementos — granola, leite em pó, calda, fruta?</b>Compro de vocês ou no mercado? Com que preço?</span></div>
+      <div class="passo r d1"><span class="num">4</span><span class="tx"><b>Tem frete até Garopaba? Tem pedido mínimo?</b>E garante entrega semanal em janeiro?</span></div>
+      <div class="passo r d1"><span class="num">5</span><span class="tx"><b>O preço muda na entressafra?</b>De setembro a dezembro o mercado sobe 15% a 25%.</span></div>
+    </div>
+
+    <h3 class="r">O acordo — o que exatamente foi combinado</h3>
+    <div class="passos">
+      <div class="passo r d1"><span class="num rx">6</span><span class="tx"><b>Posso usar a marca sem pagar nada, por tempo indeterminado?</b></span></div>
+      <div class="passo r d1"><span class="num rx">7</span><span class="tx"><b>Se um dia eu quiser marca própria, continuo comprando de vocês?</b>Essa é a pergunta mais importante do bloco — porque a resposta pode ser sim.</span></div>
+      <div class="passo r d1"><span class="num rx">8</span><span class="tx"><b>Posso definir meu próprio preço por 100 g?</b>Toda a diferença de R$ 54 mil por ano passa por aqui.</span></div>
+      <div class="passo r d1"><span class="num rx">9</span><span class="tx"><b>Tem exclusividade em Garopaba?</b>Pode abrir outra Degusta na Ferrugem?</span></div>
+      <div class="passo r d1"><span class="num rx">10</span><span class="tx"><b>Dá para deixar isso num e-mail?</b>Não é desconfiança — é para eu saber com o que contar em janeiro.</span></div>
+    </div>
+
+    <h3 class="r">A operação dele — o dado mais valioso que existe</h3>
+    <div class="passos">
+      <div class="passo r d1"><span class="num">11</span><span class="tx"><b>Quanto a loja faturava no verão e no inverno?</b>Nossa conta chuta R$ 40 a 60 mil no verão a partir do que você contou.</span></div>
+      <div class="passo r d1"><span class="num">12</span><span class="tx"><b>Os R$ 6 a 8 mil que sobravam eram antes ou depois do aluguel e das contas?</b>Refizemos a conta: com 1 funcionário, R$ 15 mil de faturamento deixam R$ 6.836 antes do aluguel. Bate exato.</span></div>
+      <div class="passo r d1"><span class="num">13</span><span class="tx"><b>Qual era o CMV de vocês?</b>Quanto do faturamento ia embora só em polpa e complemento.</span></div>
+      <div class="passo r d1"><span class="num">14</span><span class="tx"><b>Quantos clientes por dia no pico? Qual o ticket médio?</b></span></div>
+      <div class="passo r d1"><span class="num">15</span><span class="tx"><b>O que mais vendia além do açaí?</b>Milk shake, sorvete, açaí no copo — e quanto pesava no total.</span></div>
+    </div>
+
+    <h3 class="r">O equipamento</h3>
+    <div class="passos">
+      <div class="passo r d1"><span class="num">16</span><span class="tx"><b>Quantos m² tinha a loja?</b>Precisamos saber se esse equipamento cabe nos nossos 35 m².</span></div>
+      <div class="passo r d1"><span class="num">17</span><span class="tx"><b>Veio mesa, cadeira e balança homologada no lote?</b>Muda R$ 7 mil no investimento.</span></div>
+      <div class="passo r d1"><span class="num">18</span><span class="tx"><b>Qual a carga elétrica que a loja puxava?</b>Para conferir se o padrão do ponto aguenta antes de assinar.</span></div>
+    </div>
+
+    <p class="punch r">Com as respostas de <em>1, 2 e 7</em>, a decisão está tomada.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="w">
+    <p class="olho r">O que ainda é estimativa</p>
+    <div class="grid">
+      <div class="bx r d1"><div class="n" style="font-size:clamp(28px,3.6vw,44px)">141</div>
+        <div class="l">clientes/dia em janeiro. É a premissa que decide tudo, e é a única que só
+          vocês podem transformar em fato — contando gente na calçada.</div></div>
+      <div class="bx r d2"><div class="n" style="font-size:clamp(28px,3.6vw,44px)">R$ 17,50</div>
+        <div class="l">o quilo da polpa, do balde de 10 kg a R$ 175 que você viu. Confirme a tabela
+          do fornecedor.</div></div>
+      <div class="bx r d3"><div class="n" style="font-size:clamp(28px,3.6vw,44px)">R$ 2.500</div>
+        <div class="l">de aluguel com luz e água inclusas. Se as contas ficarem por fora, a margem
+          cai 4 pontos.</div></div>
+      <div class="bx r d4"><div class="n" style="font-size:clamp(28px,3.6vw,44px)">R$ 51.800</div>
+        <div class="l">de investimento — depende de conferir o que veio no lote e do orçamento
+          real da obra.</div></div>
+    </div>
+    <p class="fim"><span>Plano de marca própria · Praia da Ferrugem</span>
+      <span>Nº 2956 · Garopaba/SC</span><span>Setembro 2026</span></p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var NS="http://www.w3.org/2000/svg";
+  function el(n,a){var e=document.createElementNS(NS,n);for(var k in a)e.setAttribute(k,a[k]);return e;}
+  function tx(a,s){a["font-family"]="Outfit, sans-serif";var e=el("text",a);e.textContent=s;return e;}
+  function fmt(n){return n.toLocaleString("pt-BR");}
+
+  /* ─── barra de progresso ─── */
+  var prog=document.getElementById("prog");
+  function onScroll(){
+    var h=document.documentElement.scrollHeight-window.innerHeight;
+    prog.style.width=(h>0?(window.scrollY/h)*100:0)+"%";
+  }
+  window.addEventListener("scroll",onScroll,{passive:true}); onScroll();
+
+  /* ─── tabela do balcão ─── */
+  var ITENS=[
+    ["Banana",6.00],["Manga",8.00],["Aveia em flocos",10.00],["Uva",14.00],["Kiwi",16.00],
+    ["Açaí · balde de 10 kg a R$ 175",17.50],["Calda de chocolate",18.00],["Leite condensado",19.00],
+    ["Granola",20.00],["Amendoim triturado",25.00],["Morango",28.00],["Paçoca",30.00],
+    ["Bala de goma",30.00],["Leite em pó · Ninho",48.00],["Confete de chocolate",50.00],
+    ["Nutella",65.00],["Ovomaltine",70.00],["Castanha de caju",75.00]
+  ];
+  var PV=59.90, cont=document.getElementById("balcao");
+  ITENS.forEach(function(it){
+    var cmv=it[1]/PV, prej=cmv>1, ruim=cmv>.75&&!prej, otimo=cmv<.35;
+    var d=document.createElement("div");
+    d.className="bar r"+(prej?" perigo":(otimo?" destaque":""));
+    var cor=prej?"url(#x)":null;
+    d.innerHTML='<span class="nm">'+it[0]+
+      '<small>R$ '+it[1].toFixed(2).replace(".",",")+' o quilo · vendido a R$ 59,90</small></span>'+
+      '<span class="vv" style="color:'+(prej?"var(--neg)":(ruim?"var(--ouro)":"var(--pos)"))+'">'+
+      Math.round(cmv*100)+'%'+(prej?" ⚠":"")+'</span>'+
+      '<span class="tr"><span class="fl" style="--w:'+Math.min(cmv*100,100)+'%;background:'+
+      (prej?"linear-gradient(90deg,#F5866F,#EE5138)":
+       (ruim?"linear-gradient(90deg,#FFDE7A,#FF9026)":"linear-gradient(90deg,#5FD3A0,#1F9A61)"))+'"></span></span>';
+    cont.appendChild(d);
+  });
+
+  /* ─── caminhos do ano ─── */
+  var CAM=[
+    ["Mantém Degusta · balcão solto","R$ 59,90/kg · CMV 38%",83460,false],
+    ["Mantém Degusta · balcão gerido","R$ 59,90/kg · CMV 36%",94411,false],
+    ["Marca própria · balcão solto","R$ 74,90/kg · CMV 32%",122266,false],
+    ["Marca própria · balcão gerido","R$ 74,90/kg · CMV 27%",138231,true]
+  ];
+  var cc=document.getElementById("caminhos"), mx=145000;
+  CAM.forEach(function(c){
+    var d=document.createElement("div");
+    d.className="bar r"+(c[3]?" destaque":"");
+    d.innerHTML='<span class="nm">'+c[0]+'<small>'+c[1]+'</small></span>'+
+      '<span class="vv" style="color:'+(c[3]?"var(--ouro)":"var(--acento)")+'">R$ '+fmt(c[2])+'</span>'+
+      '<span class="tr"><span class="fl" style="--w:'+(c[2]/mx*100)+'%;background:'+
+      (c[3]?"linear-gradient(90deg,#FFDE7A,#FF9026)":"linear-gradient(90deg,#9B45CE,#4A1A6B)")+'"></span></span>';
+    cc.appendChild(d);
+  });
+
+  /* ─── gráfico das alavancas ─── */
+  (function(){
+    var g=document.getElementById("alav"); if(!g) return;
+    var d=[["Balcão solto\nR$ 59,90/kg",38,"url(#gn)"],["Balcão solto\nR$ 74,90/kg",31,"url(#gr)"],
+           ["Balcão gerido\nR$ 59,90/kg",33,"url(#gr)"],["Balcão gerido\nR$ 74,90/kg",26,"url(#go)"]];
+    var x0=90,x1=930,base=278, esc=200/40, larg=(x1-x0)/4;
+    [0,10,20,30,40].forEach(function(v){
+      var y=base-v*esc;
+      g.appendChild(el("line",{x1:x0,y1:y,x2:x1,y2:y,stroke:"var(--linha)","stroke-width":"1.5"}));
+      g.appendChild(tx({x:x0-14,y:y+7,"text-anchor":"end","font-size":"18","font-weight":"600",
+        fill:"var(--ink3)"},v+"%"));
+    });
+    d.forEach(function(s,i){
+      var x=x0+i*larg+26, bw=larg-52, h=s[1]*esc;
+      g.appendChild(el("rect",{x:x,y:base-h,width:bw,height:h,rx:"12",fill:s[2]}));
+      g.appendChild(tx({x:x+bw/2,y:base-h-16,"text-anchor":"middle","font-size":"32",
+        "font-weight":"900",fill:i===3?"var(--ouro)":(i===0?"var(--neg)":"var(--acento)")},s[1]+"%"));
+      s[0].split("\n").forEach(function(ln,k){
+        g.appendChild(tx({x:x+bw/2,y:base+34+k*24,"text-anchor":"middle","font-size":"19",
+          "font-weight":k?"600":"700",fill:k?"var(--ink3)":"var(--ink)"},ln));
+      });
+    });
+    g.appendChild(el("line",{x1:x0-10,y1:base,x2:x1,y2:base,stroke:"var(--ink3)","stroke-width":"2"}));
+    g.appendChild(tx({x:x0-14,y:44,"text-anchor":"end","font-size":"17","font-weight":"700",
+      "letter-spacing":"2",fill:"var(--ink3)"},"CMV"));
+  })();
+
+  /* ─── gráfico do lucro anual ─── */
+  (function(){
+    var g=document.getElementById("anual"); if(!g) return;
+    var d=[["Degusta\nsolto",83460,"url(#gr)"],["Degusta\ngerido",94411,"url(#gr)"],
+           ["Própria\nsolto",122266,"url(#go)"],["Própria\ngerido",138231,"url(#go)"]];
+    var x0=110,x1=930,base=240, esc=180/145000, larg=(x1-x0)/4;
+    [0,50000,100000,145000].forEach(function(v){
+      var y=base-v*esc;
+      g.appendChild(el("line",{x1:x0,y1:y,x2:x1,y2:y,stroke:"var(--linha)","stroke-width":"1.5"}));
+      g.appendChild(tx({x:x0-14,y:y+7,"text-anchor":"end","font-size":"17","font-weight":"600",
+        fill:"var(--ink3)"},v?v/1000+"k":"0"));
+    });
+    d.forEach(function(s,i){
+      var x=x0+i*larg+26, bw=larg-52, h=s[1]*esc;
+      g.appendChild(el("rect",{x:x,y:base-h,width:bw,height:h,rx:"12",fill:s[2]}));
+      g.appendChild(tx({x:x+bw/2,y:base-h-16,"text-anchor":"middle","font-size":"27",
+        "font-weight":"900",fill:i>1?"var(--ouro)":"var(--acento)"},Math.round(s[1]/1000)+"k"));
+      s[0].split("\n").forEach(function(ln,k){
+        g.appendChild(tx({x:x+bw/2,y:base+34+k*24,"text-anchor":"middle","font-size":"19",
+          "font-weight":k?"600":"700",fill:k?"var(--ink3)":"var(--ink)"},ln));
+      });
+    });
+    g.appendChild(el("line",{x1:x0-10,y1:base,x2:x1,y2:base,stroke:"var(--ink3)","stroke-width":"2"}));
+    g.appendChild(tx({x:x0-14,y:40,"text-anchor":"end","font-size":"17","font-weight":"700",
+      "letter-spacing":"2",fill:"var(--ink3)"},"LUCRO/ANO"));
+  })();
+
+  /* ─── animação de entrada (progressiva: sem JS a página já está visível) ─── */
+  var podeAnimar = window.matchMedia("(prefers-reduced-motion: no-preference)").matches
+                   && "IntersectionObserver" in window;
+  if(!podeAnimar) return;
+  document.documentElement.classList.add("anim");
+
+  function contar(e){
+    var alvo=parseFloat(e.dataset.c), dec=parseInt(e.dataset.dec||"0",10);
+    var pre=e.dataset.pre||"", suf=e.dataset.suf||"", t0=null, dur=1100;
+    var real = dec ? alvo/Math.pow(10,dec) : alvo;
+    function passo(t){
+      if(!t0) t0=t;
+      var p=Math.min((t-t0)/dur,1), ease=1-Math.pow(1-p,3), v=real*ease;
+      e.textContent = pre + (dec ? v.toFixed(dec).replace(".",",") : fmt(Math.round(v))) + suf;
+      if(p<1) requestAnimationFrame(passo);
+    }
+    requestAnimationFrame(passo);
+  }
+
+  var io=new IntersectionObserver(function(ents){
+    ents.forEach(function(en){
+      if(!en.isIntersecting) return;
+      en.target.classList.add("on");
+      var n=en.target.querySelector?en.target.querySelector("[data-c]"):null;
+      if(en.target.hasAttribute&&en.target.hasAttribute("data-c")) contar(en.target);
+      else if(n) contar(n);
+      io.unobserve(en.target);
+    });
+  },{threshold:.18, rootMargin:"0px 0px -8% 0px"});
+  document.querySelectorAll(".r").forEach(function(e){io.observe(e);});
+})();
+</script>
