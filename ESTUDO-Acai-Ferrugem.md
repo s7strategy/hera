@@ -55,6 +55,170 @@ O equipamento está pago. O que resta:
 
 ---
 
+## 1-B. Os R$ 6 a 8 mil dele: a linha exata
+
+Numa versão anterior eu disse que a diferença entre a margem dele (40%) e a minha (23%) era a folha de pagamento. **Correção: ele tinha funcionário sim.** Refeita a conta, a explicação verdadeira é melhor — porque é exata.
+
+### A loja dele, mês a mês, com 1 funcionário registrado
+
+| Linha | R$/mês | % |
+|---|---|---|
+| Faturamento | 15.000 | 100% |
+| − CMV (32,5%) | −4.875 | |
+| − 1 funcionário CLT (SM R$ 1.621 × 1,4) | −2.269 | |
+| − Simples Anexo I (faixa 1, 4%) | −600 | |
+| − Cartão (2,8%) | −420 | |
+| **= Sobra antes de aluguel e contas fixas** | **6.836** | **45,6%** |
+| − Aluguel (estimado) | −1.500 | |
+| − Luz, água, gás, contador | −800 | |
+| **= Lucro líquido** | **4.536** | **30,2%** |
+
+**R$ 6.836 cai exatamente dentro do "R$ 6 a 8 mil" que ele falou.** Não é coincidência — é a linha em que quase todo dono de loja pequena pensa quando diz "sobrar": depois de repor o produto e pagar o funcionário, antes do aluguel e das contas.
+
+### A mesma conta, nos dois negócios
+
+| Linha | A loja dele | % | Nosso projeto | % |
+|---|---|---|---|---|
+| Faturamento | 180.000 | 100% | 389.376 | 100% |
+| − CMV | −58.500 | 32,5% | −126.547 | 32,5% |
+| − Folha | −27.233 | 15,1% | −68.200 | 17,5% |
+| − Impostos | −7.200 | 4,0% | −23.131 | 5,9% |
+| − Cartão e delivery | −5.040 | 2,8% | −18.002 | 4,6% |
+| − Marketing | 0 | 0% | −13.628 | 3,5% |
+| **= Sobra antes de aluguel e fixos** | **82.027** | **45,6%** | **139.868** | **35,9%** |
+| − Aluguel | −18.000 | 10,0% | −21.000 | 5,4% |
+| − Energia, gás, contador, PDV | −9.600 | 5,3% | −28.200 | 7,2% |
+| **= Lucro líquido** | **54.427** | **30,2%** | **90.668** | **23,3%** |
+
+**A diferença de 10 pontos na linha de sobra é marketing pago (3,5%) e comissão de delivery** — que a loja dele não tinha. Não é ineficiência nossa; é escolha. Marketing e iFood *trazem* faturamento. Cortar os dois subiria a margem para ~29% e derrubaria a receita junto.
+
+### Se a margem dele for líquida mesmo
+
+| Margem líquida | Lucro/ano no nosso projeto | Investimento de R$ 51.800 volta em |
+|---|---|---|
+| 23,3% (minha projeção) | R$ 90.725 | 6,9 meses |
+| 30,0% (o líquido dele) | R$ 116.813 | 5,3 meses |
+| 40,0% (se for líquido mesmo) | R$ 155.750 | 4,0 meses |
+
+**Se ele estiver certo, o negócio é melhor do que projetei — não pior.** Em todos os casos o primeiro verão paga o investimento.
+
+Para os R$ 6–8 mil serem líquidos de verdade, alguma dessas teria que ser verdade: ponto próprio sem aluguel; CMV de ~16% (metade do mercado, improvável no self-service por peso); funcionário sem carteira ou meio período; parte do faturamento sem nota; ou os R$ 15 mil eram mês de verão, não média do ano.
+
+### De onde tirei cada linha do meu custo
+
+| Linha | Origem |
+|---|---|
+| CMV 32,5% | Polpa a R$ 15–22/kg no atacado + toppings, embalagem e quebra. Faixa confirmada em três fontes de precificação de açaiteria |
+| Folha | Salário mínimo 2026 (R$ 1.621) × 1,4 — custo real de CLT no Simples, com FGTS, férias, 13º e rescisão provisionados |
+| Impostos 5,9% | Simples Nacional Anexo I, alíquota efetiva na faixa de R$ 360–720 mil. A loja dele, menor, ficava na faixa 1 a 4% |
+| Cartão e delivery 4,6% | 2,8% de maquininha + comissão do iFood sobre a fatia de delivery |
+| Overhead R$ 28.200/ano | Energia, água, gás, contador, PDV, internet, limpeza, manutenção |
+| Referência do setor | 18% a 28% líquida é a faixa saudável pública para açaiteria com equipe |
+
+### A folha como alavanca
+
+| Configuração de equipe | Folha/ano | Lucro/ano | Margem |
+|---|---|---|---|
+| Tudo contratado (o que modelei) | R$ 68.200 | R$ 90.665 | 23,3% |
+| Você e mais um da família no balcão | R$ 34.800 | R$ 124.065 | 31,9% |
+| **Família opera, contrata só no pico** | **R$ 19.000** | **R$ 139.865** | **35,9%** |
+
+> ⚠️ No cenário familiar, **seu trabalho e o do seu pai valem dinheiro e não estão na conta**. R$ 4 mil/mês para cada um nos cinco meses são R$ 40 mil saindo desse lucro.
+
+---
+
+## 1-C. Correção: falta muito menos do que eu disse
+
+Eu tinha colocado **R$ 86 mil** de investimento. Revendo item por item, com o argumento certo de que o equipamento já está comprado:
+
+| Item | Eu tinha posto | Realista | Por quê mudou |
+|---|---|---|---|
+| Obra e adequação dos 35 m² | 22.000 | 9.000 | Elétrica, pia da Vigilância, piso lavável. **Inflei** — com o ponto em bom estado é metade |
+| Abrir a tela do deck | 7.000 | 1.500 | **Errei feio.** Tirar tela e mourão é serviço de meio dia |
+| Mobiliário do deck | 11.000 | 6.000 | 8 mesas + 24 cadeiras. **Se veio no lote, é zero** |
+| Estoque inicial | 9.000 | 9.000 | Real |
+| Licenças (alvará, VISA, balança) | 3.000 | 1.800 | Se a balança INMETRO veio no lote, cai para ~R$ 800 |
+| Marketing de abertura | 6.000 | 2.500 | Você tem agência própria |
+| **Dinheiro que sai e não volta** | **58.000** | **29.800** | |
+| Capital de giro | 28.000 | 22.000 | **Não é gasto.** É caixa que volta. Somar no investimento e calcular payback em cima estava errado |
+| **Total a ter disponível** | **86.000** | **51.800** | |
+
+**E o payback muda de figura:** a marca própria acumula **R$ 97.740 de lucro só de novembro a março**, contra R$ 51.800 de tudo que precisa ter na mão. **O primeiro verão paga o investimento inteiro**, mesmo com equipe toda contratada.
+
+### Confira o que veio no lote
+
+Estes itens mudam a conta conforme o que veio junto com a unidade comprada:
+
+- **Mesas e cadeiras do deck** — se vieram, economiza R$ 6.000
+- **Balança homologada pelo INMETRO** — obrigatória em venda por peso. Se veio, economiza ~R$ 1.000
+- **Pia de higienização exclusiva** — exigência da Vigilância. Se não veio, é obra
+- **Balcão refrigerado, freezers, vitrine, PDV e impressora**
+- **Carga elétrica do ponto** — freezers e balcão puxam muito. Conferir antes de assinar o aluguel
+- **Piso interno lavável e impermeável** — exigência da Vigilância
+
+---
+
+## 1-D. Mudar a marca: a conta mínima e a cheia
+
+| Item | Mínimo | Cheio | Observação |
+|---|---|---|---|
+| Embalagem personalizada | 7.000 | 7.000 | Número seu — é o item mais caro |
+| Adesivagem de balcão, freezers e vitrine | 2.500 | 2.500 | Adesivo sai, adesivo entra |
+| Uniformes (12–15 camisetas) | 1.200 | 1.200 | Precisa nos dois caminhos |
+| Registro no INPI (1 classe, ME/EPP) | 880 | 1.500 | Taxa oficial R$ 440–880 |
+| Cardápio e menu board | 800 | 1.500 | Precisa nos dois caminhos |
+| Identidade visual | 0 | 5.000 | **Você tem agência** |
+| Letreiro e fachada | 0 | 4.000 | **Não é extra** — hoje não tem letreiro nenhum |
+| **Total** | **12.380** | **22.700** | |
+
+Payback da marca: **5,2 meses** no mínimo, **9,5 meses** no cheio. Nos dois casos, dentro da primeira temporada.
+
+**Uma pergunta fecha a conta:** a Degusta fornece embalagem junto no preço do insumo, ou é à parte? Se você compraria copo de qualquer jeito, só o *design* é extra e o custo real cai para ~R$ 8 mil.
+
+---
+
+## 1-E. As perguntas para o dono da Degusta
+
+**Bloco 1 · Preço do insumo — é o que decide a marca**
+
+1. Qual o preço por quilo da polpa? Peça a tabela inteira, por tipo.
+2. Esse preço inclui frete até Garopaba?
+3. **A embalagem vem junto no preço, ou é comprada à parte?**
+4. E os toppings — granola, leite em pó, castanha, calda, frutas?
+5. Tem pedido mínimo? Garante entrega semanal em janeiro?
+6. O preço muda na entressafra (set–dez)?
+
+**Bloco 2 · O acordo**
+
+7. Posso usar a marca sem pagar nada? Por tempo indeterminado?
+8. Se eu quiser mudar de marca, continuo podendo comprar de vocês?
+9. Tem exclusividade de território em Garopaba?
+10. Preciso seguir cardápio, preço ou padrão visual?
+11. Dá para colocar isso num e-mail simples?
+
+**Bloco 3 · A operação dele — o dado mais valioso que existe**
+
+12. Quanto a loja faturava por mês, no verão e no inverno?
+13. Quantos clientes por dia no pico? Ticket médio?
+14. Quantas pessoas no balcão no verão?
+15. **Os R$ 6 a 8 mil que sobravam eram antes ou depois de pagar aluguel, luz, água, gás e contador?**
+16. O ponto era alugado ou próprio? Quanto era?
+17. Era um funcionário só, ou mais? Registrado em carteira?
+18. Os R$ 15 mil eram mês de verão ou média do ano?
+19. Qual o CMV que vocês tinham? Que preço por 100 g praticavam?
+20. O que mais vendia além do açaí?
+
+**Bloco 4 · O equipamento**
+
+21. Quantos m² tinha a loja? Esse equipamento cabe em 35 m²?
+22. Veio mesa, cadeira e balança homologada no lote?
+23. Qual a carga elétrica que a loja puxava?
+24. Tem manutenção pendente em alguma máquina?
+
+> **Com as respostas de 1, 3 e 15, este estudo vira conta fechada.** As outras refinam.
+
+---
+
 ## 2. DRE mês a mês
 
 ### 2.1 Mantendo a Degusta (hibernando mai–ago)
