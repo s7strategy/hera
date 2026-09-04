@@ -516,6 +516,42 @@ def _run_job(job: JobRecord, store: JobStore, settings: Settings,
 # --------------------------------------------------------------------------- #
 # Aplicação
 # --------------------------------------------------------------------------- #
+_LOGIN_HTML = """<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>S7 Editor</title><style>
+*{box-sizing:border-box} body{margin:0;min-height:100vh;display:grid;place-items:center;
+background:#0b0d14;color:#e7e9ee;font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+form{background:#141824;padding:32px;border-radius:14px;width:min(360px,92vw);
+border:1px solid #232838;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+h1{margin:0 0 4px;font-size:19px} p{margin:0 0 20px;color:#8b93a7;font-size:13px}
+input{width:100%;padding:11px 13px;border-radius:9px;border:1px solid #2b3145;
+background:#0e111a;color:#e7e9ee;font-size:15px}
+button{width:100%;margin-top:12px;padding:11px;border:0;border-radius:9px;
+background:#ff5a2b;color:#fff;font-size:15px;font-weight:600;cursor:pointer}
+button:hover{filter:brightness(1.08)}
+.erro{margin-top:12px;color:#ff8a7a;font-size:13px;min-height:18px}
+</style></head><body>
+<form onsubmit="entrar(event)">
+  <h1>S7 Editor</h1>
+  <p>Digite a senha para entrar.</p>
+  <input id="s" type="password" autofocus autocomplete="current-password" placeholder="senha">
+  <button type="submit">Entrar</button>
+  <div class="erro" id="e"></div>
+</form>
+<script>
+function entrar(ev){
+  ev.preventDefault();
+  var e=document.getElementById("e"); e.textContent="";
+  fetch("__BASE__/api/login",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({senha:document.getElementById("s").value})})
+  .then(function(r){ if(r.ok){location.reload();return;}
+    return r.json().catch(function(){return {};}).then(function(d){
+      e.textContent=d.erro||"não consegui entrar."; }); })
+  .catch(function(){ e.textContent="servidor não respondeu."; });
+}
+</script></body></html>"""
+
+
 _FALLBACK_HTML = """<!doctype html><meta charset="utf-8">
 <title>S7 Editor</title>
 <body style="background:#0d0f13;color:#e8ecf2;font:15px system-ui;padding:40px">
@@ -525,13 +561,24 @@ encontrados. Reinstale o pacote ou use a linha de comando:
 <code>s7editor --help</code>.</p>"""
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
-    """Monta a aplicação FastAPI da interface local.
+def create_app(settings: Settings | None = None, *, base_path: str = "",
+               senha: str | None = None) -> FastAPI:
+    """Monta a aplicação FastAPI da interface.
 
     ``settings`` guarda inbox/outbox — as duas únicas pastas que o servidor
     aceita ler ou escrever.
+
+    ``base_path`` é o prefixo quando a interface não vive na raiz do domínio
+    (ex.: ``/editoremmassa`` atrás do nginx). Ele é injetado na página e o
+    front monta as URLs a partir dele, em vez de assumir ``/api/...``.
+
+    ``senha`` liga a trava de acesso. Rodando em ``127.0.0.1`` ela é opcional;
+    **publicado na internet ela é obrigatória** — sem isso qualquer um usaria o
+    servidor e veria os criativos de quem subiu.
     """
     settings = (settings or load_settings()).ensure_dirs()
+    base = "/" + str(base_path or "").strip("/") if str(base_path or "").strip("/") else ""
+    senha = (senha if senha is not None else os.environ.get("S7EDITOR_SENHA") or "").strip()
     upload_root = Path(settings.inbox).resolve() / "web"
     output_root = Path(settings.outbox).resolve() / "web"
     upload_root.mkdir(parents=True, exist_ok=True)
@@ -546,6 +593,69 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     if STATIC_DIR.is_dir():
         app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
+    # ------------------------------------------------------------------ #
+    # Trava de acesso
+    # ------------------------------------------------------------------ #
+    # Só existe quando há senha configurada. Em 127.0.0.1 o padrão é sem senha
+    # (é a máquina do próprio usuário); publicado, o instalador da VPS gera uma
+    # e grava no .env, porque uma interface que aceita upload e devolve arquivo
+    # não pode ficar aberta na internet.
+    COOKIE = "s7editor_sess"
+
+    def _assina(quando: str) -> str:
+        import hmac
+        mac = hmac.new(senha.encode("utf-8"), quando.encode("ascii"), "sha256")
+        return mac.hexdigest()
+
+    def _token() -> str:
+        quando = str(int(time.time()))
+        return f"{quando}.{_assina(quando)}"
+
+    def _token_valido(valor: str | None, validade_s: int = 7 * 24 * 3600) -> bool:
+        import hmac
+        if not valor or "." not in valor:
+            return False
+        quando, mac = valor.rsplit(".", 1)
+        if not quando.isdigit():
+            return False
+        if not hmac.compare_digest(mac, _assina(quando)):
+            return False
+        return (time.time() - int(quando)) < validade_s
+
+    def _liberado(req: Request) -> bool:
+        if not senha:
+            return True
+        return _token_valido(req.cookies.get(COOKIE))
+
+    if senha:
+        @app.middleware("http")
+        async def _exige_senha(req: Request, call_next):  # type: ignore[no-untyped-def]
+            caminho = req.url.path
+            livre = (caminho.endswith("/login") or caminho.endswith("/api/login")
+                     or "/static/" in caminho or caminho.endswith("/favicon.ico"))
+            if livre or _liberado(req):
+                return await call_next(req)
+            if caminho.rstrip("/").endswith("/api") or "/api/" in caminho:
+                return JSONResponse({"erro": "sessão expirada — recarregue a página e "
+                                             "entre de novo."}, status_code=401)
+            return HTMLResponse(_LOGIN_HTML.replace("__BASE__", base), status_code=401)
+
+        @app.post("/api/login")
+        async def api_login(req: Request) -> JSONResponse:
+            import hmac
+            try:
+                corpo = await req.json()
+            except Exception:  # noqa: BLE001 - veio de formulário ou vazio
+                corpo = {}
+            enviada = str((corpo or {}).get("senha") or "")
+            # compare_digest para a comparação não vazar o tamanho pelo tempo.
+            if not hmac.compare_digest(enviada, senha):
+                return JSONResponse({"erro": "senha incorreta."}, status_code=401)
+            resp = JSONResponse({"ok": True})
+            resp.set_cookie(COOKIE, _token(), httponly=True, samesite="lax",
+                            max_age=7 * 24 * 3600, path=base or "/")
+            return resp
 
     # -- erros em português, sempre JSON ---------------------------------- #
     @app.exception_handler(HTTPException)
@@ -598,8 +708,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if not arquivo.is_file():
             return HTMLResponse(_FALLBACK_HTML, status_code=200)
         html = arquivo.read_text(encoding="utf-8")
-        boot = json.dumps(_boot(), ensure_ascii=False).replace("</", "<\\/")
+        dados = _boot()
+        dados["base"] = base
+        boot = json.dumps(dados, ensure_ascii=False).replace("</", "<\\/")
         html = html.replace("<!--S7_BOOT-->", f"<script>window.S7_BOOT={boot};</script>")
+        # Os assets também precisam do prefixo: em /editoremmassa, "/static/app.js"
+        # apontaria para a raiz do domínio e a página viria sem CSS nem JS.
+        html = html.replace('href="/static/', f'href="{base}/static/')
+        html = html.replace('src="/static/', f'src="{base}/static/')
         return HTMLResponse(html, headers={"Cache-Control": "no-store"})
 
     @app.get("/favicon.ico")
@@ -939,7 +1055,8 @@ def _abre_quando_subir(url: str, host: str, port: int, timeout: float = 25.0) ->
 
 
 def run_server(host: str = "127.0.0.1", port: int = 8770,
-               settings: Settings | None = None, *, abrir: bool = False) -> None:
+               settings: Settings | None = None, *, abrir: bool = False,
+               base_path: str = "", senha: str | None = None) -> None:
     """Sobe o uvicorn com a interface. Bloqueia até o Ctrl+C."""
     try:
         import uvicorn
@@ -949,7 +1066,7 @@ def run_server(host: str = "127.0.0.1", port: int = 8770,
         ) from exc
 
     settings = settings or load_settings()
-    app = create_app(settings)
+    app = create_app(settings, base_path=base_path, senha=senha)
     if host not in ("127.0.0.1", "localhost", "::1"):
         log.warning("servindo em %s — a interface não tem autenticação; "
                     "só exponha em rede confiável.", host)

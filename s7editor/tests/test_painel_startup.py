@@ -119,3 +119,68 @@ def test_guarda_de_rede_ainda_barra_o_mundo_externo():
         socket.create_connection(("api.openai.com", 443), timeout=1)
     with pytest.raises(RedeBloqueadaError):
         socket.getaddrinfo("api.openai.com", 443)
+
+
+# --------------------------------------------------------------------------- #
+# Publicado atrás do nginx
+# --------------------------------------------------------------------------- #
+def test_prefixo_e_senha(tmp_path):
+    """Publicar em /editoremmassa exige duas coisas: prefixo e trava de acesso."""
+    from fastapi.testclient import TestClient
+
+    from s7editor.config import load_settings
+    from s7editor.webui import create_app
+
+    st = load_settings(root=tmp_path, inbox=tmp_path / "in", outbox=tmp_path / "out",
+                       cache_dir=tmp_path / ".c")
+    app = create_app(st, base_path="/editoremmassa", senha="segredo123")
+    c = TestClient(app)
+
+    assert c.get("/").status_code == 401, "sem senha, a página não pode abrir"
+    assert c.post("/api/login", json={"senha": "errada"}).status_code == 401
+    r = c.post("/api/login", json={"senha": "segredo123"})
+    assert r.status_code == 200
+    token = r.cookies.get("s7editor_sess")
+    assert token
+
+    pagina = c.get("/", cookies={"s7editor_sess": token})
+    assert pagina.status_code == 200
+    # Sem o prefixo nos assets, a página viria sem CSS nem JS.
+    assert "/editoremmassa/static/app.css" in pagina.text
+    assert "/editoremmassa/static/app.js" in pagina.text
+    assert "/editoremmassa" in pagina.text
+
+    # API sem sessão responde JSON 401, não HTML — senão o front quebra.
+    r = c.get("/api/job/naoexiste")
+    assert r.status_code == 401
+    assert r.headers["content-type"].startswith("application/json")
+
+
+def test_cookie_forjado_nao_entra(tmp_path):
+    """O cookie é assinado: inventar um não pode dar acesso."""
+    from fastapi.testclient import TestClient
+
+    from s7editor.config import load_settings
+    from s7editor.webui import create_app
+
+    st = load_settings(root=tmp_path, inbox=tmp_path / "in", outbox=tmp_path / "out",
+                       cache_dir=tmp_path / ".c")
+    c = TestClient(create_app(st, senha="segredo123"))
+    for falso in ("9999999999.deadbeef", "abc.def", "", "9999999999"):
+        r = c.get("/", cookies={"s7editor_sess": falso})
+        assert r.status_code == 401, f"cookie forjado {falso!r} entrou"
+
+
+def test_local_sem_senha_continua_aberto(tmp_path):
+    """Na máquina do próprio usuário, exigir senha só atrapalharia."""
+    from fastapi.testclient import TestClient
+
+    from s7editor.config import load_settings
+    from s7editor.webui import create_app
+
+    st = load_settings(root=tmp_path, inbox=tmp_path / "in", outbox=tmp_path / "out",
+                       cache_dir=tmp_path / ".c")
+    c = TestClient(create_app(st))
+    r = c.get("/")
+    assert r.status_code == 200
+    assert 'href="/static/app.css"' in r.text

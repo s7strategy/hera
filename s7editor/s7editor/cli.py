@@ -944,12 +944,23 @@ def cmd_ui(args: argparse.Namespace, settings: Any) -> int:
 
     host, porta = str(args.host), int(args.port)
     abrir = bool(getattr(args, "abrir", False))
+    senha_cfg = getattr(args, "senha", None) or os.environ.get("S7EDITOR_SENHA")
+    if host not in ("127.0.0.1", "localhost", "::1") and not senha_cfg:
+        raise UsageError(
+            f"Você pediu para servir em {host}, ou seja, para fora desta máquina, "
+            "e não definiu senha.\n"
+            "  A interface aceita upload e devolve arquivos: aberta na internet, "
+            "qualquer um usaria o seu servidor.\n"
+            "  Passe --senha SUA_SENHA (ou defina S7EDITOR_SENHA), ou sirva só "
+            "local com --host 127.0.0.1.")
     print(bold("Subindo o painel..."))
     print(dim("  A URL aparece abaixo assim que estiver pronto. Para parar, Ctrl+C."))
     if abrir:
         print(dim("  O navegador abre sozinho quando o servidor responder."))
     try:
-        run_server(host=host, port=porta, settings=settings, abrir=abrir)
+        run_server(host=host, port=porta, settings=settings, abrir=abrir,
+                   base_path=str(getattr(args, "base_path", "") or ""),
+                   senha=getattr(args, "senha", None))
     except OSError as exc:
         raise RunError(f"Não consegui subir o servidor em {host}:{porta} ({exc}).\n"
                        "  Talvez a porta esteja ocupada — tente --port 8771.") from exc
@@ -1076,6 +1087,11 @@ def build_parser() -> argparse.ArgumentParser:
     s.set_defaults(func=cmd_ui)
     s.add_argument("--abrir", "--open", action="store_true",
                    help="abre o navegador sozinho quando o servidor ficar pronto")
+    s.add_argument("--base-path", dest="base_path", default="", metavar="PREFIXO",
+                   help="prefixo quando publicado atrás de proxy (ex.: /editoremmassa)")
+    s.add_argument("--senha", default=None, metavar="SENHA",
+                   help="exige senha para entrar; obrigatório se exposto na internet "
+                        "(ou use a variável S7EDITOR_SENHA)")
 
     return p
 

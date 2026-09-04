@@ -58,8 +58,26 @@
     mostrar(box, true);
   }
 
+  // Prefixo do servidor. Vazio quando roda na raiz (uso local); "/editoremmassa"
+  // quando publicado atrás do nginx. Sem isso o painel monta "/api/upload" e
+  // bate na raiz do domínio, onde não existe nada.
+  var BASE = ((window.S7_BOOT && window.S7_BOOT.base) || "").replace(/\/$/, "");
+
+  function rota(caminho) {
+    if (!caminho) return caminho;
+    if (!BASE) return caminho;
+    if (caminho.charAt(0) !== "/") return caminho;      // relativa ou externa
+    if (caminho.indexOf(BASE + "/") === 0) return caminho;  // já tem o prefixo
+    return BASE + caminho;
+  }
+
   function pedir(url, opcoes) {
+    if (url.charAt(0) === "/" && BASE && url.indexOf(BASE + "/") !== 0) url = BASE + url;
     return fetch(url, opcoes).then(function (r) {
+      if (r.status === 401) {
+        location.reload();   // sessão expirou: volta para a tela de senha
+        throw new Error("sessão expirada");
+      }
       return r.json().catch(function () { return {}; }).then(function (dados) {
         if (!r.ok) throw new Error(dados.erro || ("falha " + r.status + " em " + url));
         return dados;
@@ -199,7 +217,7 @@
     estado.arquivos.forEach(function (f) {
       var d = el("div", "miniatura");
       var img = el("img");
-      img.src = f.preview;
+      img.src = rota(f.preview);
       img.alt = f.name;
       img.loading = "lazy";
       d.appendChild(img);
@@ -352,12 +370,12 @@
 
     if (j.download) {
       var b = $("btn-baixar");
-      b.href = j.download;
+      b.href = rota(j.download);
       mostrar(b, true);
     }
     if (j.report) {
       var rel = $("btn-relatorio");
-      rel.href = j.report;
+      rel.href = rota(j.report);
       mostrar(rel, true);
     }
     desenhaResultados(j.results || []);
@@ -373,7 +391,8 @@
     var f = el("figure");
     if (src) {
       var i = el("img");
-      i.src = src + (src.indexOf("?") >= 0 ? "&" : "?") + "w=520";
+      var u = rota(src);
+      i.src = u + (u.indexOf("?") >= 0 ? "&" : "?") + "w=520";
       i.loading = "lazy";
       i.alt = legenda;
       f.appendChild(i);
@@ -442,7 +461,7 @@
 
       var fig = el("div", "insp-fig");
       var img = el("img");
-      img.src = im.preview;
+      img.src = rota(im.preview);
       img.alt = im.name;
       fig.appendChild(img);
       (im.blocks || []).forEach(function (bl) {
