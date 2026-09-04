@@ -875,8 +875,71 @@ def _probe(path: Path) -> tuple[int, int] | None:
 # --------------------------------------------------------------------------- #
 # Servidor
 # --------------------------------------------------------------------------- #
+def _porta_livre(host: str, port: int) -> bool:
+    """A porta aceita bind agora?"""
+    import socket
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        # Sem SO_REUSEADDR de propósito: queremos saber se dá para servir de
+        # verdade, não se o SO nos deixaria reaproveitar um TIME_WAIT.
+        try:
+            sock.bind((host if host != "localhost" else "127.0.0.1", int(port)))
+            return True
+        except OSError:
+            return False
+
+
+def _escolhe_porta(host: str, preferida: int, tentativas: int = 12) -> int:
+    """A porta pedida, ou a próxima livre.
+
+    Uma execução anterior que ficou de pé — janela fechada no X sem Ctrl+C, o
+    que no Windows nem sempre mata o processo filho — deixava a porta ocupada e
+    o uvicorn morria com traceback. Trocar de porta e avisar é melhor do que
+    mandar o usuário caçar um processo no Gerenciador de Tarefas.
+    """
+    for i in range(tentativas):
+        porta = int(preferida) + i
+        if _porta_livre(host, porta):
+            return porta
+    raise RuntimeError(
+        f"as portas {preferida} a {preferida + tentativas - 1} estão todas ocupadas.\n"
+        "  Feche as janelas antigas do painel e tente de novo."
+    )
+
+
+def _abre_quando_subir(url: str, host: str, port: int, timeout: float = 25.0) -> None:
+    """Abre o navegador só depois que o servidor aceita conexão.
+
+    Abrir junto com o `start` do .bat era uma corrida perdida: o navegador
+    chegava antes do uvicorn ligar e o usuário via "não foi possível acessar
+    este site", concluindo que o programa não funciona.
+    """
+    import socket
+    import threading
+    import time
+    import webbrowser
+
+    def esperar() -> None:
+        limite = time.monotonic() + timeout
+        alvo = ("127.0.0.1" if host in ("0.0.0.0", "localhost") else host, int(port))
+        while time.monotonic() < limite:
+            try:
+                with socket.create_connection(alvo, timeout=0.5):
+                    break
+            except OSError:
+                time.sleep(0.25)
+        else:
+            return  # não subiu a tempo; a URL já está impressa na tela
+        try:
+            webbrowser.open(url)
+        except Exception:  # noqa: BLE001 - sem navegador não é erro fatal
+            pass
+
+    threading.Thread(target=esperar, daemon=True).start()
+
+
 def run_server(host: str = "127.0.0.1", port: int = 8770,
-               settings: Settings | None = None) -> None:
+               settings: Settings | None = None, *, abrir: bool = False) -> None:
     """Sobe o uvicorn com a interface. Bloqueia até o Ctrl+C."""
     try:
         import uvicorn
@@ -890,7 +953,16 @@ def run_server(host: str = "127.0.0.1", port: int = 8770,
     if host not in ("127.0.0.1", "localhost", "::1"):
         log.warning("servindo em %s — a interface não tem autenticação; "
                     "só exponha em rede confiável.", host)
-    uvicorn.run(app, host=host, port=int(port),
+
+    porta = _escolhe_porta(host, int(port))
+    if porta != int(port):
+        print(f"  A porta {port} já estava ocupada (outra janela do painel aberta?). "
+              f"Usando a {porta}.")
+    url = f"http://{'127.0.0.1' if host in ('0.0.0.0', 'localhost') else host}:{porta}"
+    if abrir:
+        _abre_quando_subir(url, host, porta)
+
+    uvicorn.run(app, host=host, port=porta,
                 log_level="info" if settings.verbose else "warning",
                 access_log=bool(settings.verbose))
 

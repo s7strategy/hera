@@ -53,16 +53,52 @@ class RedeBloqueadaError(RuntimeError):
 @pytest.fixture(autouse=True)
 def sem_rede(monkeypatch: pytest.MonkeyPatch) -> None:
     """Derruba qualquer tentativa de rede e apaga a chave do ambiente."""
-    def _bloqueia(*_a: Any, **_k: Any):
-        raise RedeBloqueadaError(
+    # Loopback é liberado: o que esta guarda protege é a suíte não depender de
+    # API externa, e o painel roda em 127.0.0.1. Bloquear localhost também
+    # impediria testar a subida do próprio servidor, que é código nosso.
+    locais = {"127.0.0.1", "::1", "localhost", "0.0.0.0", ""}
+
+    def _eh_local(alvo: Any) -> bool:
+        if isinstance(alvo, (tuple, list)) and alvo:
+            host = alvo[0]
+            return isinstance(host, str) and host in locais
+        return False
+
+    connect_real = socket.socket.connect
+    connect_ex_real = socket.socket.connect_ex
+    create_real = socket.create_connection
+    getaddrinfo_real = socket.getaddrinfo
+
+    def _erro() -> RedeBloqueadaError:
+        return RedeBloqueadaError(
             "teste tentou acessar a rede: a suíte roda offline e a trilha "
             "determinística não pode depender de API."
         )
 
-    monkeypatch.setattr(socket.socket, "connect", _bloqueia, raising=False)
-    monkeypatch.setattr(socket.socket, "connect_ex", _bloqueia, raising=False)
-    monkeypatch.setattr(socket, "create_connection", _bloqueia, raising=False)
-    monkeypatch.setattr(socket, "getaddrinfo", _bloqueia, raising=False)
+    def _connect(self: Any, alvo: Any, *a: Any, **k: Any):
+        if not _eh_local(alvo):
+            raise _erro()
+        return connect_real(self, alvo, *a, **k)
+
+    def _connect_ex(self: Any, alvo: Any, *a: Any, **k: Any):
+        if not _eh_local(alvo):
+            raise _erro()
+        return connect_ex_real(self, alvo, *a, **k)
+
+    def _create(alvo: Any, *a: Any, **k: Any):
+        if not _eh_local(alvo):
+            raise _erro()
+        return create_real(alvo, *a, **k)
+
+    def _getaddrinfo(host: Any, *a: Any, **k: Any):
+        if not (isinstance(host, str) and host in locais):
+            raise _erro()
+        return getaddrinfo_real(host, *a, **k)
+
+    monkeypatch.setattr(socket.socket, "connect", _connect, raising=False)
+    monkeypatch.setattr(socket.socket, "connect_ex", _connect_ex, raising=False)
+    monkeypatch.setattr(socket, "create_connection", _create, raising=False)
+    monkeypatch.setattr(socket, "getaddrinfo", _getaddrinfo, raising=False)
     for var in ("OPENAI_API_KEY", "S7EDITOR_ROOT", "S7EDITOR_INBOX", "S7EDITOR_OUTBOX",
                 "S7EDITOR_CACHE", "S7EDITOR_FONTS", "S7EDITOR_DRY_RUN"):
         monkeypatch.delenv(var, raising=False)

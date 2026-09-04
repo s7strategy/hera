@@ -943,13 +943,18 @@ def cmd_ui(args: argparse.Namespace, settings: Any) -> int:
             f"  Tudo funciona pela linha de comando enquanto isso ({PROG} --help).") from exc
 
     host, porta = str(args.host), int(args.port)
-    print(bold(f"Interface web em http://{host}:{porta}"))
-    print(dim("  Abra no navegador. Para parar, Ctrl+C."))
+    abrir = bool(getattr(args, "abrir", False))
+    print(bold("Subindo o painel..."))
+    print(dim("  A URL aparece abaixo assim que estiver pronto. Para parar, Ctrl+C."))
+    if abrir:
+        print(dim("  O navegador abre sozinho quando o servidor responder."))
     try:
-        run_server(host=host, port=porta, settings=settings)
+        run_server(host=host, port=porta, settings=settings, abrir=abrir)
     except OSError as exc:
         raise RunError(f"Não consegui subir o servidor em {host}:{porta} ({exc}).\n"
                        "  Talvez a porta esteja ocupada — tente --port 8771.") from exc
+    except RuntimeError as exc:
+        raise RunError(str(exc)) from exc
     return EXIT_OK
 
 
@@ -1069,6 +1074,8 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--host", default="127.0.0.1", help="padrão 127.0.0.1 (só esta máquina)")
     s.add_argument("--port", type=int, default=8770, help="padrão 8770")
     s.set_defaults(func=cmd_ui)
+    s.add_argument("--abrir", "--open", action="store_true",
+                   help="abre o navegador sozinho quando o servidor ficar pronto")
 
     return p
 
