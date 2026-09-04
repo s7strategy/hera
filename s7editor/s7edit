@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Lançador do S7 Editor. Usa o venv do projeto se existir; senão, o python3 do sistema.
+set -euo pipefail
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+for CAND in "$HERE/.venv/bin/python" "$HERE/../.venv/bin/python"; do
+  if [ -x "$CAND" ]; then PY="$CAND"; break; fi
+done
+PY="${PY:-$(command -v python3)}"
+cd "$HERE"
+exec "$PY" -m s7editor.cli "$@"

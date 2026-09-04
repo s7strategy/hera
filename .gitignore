@@ -2,3 +2,8 @@
 .vercel/*
 !.vercel/project.json
 node_modules
+
+# Ambiente Python local (venv do s7editor)
+.venv/
+__pycache__/
+*.py[cod]

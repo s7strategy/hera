@@ -1,0 +1,40 @@
+# ===========================================================================
+# TROCAR O CTA DE UM LOTE INTEIRO SEM MEXER EM MAIS NADA.
+#
+# Rode com:   python -m s7editor.cli run recipes/trocar-cta.yaml
+#
+# engine: deterministic  =>  100% offline, sem chave de API, e os pixels fora
+# da caixa do texto ficam IDÊNTICOS aos do original — o relatório traz a
+# contagem de pixels alterados fora da área editada (tem que ser 0).
+# ===========================================================================
+
+job: trocar-cta-setembro            # nome do lote; vira o nome do ZIP
+input: inbox/campanha-agosto        # pasta com as 30 imagens (relativa à raiz)
+output: outbox/campanha-setembro    # pasta de saída (criada se não existir)
+engine: deterministic               # deterministic | ai | auto
+
+operations:
+  # -----------------------------------------------------------------------
+  # 1) Achar pelo TEXTO ATUAL.
+  #    match: fuzzy ignora acento, caixa alta/baixa e pontuação —
+  #    "Garanta o seu!" casa com "GARANTA O SEU".
+  # -----------------------------------------------------------------------
+  - type: replace_text
+    find: "GARANTA O SEU"
+    replace: "ULTIMAS VAGAS"
+    match: fuzzy
+
+  # -----------------------------------------------------------------------
+  # 2) Achar pelo PAPEL do bloco, quando o texto varia de peça para peça.
+  #    Papéis: headline | subhead | cta | price | badge | legal | logo | other
+  #    (Não sabe o que tem nas suas imagens? Rode antes:
+  #       python -m s7editor.cli inspect inbox/campanha-agosto )
+  # -----------------------------------------------------------------------
+  - type: replace_text
+    role: cta
+    replace: "COMPRE AGORA"
+
+deliver:
+  zip: true           # junta tudo num .zip pronto para baixar/enviar
+  report: true        # relatorio.html com ANTES x DEPOIS e a prova de zero drift
+  format: png         # PNG é o master sem perdas. Veja o README antes de pôr jpg.

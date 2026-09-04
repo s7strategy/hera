@@ -1,0 +1,31 @@
+# ===========================================================================
+# CONVERTER UM LOTE DE 9:16 PARA 16:9 SEM DISTORCER NADA.
+#
+# Rode com:   python -m s7editor.cli run recipes/reframe-16x9.yaml
+#
+# O conteúdo NUNCA é esticado: ele é reposicionado dentro do novo quadro e a
+# área que sobra é preenchida conforme o modo escolhido.
+#
+# Modos (reframe_mode):
+#   pad       fundo borrado nas laterais. Offline, sempre funciona. É o seguro.
+#   crop      corta preservando o assunto. Offline. Perde conteúdo nas pontas.
+#   relayout  apaga o texto, estende o fundo e redesenha o texto no novo
+#             enquadramento. Offline quando o fundo é chapado ou degradê.
+#   outpaint  a IA inventa as laterais. PRECISA de OPENAI_API_KEY e custa.
+# ===========================================================================
+
+job: campanha-agosto-16x9
+input: inbox/campanha-agosto
+output: outbox/campanha-agosto-16x9
+engine: auto                  # tenta offline; só usa IA se o modo exigir
+
+target: "16:9"                # aceita também "1920x1080" ou "16:9@1920"
+reframe_mode: relayout
+reframe_fill: blur            # blur | mirror | color | white | black
+long_edge: 1920               # lado maior em pixels => 1920x1080
+
+deliver:
+  zip: true
+  report: true
+  contact_sheet: true         # mosaico com as 30 peças, para conferir de uma vez
+  format: png

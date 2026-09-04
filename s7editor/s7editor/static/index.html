@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>S7 Editor</title>
+<link rel="stylesheet" href="/static/app.css">
+<!--S7_BOOT-->
+</head>
+<body>
+
+<header class="topo">
+  <div class="marca">
+    <span class="logo">S7</span>
+    <div>
+      <h1>S7 Editor</h1>
+      <p class="sub">Edição de criativos em lote — sem mexer no resto da imagem.</p>
+    </div>
+  </div>
+  <div class="chips" id="chips"></div>
+</header>
+
+<main>
+
+<!-- ================= 1. imagens ================= -->
+<section class="passo" id="passo-1">
+  <h2><span class="num">1</span> Suas imagens</h2>
+
+  <div id="dropzone" class="dropzone" tabindex="0" role="button"
+       aria-label="Arraste imagens ou clique para escolher">
+    <div class="dz-icone">⬇</div>
+    <p class="dz-titulo" id="dz-titulo">Arraste os criativos aqui</p>
+    <p class="dz-dica" id="dz-dica">ou clique para escolher os arquivos</p>
+    <input type="file" id="file-input" multiple accept="image/*" hidden>
+  </div>
+
+  <div id="upload-erro" class="alerta erro oculto"></div>
+  <div id="upload-avisos" class="alerta aviso oculto"></div>
+
+  <div class="galeria-cab oculto" id="galeria-cab">
+    <strong id="galeria-contagem">0 imagens</strong>
+    <div class="galeria-acoes">
+      <button class="btn-linha" id="btn-inspecionar" type="button">Inspecionar texto</button>
+      <button class="btn-linha perigo" id="btn-limpar" type="button">Recomeçar</button>
+    </div>
+  </div>
+  <div class="galeria" id="galeria"></div>
+</section>
+
+<!-- ================= 2. ação ================= -->
+<section class="passo desativado" id="passo-2">
+  <h2><span class="num">2</span> O que fazer com elas</h2>
+
+  <div class="acoes">
+    <button class="acao" data-acao="trocar-texto" type="button">
+      <span class="acao-icone">Aa</span>
+      <span class="acao-nome">Trocar texto em massa</span>
+      <span class="acao-desc">Troca o CTA (ou qualquer bloco) em todas.
+        Os pixels fora da caixa ficam <em>idênticos</em> ao original.</span>
+      <span class="tag ok">offline</span>
+    </button>
+
+    <button class="acao" data-acao="formato" type="button">
+      <span class="acao-icone">⤢</span>
+      <span class="acao-nome">Mudar formato</span>
+      <span class="acao-desc">9:16 → 16:9, 1:1, o que precisar. Sem distorcer:
+        o conteúdo mantém a proporção.</span>
+      <span class="tag ok">offline</span>
+    </button>
+
+    <button class="acao" data-acao="variacoes" type="button">
+      <span class="acao-icone">✦</span>
+      <span class="acao-nome">Gerar variações</span>
+      <span class="acao-desc">Manda 30 referências, recebe outras tantas no mesmo
+        padrão, com variações de copy.</span>
+      <span class="tag ia">usa IA</span>
+    </button>
+  
+    <button class="cartao-acao" data-acao="refazer" type="button">
+      <span class="chip-ia">USA IA</span>
+      <span class="cartao-icone">✦</span>
+      <h3>Refazer com IA</h3>
+      <p>Você escreve o que quer em português. Por padrão mexe <b>só no botão</b>
+         e o resto da peça fica idêntico.</p>
+    </button>
+  </div>
+
+  <!-- formulário: trocar texto -->
+  <div class="form oculto" id="form-trocar-texto">
+    <div class="grade-form">
+      <label class="campo">
+        <span>Texto atual <small>(opcional, mas ajuda a achar)</small></span>
+        <input type="text" id="tt-find" placeholder="COMPRE AGORA">
+      </label>
+      <label class="campo">
+        <span>Trocar por <b class="obrig">*</b></span>
+        <input type="text" id="tt-replace" placeholder="GARANTA O SEU">
+      </label>
+      <label class="campo estreito">
+        <span>Papel do bloco</span>
+        <select id="tt-role"></select>
+      </label>
+      <label>
+        <span>Se não achar o texto</span>
+        <select id="tt-else">
+          <option value="">não faz nada (só avisa)</option>
+          <option value="price" selected>escreve abaixo do preço</option>
+          <option value="headline">escreve abaixo do título</option>
+          <option value="subhead">escreve abaixo do subtítulo</option>
+        </select>
+      </label>
+    </div>
+    <p class="nota" id="tt-nota">
+      Informe o texto atual, escolha o papel (ex.: <code>cta</code>) ou desenhe a
+      caixa numa prévia em “Inspecionar texto”.
+    </p>
+    <div id="tt-caixa" class="caixa-escolhida oculto"></div>
+  </div>
+
+  <!-- formulário: formato -->
+  <div class="form oculto" id="form-formato">
+    <div class="grade-form">
+      <label class="campo estreito">
+        <span>Formato de saída</span>
+        <input type="text" id="fm-target" list="formatos" value="16:9">
+        <datalist id="formatos">
+          <option value="16:9"><option value="9:16"><option value="1:1">
+          <option value="4:5"><option value="1080x1920"><option value="1920x1080">
+        </datalist>
+      </label>
+      <label class="campo estreito">
+        <span>Como preencher a área nova</span>
+        <select id="fm-mode"></select>
+      </label>
+      <label class="campo estreito">
+        <span>Lado maior (px)</span>
+        <input type="number" id="fm-longedge" value="1440" min="256" max="4096" step="8">
+      </label>
+    </div>
+    <p class="nota" id="fm-nota"></p>
+  </div>
+
+  <!-- formulário: variações -->
+  <div class="form oculto" id="form-variacoes">
+    <div class="grade-form">
+      <label class="campo estreito">
+        <span>Quantas variações</span>
+        <input type="number" id="vr-n" value="10" min="1" max="200">
+      </label>
+      <label class="campo estreito">
+        <span>Modo</span>
+        <select id="vr-mode"></select>
+      </label>
+      <label class="campo estreito">
+        <span>Formato <small>(opcional)</small></span>
+        <input type="text" id="vr-aspect" placeholder="igual ao das referências">
+      </label>
+    </div>
+    <p class="nota" id="vr-nota"></p>
+  </div>
+
+  <div class="grade-form oculto" id="form-refazer">
+    <label class="col-inteira">
+      <span>O que você quer que mude</span>
+      <textarea id="rf-prompt" rows="3" placeholder="Ex.: troque o botão por um CTA escrito TESTE GRÁTIS, no mesmo estilo visual da peça — mesmo roxo, mesmo brilho, mesma fonte."></textarea>
+    </label>
+    <label>
+      <span>Onde mexer</span>
+      <select id="rf-escopo">
+        <option value="regiao" selected>só o botão (resto fica idêntico)</option>
+        <option value="tudo">a peça inteira (redesenha tudo)</option>
+      </select>
+    </label>
+    <label>
+      <span>Qual bloco</span>
+      <select id="rf-papel"></select>
+    </label>
+    <p class="dica col-inteira" id="rf-dica"></p>
+  </div>
+
+  <div class="rodape-acao">
+    <button class="btn-principal" id="btn-rodar" type="button" disabled>Rodar no lote</button>
+    <span class="dica" id="dica-rodar">Escolha uma ação acima.</span>
+  </div>
+  <div id="job-erro" class="alerta erro oculto"></div>
+</section>
+
+<!-- ================= 3. andamento ================= -->
+<section class="passo oculto" id="passo-3">
+  <h2><span class="num">3</span> Andamento</h2>
+  <div class="barra"><div class="barra-fill" id="barra-fill"></div></div>
+  <div class="linha-status">
+    <span id="status-msg">na fila…</span>
+    <span id="status-num" class="mono">0 / 0</span>
+  </div>
+  <div id="resumo" class="resumo oculto"></div>
+  <div id="job-avisos" class="alerta aviso oculto"></div>
+  <div class="rodape-acao">
+    <a class="btn-principal oculto" id="btn-baixar" download>Baixar ZIP</a>
+    <a class="btn-linha oculto" id="btn-relatorio" target="_blank" rel="noopener">Ver relatório</a>
+    <button class="btn-linha oculto" id="btn-novo" type="button">Novo lote</button>
+  </div>
+</section>
+
+<!-- ================= 4. antes / depois ================= -->
+<section class="passo oculto" id="passo-4">
+  <h2><span class="num">4</span> Antes e depois</h2>
+  <div class="grade-resultados" id="resultados"></div>
+</section>
+
+</main>
+
+<!-- lightbox de inspeção -->
+<div class="modal oculto" id="modal">
+  <div class="modal-caixa">
+    <div class="modal-cab">
+      <strong id="modal-titulo">Inspeção</strong>
+      <button class="btn-linha" id="modal-fechar" type="button">Fechar</button>
+    </div>
+    <div class="modal-corpo" id="modal-corpo"></div>
+  </div>
+</div>
+
+<footer class="pe">
+  <span>Tudo roda na sua máquina. A trilha determinística nunca chama a internet.</span>
+</footer>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

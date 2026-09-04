@@ -1,0 +1,57 @@
+# ---------------------------------------------------------------------------
+# S7 Editor — o que NÃO vai para o Git.
+# Regra geral: código e receitas versionam; imagens, saídas e segredos não.
+# ---------------------------------------------------------------------------
+
+# Segredo. NUNCA comite este arquivo — só o .env.example, que é público.
+.env
+.env.local
+.env.*.local
+
+# Material do cliente: entra e sai, não versiona.
+inbox/*
+outbox/*
+
+# Cache de análise de criativo e respostas da IA (pode apagar à vontade).
+.cache/
+*.cache
+
+# Fontes da marca costumam ter licença que proíbe redistribuir.
+# Se as SUAS fontes forem livres, apague as três linhas abaixo.
+fonts/*.ttf
+fonts/*.otf
+fonts/*.ttc
+fonts/*.woff2
+
+# Mantém as pastas vazias existindo no repositório.
+!.gitkeep
+!**/.gitkeep
+!inbox/.gitkeep
+!outbox/.gitkeep
+!inbox/COMO-USAR.txt
+!fonts/README.md
+
+# Ambiente Python
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Sistema operacional / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+
+# Fixtures de teste: 36 MB de PNG gerados por tools/make_fixtures.py de forma
+# determinística. A suíte recria o que faltar sozinha, então não versionamos.
+tests/fixtures/

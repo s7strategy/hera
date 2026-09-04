@@ -1,0 +1,44 @@
+# ===========================================================================
+# MANDAR CRIATIVOS DE REFERÊNCIA E RECEBER OUTROS PARECIDOS, COM VARIAÇÕES.
+#
+# Rode com:   python -m s7editor.cli run recipes/variacoes-30.yaml
+#
+# O lote lê o "DNA" das referências (paleta, tipografia, arquétipo de layout,
+# padrões de copy e de CTA) e produz criativos novos no mesmo espírito.
+#
+# Modos aceitos NESTE ARQUIVO (variations.mode):
+#   hybrid      RECOMENDADO. O FUNDO é gerado pelo gpt-image-1 e o texto é
+#               escrito por cima pelo editor, com a tipografia certa. Evita o
+#               erro clássico dos geradores de imagem, que é escrever palavra
+#               errada dentro da peça.
+#   generative  a IA faz a imagem inteira, texto incluso. Mais variedade;
+#               confira a ortografia peça por peça.
+#
+# Os dois PRECISAM da OPENAI_API_KEY no .env.
+#
+# QUER O MODO OFFLINE (de graça, reaproveitando as suas próprias peças e
+# trocando só os textos)? Ele existe, mas hoje só pela linha de comando:
+#
+#     python -m s7editor.cli vary inbox/referencias -n 30 --mode template
+# ===========================================================================
+
+job: variacoes-setembro
+input: inbox/referencias        # 5 a 30 peças de referência bastam
+output: outbox/variacoes-setembro
+engine: ai
+
+variations:
+  n: 30                         # quantas peças novas gerar
+  mode: hybrid                  # hybrid (recomendado) | generative
+  aspect: "9:16"                # formato das peças novas
+  # prompt: "campanha de black friday, tom de urgência"   # direcionamento extra
+  # seed: 7                     # mesma seed => mesmos textos
+  # copy:                       # se quiser DITAR os textos em vez de a IA escrever
+  #   - {headline: "50% OFF HOJE", subhead: "só até meia-noite", cta: "QUERO O MEU"}
+  #   - {headline: "ÚLTIMAS UNIDADES", subhead: "estoque limitado", cta: "GARANTIR AGORA"}
+
+deliver:
+  zip: true
+  report: true
+  contact_sheet: true
+  format: png

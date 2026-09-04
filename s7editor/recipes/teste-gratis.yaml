@@ -1,0 +1,45 @@
+# ---------------------------------------------------------------------------
+# Deixar TODAS as peças com o mesmo CTA: "TESTE GRÁTIS".
+#
+# Duas situações convivem no mesmo lote e esta receita resolve as duas:
+#   - a peça JÁ TEM um CTA ("ASSINE AGORA")  -> troca o texto no lugar
+#   - a peça NÃO TEM CTA nenhum              -> escreve logo abaixo do preço
+#
+# Nada mais na imagem é tocado: fora da caixa do texto, os pixels ficam
+# idênticos aos do original (o relatório mostra essa contagem).
+#
+# Como rodar:
+#   ./s7edit run recipes/teste-gratis.yaml          (Mac/Linux)
+#   .venv\Scripts\python -m s7editor.cli run recipes\teste-gratis.yaml   (Windows)
+#
+# Para provar em UMA imagem antes de rodar o lote:
+#   ./s7edit run recipes/teste-gratis.yaml --limite 1
+# ---------------------------------------------------------------------------
+job: EDITADA TESTE GRATIS
+
+# Troque pelos SEUS caminhos. No Windows use barra normal ou barra dupla:
+#   input: C:/Users/Felipe-Not/Downloads/ads hubflix imagens
+input: inbox/ads-hubflix
+output: inbox/ads-hubflix/EDITADA TESTE GRATIS
+
+engine: deterministic     # nunca chama IA; não custa nada e não inventa pixel
+
+operations:
+  - type: replace_text
+    de: "ASSINE AGORA"
+    para: "TESTE GRÁTIS"
+    match: fuzzy          # ignora acento, caixa alta e pontuação
+
+    # Se "ASSINE AGORA" não existir nesta peça, escreve o texto novo
+    # ancorado a outro bloco em vez de deixar a imagem passar batido.
+    senao_adicionar:
+      ancora: price       # price | cta | headline | subhead | badge
+      posicao: abaixo     # abaixo | acima
+      texto: "TESTE GRÁTIS"
+      # Descomente para forçar aparência (por padrão herda a do bloco âncora,
+      # já corrigida para ter contraste com o fundo onde vai ser escrita):
+      # style: {color: "#ffffff", weight: bold, uppercase: true}
+
+deliver:
+  zip: true
+  report: true
