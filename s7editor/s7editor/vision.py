@@ -824,7 +824,12 @@ def _refine_roles_with_text(blocks: list[TextBlock]) -> None:
         if not blk.text:
             continue
         txt = blk.text.strip()
-        if blk.role in (TextRole.CTA, TextRole.BADGE, TextRole.OTHER) and _PRICE_RE.search(txt):
+        # "R$ 30" é preço venha de que papel vier. A geometria chuta headline
+        # quando o selo é o único bloco da peça, e aí a âncora "abaixo do preço"
+        # não encontrava nada. A trava é o tamanho: preço é curto; uma headline
+        # que por acaso cita um valor ("APENAS R$ 30 POR MES, SEM FIDELIDADE")
+        # é longa e continua headline.
+        if _PRICE_RE.search(txt) and len(_ocr.normalize(txt).split()) <= 4:
             blk.role = TextRole.PRICE
 
     ctas = [b for b in blocks if b.role is TextRole.CTA]

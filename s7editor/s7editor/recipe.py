@@ -170,12 +170,14 @@ _OP_SPEC: dict[str, dict[str, Any]] = {
             "auto_fit": "autofit", "ajustar": "autofit",
             "linhas": "max_lines", "max_linhas": "max_lines",
             "crescer_caixa": "grow_box", "grow": "grow_box",
+            "else_add": "senao_adicionar", "senao": "senao_adicionar",
+            "fallback": "senao_adicionar",
         },
         "requires": ["replace"],
         "requires_any": [(("find", "role", "box"),
                           "precisa de 'find', 'role' ou 'box' para saber qual texto trocar")],
         "known": {"find", "role", "box", "replace", "match", "style",
-                  "autofit", "max_lines", "grow_box"},
+                  "autofit", "max_lines", "grow_box", "senao_adicionar"},
     },
     "remove_text": {
         "aliases": {

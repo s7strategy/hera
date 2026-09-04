@@ -219,7 +219,8 @@ def _folder_or_die(raw: Any, settings: Any) -> Path:
     return p
 
 
-def _images_or_die(folder: Path, *, recursive: bool = False) -> list[Path]:
+def _images_or_die(folder: Path, *, recursive: bool = False,
+                   limite: int | None = None) -> list[Path]:
     from .imageio_util import SUPPORTED_EXT, list_images
 
     paths = list_images(folder, recursive=recursive)
@@ -228,6 +229,10 @@ def _images_or_die(folder: Path, *, recursive: bool = False) -> list[Path]:
         raise UsageError(
             f"A pasta {folder} não tem nenhuma imagem que eu saiba ler.\n"
             f"  Formatos aceitos: {', '.join(SUPPORTED_EXT)}.{extra}")
+    if limite and limite > 0 and len(paths) > limite:
+        print(dim(f"--limite {limite}: usando {limite} de {len(paths)} imagem(ns) "
+                  f"(prova antes de rodar o lote inteiro)."))
+        paths = paths[:limite]
     return paths
 
 
@@ -637,7 +642,8 @@ def cmd_inspect(args: argparse.Namespace, settings: Any) -> int:
     from .vision import analyze_batch, analyze_creative
 
     pasta = _folder_or_die(args.pasta, settings)
-    paths = _images_or_die(pasta, recursive=bool(getattr(args, "recursive", False)))
+    paths = _images_or_die(pasta, recursive=bool(getattr(args, "recursive", False)),
+                           limite=getattr(args, "limite", None))
     como_json = bool(getattr(args, "json", False))
 
     if settings.openai_api_key and not getattr(args, "offline", False):
@@ -718,7 +724,8 @@ def cmd_run(args: argparse.Namespace, settings: Any) -> int:
         raise UsageError(
             f"A pasta de entrada da receita não existe: {receita.input_dir}\n"
             "  Corrija o campo 'input:' da receita ou crie a pasta.")
-    paths = _images_or_die(receita.input_dir, recursive=receita.recursive)
+    paths = _images_or_die(receita.input_dir, recursive=receita.recursive,
+                           limite=getattr(args, "limite", None))
 
     if getattr(args, "dry_run", False):
         print(yellow(f"--dry-run: nada foi escrito. {len(paths)} imagem(ns) seriam processadas:"))
@@ -745,7 +752,8 @@ def cmd_run(args: argparse.Namespace, settings: Any) -> int:
 # --------------------------------------------------------------------------- #
 def cmd_reframe(args: argparse.Namespace, settings: Any) -> int:
     pasta = _folder_or_die(args.pasta, settings)
-    paths = _images_or_die(pasta, recursive=bool(getattr(args, "recursive", False)))
+    paths = _images_or_die(pasta, recursive=bool(getattr(args, "recursive", False)),
+                           limite=getattr(args, "limite", None))
 
     try:
         alvo = AspectSpec.parse(args.to)
@@ -801,7 +809,8 @@ def cmd_reframe(args: argparse.Namespace, settings: Any) -> int:
 # --------------------------------------------------------------------------- #
 def cmd_vary(args: argparse.Namespace, settings: Any) -> int:
     pasta = _folder_or_die(args.pasta, settings)
-    paths = _images_or_die(pasta, recursive=bool(getattr(args, "recursive", False)))
+    paths = _images_or_die(pasta, recursive=bool(getattr(args, "recursive", False)),
+                           limite=getattr(args, "limite", None))
     n = int(args.n)
     if n < 1 or n > 500:
         raise UsageError("A quantidade (-n) tem que ficar entre 1 e 500.")
@@ -860,7 +869,8 @@ def _parse_caixa(raw: str | None) -> Any:
 
 def cmd_trocar_texto(args: argparse.Namespace, settings: Any) -> int:
     pasta = _folder_or_die(args.pasta, settings)
-    paths = _images_or_die(pasta, recursive=bool(getattr(args, "recursive", False)))
+    paths = _images_or_die(pasta, recursive=bool(getattr(args, "recursive", False)),
+                           limite=getattr(args, "limite", None))
 
     de = getattr(args, "de", None)
     papel = getattr(args, "papel", None)
@@ -887,9 +897,13 @@ def cmd_trocar_texto(args: argparse.Namespace, settings: Any) -> int:
     _guard_out_dir(saida, bool(getattr(args, "force", False)))
     bar = Progress("trocando", total=len(paths))
     try:
+        senao = None
+        ancora = getattr(args, "senao_abaixo_de", None)
+        if ancora:
+            senao = {"ancora": str(ancora), "posicao": "abaixo", "texto": args.para}
         manifesto = _pipeline().run_replace_text_batch(
             paths, de, args.para, settings, saida,
-            role=papel, box=caixa, progress=bar,
+            role=papel, box=caixa, progress=bar, senao_adicionar=senao,
             force=bool(getattr(args, "force", False)))
     finally:
         bar.close()
@@ -976,6 +990,8 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("pasta", help="pasta com os criativos")
     s.add_argument("--json", action="store_true", help="sai em JSON estruturado (stdout limpo)")
     s.add_argument("--recursive", "-r", action="store_true", help="inclui subpastas")
+    s.add_argument("--limite", "--limit", type=int, default=None, metavar="N",
+                   help="processa só as N primeiras (use --limite 1 para provar antes do lote)")
     s.add_argument("--offline", action="store_true",
                    help="força a detecção offline mesmo com chave configurada")
     s.set_defaults(func=cmd_inspect)
@@ -995,6 +1011,8 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--long-edge", type=int, metavar="PX",
                    help="lado maior em pixels quando o formato não traz tamanho (padrão 1440)")
     s.add_argument("--recursive", "-r", action="store_true", help="inclui subpastas")
+    s.add_argument("--limite", "--limit", type=int, default=None, metavar="N",
+                   help="processa só as N primeiras (use --limite 1 para provar antes do lote)")
     s.set_defaults(func=cmd_reframe)
 
     s = sub.add_parser("vary", parents=[g], help="gera variações a partir de referências",
@@ -1005,6 +1023,8 @@ def build_parser() -> argparse.ArgumentParser:
                    choices=["template", "generative", "hybrid", "remix", "copy"],
                    help="template (offline) | generative/hybrid (IA) | remix | copy")
     s.add_argument("--recursive", "-r", action="store_true", help="inclui subpastas")
+    s.add_argument("--limite", "--limit", type=int, default=None, metavar="N",
+                   help="processa só as N primeiras (use --limite 1 para provar antes do lote)")
     s.set_defaults(func=cmd_vary)
 
     s = sub.add_parser("trocar-texto", parents=[g], aliases=["replace-text"],
@@ -1019,7 +1039,12 @@ def build_parser() -> argparse.ArgumentParser:
                    help="acha o bloco pelo papel em vez do texto")
     s.add_argument("--caixa", "--box", dest="caixa", metavar="x,y,w,h",
                    help="acha o bloco pela posição (pixels ou fração 0–1)")
+    s.add_argument("--senao-abaixo-de", dest="senao_abaixo_de", metavar="PAPEL",
+                   help="se não achar o texto, escreve embaixo deste bloco "
+                        "(ex.: --senao-abaixo-de price)")
     s.add_argument("--recursive", "-r", action="store_true", help="inclui subpastas")
+    s.add_argument("--limite", "--limit", type=int, default=None, metavar="N",
+                   help="processa só as N primeiras (use --limite 1 para provar antes do lote)")
     s.set_defaults(func=cmd_trocar_texto)
 
     s = sub.add_parser("ui", parents=[g], help="sobe a interface web",

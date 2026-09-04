@@ -386,9 +386,88 @@ def _describe_target(op: EditOp) -> str:
     return "o alvo pedido"
 
 
+def _luma(rgb) -> float:
+    r, g, b = (float(v) for v in tuple(rgb)[:3])
+    return 0.299 * r + 0.587 * g + 0.114 * b
+
+
+def _readable_color(img: Image.Image, box: Box, preferred) -> tuple[tuple[int, int, int], bool]:
+    """Cor legível para escrever em ``box``, partindo de ``preferred``.
+
+    Herdar a cor do bloco-âncora é o certo na maioria das vezes, e é uma
+    armadilha quando a âncora vive num selo colorido: o preço é escuro porque o
+    selo é amarelo, e essa mesma cor escrita embaixo, no fundo escuro da peça,
+    sairia invisível. Aqui medimos o fundo REAL onde vamos desenhar e só
+    mantemos a cor herdada se ela tiver contraste; senão caímos para preto ou
+    branco, o que for legível.
+
+    Devolve ``(cor, trocada)``.
+    """
+    b = box.clamp(img.width, img.height)
+    if b.area <= 0:
+        return (tuple(int(v) for v in tuple(preferred)[:3]), False)
+    fundo = _io.average_color(img, b)
+    pref = tuple(int(v) for v in tuple(preferred)[:3])
+    # 60 em luminância ~ o mínimo para o texto não sumir no fundo.
+    if abs(_luma(pref) - _luma(fundo)) >= 60.0:
+        return (pref, False)
+    return (((0, 0, 0) if _luma(fundo) > 140 else (255, 255, 255)), True)
+
+
+def _anchor_box(ctx: _Ctx, params: dict[str, Any]) -> tuple[Box, FontSpec] | None:
+    """Caixa (e estilo) para escrever colada a um bloco existente.
+
+    É o que resolve "coloca o TESTE GRÁTIS embaixo do preço": a posição não é
+    fixa, ela sai de onde o preço está NAQUELA peça — e o preço está em lugares
+    diferentes em cada criativo do lote.
+    """
+    analysis = ctx.analysis()
+    if analysis is None:
+        return None
+
+    alvo = params.get("ancora") or params.get("anchor") or params.get("abaixo_de")
+    texto_ancora = params.get("ancora_texto") or params.get("anchor_text")
+    bloco = None
+    if texto_ancora:
+        bloco = _vision.find_text_block(analysis, find=str(texto_ancora), fuzzy=True)
+    if bloco is None and alvo:
+        bloco = _vision.find_text_block(analysis, role=str(alvo))
+    if bloco is None:
+        return None
+
+    a = bloco.box
+    onde = str(params.get("posicao") or params.get("position") or "abaixo").lower()
+    gap = max(6, int(round(a.h * float(params.get("gap", 0.30) or 0.30))))
+    # Altura cheia da âncora: com 0.8 o autofit encolhia o texto para ~40% do
+    # corpo do preço e o resultado lia como legenda, não como chamada.
+    alt = max(10, int(round(a.h * float(params.get("altura", 1.05) or 1.05))))
+    larg = min(ctx.img.width, max(a.w, int(round(a.w * 1.8))))
+    x = max(0, min(ctx.img.width - larg, a.center[0] - larg // 2))
+    y = (a.y1 + gap) if onde in ("abaixo", "below", "baixo") else (a.y - gap - alt)
+    caixa = Box(x, int(y), larg, alt).clamp(ctx.img.width, ctx.img.height)
+    if caixa.h < 10 or caixa.w < 10:
+        return None
+
+    base = bloco.style
+    cor, trocada = _readable_color(ctx.img, caixa, base.color)
+    if trocada:
+        ctx.warn("a cor herdada da âncora não teria contraste no lugar novo; "
+                 f"usei {'preto' if cor == (0, 0, 0) else 'branco'} para o texto ficar legível.")
+    spec = FontSpec.from_dict({**base.to_dict(), "color": list(cor),
+                               "size_px": max(8, int(round(base.size_px * 0.95))),
+                               "align": "center", "valign": "middle",
+                               "stroke_width": 0, "shadow": False})
+    return (caixa, spec)
+
+
 def _op_replace_text(op: EditOp, ctx: _Ctx) -> None:
     block = _find_block(op, ctx)
     if block is None:
+        senao = (op.params.get("senao_adicionar") or op.params.get("else_add")
+                 or op.params.get("senao"))
+        if isinstance(senao, dict):
+            _add_anchored(op, ctx, senao)
+            return
         ctx.warn(f"replace_text: não encontrei {_describe_target(op)} em "
                  f"{ctx.item.src.name}; a imagem saiu sem essa troca.")
         return
@@ -421,6 +500,42 @@ def _op_replace_text(op: EditOp, ctx: _Ctx) -> None:
     if op.params.get("max_lines") is not None or op.params.get("grow_box") is not None:
         ctx.warn("'max_lines'/'grow_box' ainda não são regulados por receita: o ajuste "
                  "segue a escada automática (E.3).")
+
+
+def _add_anchored(op: EditOp, ctx: _Ctx, senao: dict[str, Any]) -> None:
+    """Escreve o texto colado a outro bloco, quando o texto procurado não existe.
+
+    É a segunda metade de "onde diz ASSINE AGORA troca por TESTE GRÁTIS, e onde
+    não diz nada põe o TESTE GRÁTIS embaixo do preço": num lote real as duas
+    situações convivem, e o lote tem que resolver as duas sozinho.
+    """
+    texto = str(senao.get("texto") or senao.get("text")
+                or op.params.get("replace") or "").strip()
+    if not texto:
+        ctx.warn("senao_adicionar: sem texto para escrever; a imagem saiu sem alteração.")
+        return
+
+    plano = _anchor_box(ctx, senao)
+    if plano is None:
+        alvo = senao.get("ancora") or senao.get("anchor") or senao.get("abaixo_de") or "?"
+        ctx.warn(f"não achei o texto procurado NEM o bloco âncora ({alvo}) em "
+                 f"{ctx.item.src.name}; a imagem saiu sem alteração.")
+        return
+
+    caixa, spec = plano
+    override = senao.get("style") or op.params.get("style")
+    if isinstance(override, dict) and override:
+        spec = FontSpec.from_dict({**spec.to_dict(), **override})
+
+    rep: dict[str, Any] = {}
+    out, changed = _textedit.add_text(ctx.img, caixa, texto, spec,
+                                      autofit=bool(senao.get("autofit", True)), report=rep)
+    for w in rep.get("warnings", []):
+        ctx.warn(w)
+    ctx.img = out
+    if changed is not None and changed.area > 0:
+        ctx.changed.append(changed)
+    ctx.applied.append(f"add_text (âncora) -> {texto!r}")
 
 
 def _op_remove_text(op: EditOp, ctx: _Ctx) -> None:
@@ -1419,6 +1534,9 @@ def run_replace_text_batch(paths: Sequence[Any], find: str | None, replace: str,
         params["box"] = box
     if kw.get("style"):
         params["style"] = kw.pop("style")
+    senao = kw.pop("senao_adicionar", None)
+    if senao:
+        params["senao_adicionar"] = senao
     params["match"] = str(kw.pop("match", "fuzzy"))
 
     out = Path(out_dir) if out_dir else Path(settings.outbox) / "troca-de-texto"

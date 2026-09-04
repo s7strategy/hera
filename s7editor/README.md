@@ -78,6 +78,21 @@ cd ~/s7editor && source .venv/bin/activate
 
 ---
 
+## 1.1. Windows — três cliques
+
+Se você está no Windows, ignore o terminal:
+
+1. **`INSTALAR-WINDOWS.bat`** — dois cliques, uma vez só. Ele instala tudo e no
+   fim mostra o diagnóstico. (Precisa do Python instalado com a caixa
+   *"Add Python to PATH"* marcada.)
+2. **`PAINEL.bat`** — abre o painel no navegador. Arraste as imagens, escreva o
+   texto novo, baixe o ZIP.
+3. **`TROCAR-TEXTO.bat`** — sem painel: ele pergunta a pasta (dá para arrastar a
+   pasta para dentro da janela), o texto atual, o texto novo e o nome da pasta
+   de saída. Responda e pronto.
+
+Os arquivos ficam na sua máquina o tempo todo — nada é enviado para lugar nenhum.
+
 ## 2. A chave da OpenAI (e por que na maioria das vezes você não precisa dela)
 
 Copie o modelo e preencha:
@@ -166,6 +181,25 @@ Para ver o que o editor enxerga em cada peça antes de rodar:
 ```bash
 python -m s7editor.cli inspect inbox/campanha-agosto
 ```
+
+**Quando parte do lote não tem o texto**
+
+Num lote real convivem peças com CTA e peças sem CTA nenhum. Para todas
+terminarem com o mesmo texto:
+
+```bash
+./s7edit trocar-texto "pasta" --de "ASSINE AGORA" --para "TESTE GRÁTIS" \
+    --senao-abaixo-de price --out "pasta/EDITADA TESTE GRATIS"
+```
+
+Onde encontrar *ASSINE AGORA*, troca no lugar. Onde não encontrar, escreve
+*TESTE GRÁTIS* logo abaixo do preço, herdando a fonte do bloco âncora — e
+trocando a cor se a herdada não tivesse contraste ali (o preço costuma ser
+escuro porque o selo é claro; embaixo, no fundo escuro, sumiria).
+
+Antes de rodar o lote inteiro, prove numa imagem só com **`--limite 1`**.
+
+Pronto em receita: `recipes/teste-gratis.yaml`.
 
 ### b) Passar 30 criativos de 9:16 para 16:9 sem distorcer
 

@@ -327,7 +327,19 @@ def _validate(action: str, params: dict[str, Any]) -> dict[str, Any]:
                 "diga QUAL texto trocar: informe o texto atual, escolha um papel "
                 "(ex.: cta) ou desenhe a caixa na prévia.",
             )
-        return {"find": achar, "replace": novo, "role": papel, "box": caixa}
+        senao_papel = str(p.get("else_below") or "").strip().lower() or None
+        senao = None
+        if senao_papel and senao_papel not in ("", "nao", "não", "nenhum"):
+            try:
+                senao_papel = TextRole(senao_papel).value
+            except ValueError as exc:
+                validos = ", ".join(r.value for r in TextRole)
+                raise HTTPException(
+                    400, f"papel da âncora desconhecido: {senao_papel!r}. Use um de: {validos}."
+                ) from exc
+            senao = {"ancora": senao_papel, "posicao": "abaixo", "texto": novo}
+        return {"find": achar, "replace": novo, "role": papel, "box": caixa,
+                "senao_adicionar": senao}
 
     if action == "formato":
         alvo = str(p.get("target") or "").strip()
@@ -447,7 +459,8 @@ def _run_job(job: JobRecord, store: JobStore, settings: Settings,
             if acao == "trocar-texto":
                 manifesto = pipeline.run_replace_text_batch(
                     paths, p.get("find"), p["replace"], settings, out_dir,
-                    role=p.get("role"), box=p.get("box"), progress=progresso)
+                    role=p.get("role"), box=p.get("box"), progress=progresso,
+                    senao_adicionar=p.get("senao_adicionar"))
             elif acao == "formato":
                 manifesto = pipeline.run_reframe_batch(
                     paths, p["target"], settings, out_dir,

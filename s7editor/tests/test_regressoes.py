@@ -162,3 +162,78 @@ def test_troca_por_texto_altera_de_verdade(fixtures_dir, settings_offline, tmp_p
         for b in r.changed_boxes:
             dif[b.y:b.y1, b.x:b.x1] = False
         assert int(dif.sum()) == 0, "mudou pixel fora da caixa declarada"
+
+
+# --------------------------------------------------------------------------- #
+# Lote misto: umas peças têm o texto, outras não
+# --------------------------------------------------------------------------- #
+def _cria_par(tmp_path, com_texto: bool):
+    """Uma peça com selo de preço e, opcionalmente, uma faixa de CTA."""
+    from PIL import ImageDraw, ImageFont
+
+    img = Image.new("RGB", (600, 750), (16, 18, 30))
+    d = ImageDraw.Draw(img)
+    fonte = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 40)
+    d.rounded_rectangle([190, 430, 410, 510], radius=14, fill=(255, 200, 40))
+    d.text((222, 452), "R$ 30", font=fonte, fill=(20, 20, 20))
+    if com_texto:
+        d.rectangle([0, 610, 600, 690], fill=(230, 20, 40))
+        d.text((150, 630), "ASSINE AGORA", font=ImageFont.truetype(
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 34), fill=(255, 255, 255))
+    nome = f"peca-{'com' if com_texto else 'sem'}.png"
+    caminho = tmp_path / nome
+    img.save(caminho)
+    return caminho
+
+
+def test_lote_misto_troca_onde_tem_e_adiciona_onde_nao_tem(settings_offline, tmp_path):
+    """O pedido real: todas terminam com o texto novo, venha de troca ou de inserção.
+
+    Metade do lote tem "ASSINE AGORA" para trocar; a outra metade não tem CTA
+    nenhum e precisa receber o texto ancorado abaixo do preço. Antes, essa
+    segunda metade saía intacta e o lote se dizia concluído.
+    """
+    from s7editor import pipeline
+
+    entrada = tmp_path / "entrada"
+    entrada.mkdir()
+    paths = [_cria_par(entrada, True), _cria_par(entrada, False)]
+
+    m = pipeline.run_replace_text_batch(
+        paths, "ASSINE AGORA", "TESTE GRÁTIS", settings_offline, tmp_path / "saida",
+        senao_adicionar={"ancora": "price", "posicao": "abaixo", "texto": "TESTE GRÁTIS"})
+
+    assert m.ok_count == 2
+    for r in m.results:
+        assert r.operations, f"{r.source.name} saiu sem nenhuma operação"
+        antes = np.array(Image.open(r.source).convert("RGB"), dtype=np.int16)
+        depois = np.array(Image.open(r.output).convert("RGB"), dtype=np.int16)
+        dif = np.abs(antes - depois).max(axis=2) > 0
+        assert dif.any(), f"{r.source.name} saiu idêntica"
+        for b in r.changed_boxes:
+            dif[b.y:b.y1, b.x:b.x1] = False
+        assert int(dif.sum()) == 0, f"{r.source.name} mudou pixel fora da caixa declarada"
+
+    tipos = sorted(op.split()[0] for r in m.results for op in r.operations)
+    assert tipos == ["add_text", "replace_text"], f"esperava um de cada, veio {tipos}"
+
+
+def test_cor_ancorada_ganha_contraste_quando_herdada_seria_invisivel(settings_offline, tmp_path):
+    """O preço é escuro porque o selo é amarelo; embaixo, no fundo escuro, sumiria."""
+    from s7editor import pipeline
+
+    entrada = tmp_path / "e2"
+    entrada.mkdir()
+    p = _cria_par(entrada, False)
+    m = pipeline.run_replace_text_batch(
+        [p], "NAO EXISTE", "TESTE GRÁTIS", settings_offline, tmp_path / "s2",
+        senao_adicionar={"ancora": "price", "posicao": "abaixo", "texto": "TESTE GRÁTIS"})
+
+    r = m.results[0]
+    assert r.operations and r.changed_boxes
+    caixa = r.changed_boxes[0]
+    depois = np.array(Image.open(r.output).convert("RGB"))
+    recorte = depois[caixa.y:caixa.y1, caixa.x:caixa.x1].reshape(-1, 3)
+    luma = 0.299 * recorte[:, 0] + 0.587 * recorte[:, 1] + 0.114 * recorte[:, 2]
+    # O fundo ali é quase preto: para o texto existir, tem que haver pixel claro.
+    assert luma.max() > 150, "o texto adicionado não tem contraste com o fundo"

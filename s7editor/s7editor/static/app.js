@@ -235,7 +235,11 @@
         find: $("tt-find").value.trim(),
         replace: $("tt-replace").value.trim(),
         role: $("tt-role").value,
-        box: estado.caixa
+        box: estado.caixa,
+        // Onde o texto procurado não existe, escreve ancorado a outro bloco.
+        // É o que faz um lote misto (umas peças com CTA, outras sem) sair
+        // inteiro numa passada só.
+        else_below: $("tt-else") ? $("tt-else").value : ""
       };
     }
     if (estado.acao === "formato") {
