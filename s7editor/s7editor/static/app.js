@@ -14,7 +14,27 @@
   };
 
   // ---------------------------------------------------------------- utils --
-  function $(id) { return document.getElementById(id); }
+  function $(id) {
+  var el = document.getElementById(id);
+  if (el) return el;
+  // Um elemento cosmético que sumiu do HTML não pode derrubar o trabalho: era
+  // exatamente isso que acontecia com #dz-titulo — enviar() escrevia nele ANTES
+  // do fetch, estourava TypeError e o upload nunca saía, sem nenhuma mensagem
+  // na tela. Devolvemos um alvo inerte e gritamos no console.
+  console.error("S7 Editor: elemento #" + id + " não existe no HTML.");
+  return {
+    textContent: "", innerHTML: "", value: "", files: null, hidden: true,
+    style: {}, dataset: {}, classList: { add: function () {}, remove: function () {},
+      toggle: function () {}, contains: function () { return false; } },
+    addEventListener: function () {}, removeEventListener: function () {},
+    appendChild: function () {}, setAttribute: function () {},
+    getAttribute: function () { return null; }, focus: function () {},
+    click: function () {}, scrollIntoView: function () {},
+    querySelector: function () { return null; },
+    querySelectorAll: function () { return []; },
+    closest: function () { return null; }
+  };
+}
   function mostrar(el, sim) { if (el) el.classList.toggle("oculto", !sim); }
   function txt(s) { return String(s == null ? "" : s); }
 
