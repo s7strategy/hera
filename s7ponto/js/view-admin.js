@@ -21,8 +21,8 @@ import {
   saldosPorPessoa, rotuloMesDevido, roundMoney,
 } from './metricas.js';
 import {
-  htmlRecibo, htmlReciboPessoa, htmlPizzas, pintaPizzas, htmlGradeMetricas,
-  fatiasPorPessoa, htmlExtratoSaldo, origemBonus,
+  htmlReciboPessoa, htmlPizzas, pintaPizzas, htmlGradeMetricas,
+  fatiasPorPessoa, htmlExtratoSaldo, htmlSubnavConta, origemBonus,
 } from './extrato.js';
 import {
   extraDoPeriodo, extraPorPessoa, htmlAlertaExtra, htmlRecadoExtraPessoa,
@@ -46,6 +46,7 @@ export async function telaDeAdmin(raiz, ctx) {
   let mesRef = inicioDoMes(new Date());
   let filtroPessoa = '';
   let pessoaFoco = null; // quando aba === 'visao'
+  let visaoSubAba = 'conta'; // 'conta' | 'pagamentos' | 'historico'
 
   raiz.innerHTML = carregando('Abrindo o painel…');
   await recarregaBase();
@@ -220,6 +221,7 @@ export async function telaDeAdmin(raiz, ctx) {
         $('[data-visao]', caixa).addEventListener('click', () => {
           fechar(); pessoaFoco = p; aba = 'visao';
           mesRef = inicioDoMes(new Date());
+          visaoSubAba = 'conta';
           desenha();
         });
         $('[data-empresas]', caixa).addEventListener('click', () => { fechar(); liberaEmpresas(p); });
@@ -1705,18 +1707,42 @@ export async function telaDeAdmin(raiz, ctx) {
         </div>`
       : '';
 
-    alvo.innerHTML = `
-      ${htmlSeletorMes({ sticky: true })}
+    const pagsDeste = pagamentos.filter((x) => x.year_month === ym);
+    const pagsOutros = pagamentos.filter((x) => x.year_month !== ym);
+    const htmlItemPag = (pg) => `
+      <button class="item clicavel" data-pag="${esc(pg.id)}">
+        <div class="item-corpo">
+          <div class="item-titulo">${esc(pg.title)}</div>
+          <div class="item-sub">${esc(dataBR(pg.paid_on))} · ${esc(pg.year_month)}
+            ${pg.source === 'import' ? ' · importado' : ''}
+            ${pg.note ? ` · ${esc(String(pg.note).slice(0, 60))}` : ''}</div>
+        </div>
+        <div class="num" style="font-weight:600">${esc(money(pg.amount))}</div>
+      </button>`;
+    const htmlItemTurno = (t) => {
+      const ehFixoT = pagamentoFixo(t.pay_mode);
+      return `
+        <button class="item clicavel" data-turno="${esc(t.id)}">
+          <span class="item-faixa" style="background:${esc(t.segments?.[0]?.cor || PALETA[0])}"></span>
+          <span class="item-corpo">
+            <span class="item-titulo">${esc(maiuscula(dataLonga(t.started_at)))}</span>
+            <span class="item-sub">${ehFixoT
+              ? `${esc(hora(t.started_at))} · concluído`
+              : `${esc(hora(t.started_at))} → ${t.ended_at ? esc(hora(t.ended_at)) : '—'}`}
+              ${t.company_name ? ` · ${esc(t.company_name)}` : ''}
+              · ${esc(rotuloDoTurno(t))}
+              ${t.source === 'import' ? ' · importado' : t.source === 'manual' ? ' · lançado na mão' : ''}</span>
+          </span>
+          <span class="item-fim">
+            ${ehFixoT
+              ? `<span class="num" style="font-weight:600">${esc(money(valorDoTurno(t)))}</span>`
+              : `<span class="num" style="font-weight:600">${esc(horasCurto(horasDoTurno(t)))}</span>
+                 <span class="num apagado" style="display:block;font-size:12px">${esc(money(valorDoTurno(t)))}</span>`}
+          </span>
+        </button>`;
+    };
 
-      <div class="linha-botoes visao-acoes">
-        <button class="btn btn-primario" id="v-novo-turno">
-          ${ICONE.mais}<span>Lançar horários</span>
-        </button>
-        <button class="btn" id="v-novo-pag">
-          ${ICONE.pagar}<span>Pagamento</span>
-        </button>
-      </div>
-
+    const htmlConta = `
       <section class="cartao">
         <div class="heroi">
           <p class="heroi-rotulo">${esc(heroiRotulo)}</p>
@@ -1724,11 +1750,12 @@ export async function telaDeAdmin(raiz, ctx) {
           <div class="heroi-nota">
             <span class="ficha ficha-neutra">${fixo
               ? esc(plural(noMes.length, p.pay_mode === 'shift' ? 'turno' : 'tarefa', p.pay_mode === 'shift' ? 'turnos' : 'tarefas'))
-              : `${esc(horas(r.horas))} · ${esc(plural(noMes.length, 'turno', 'turnos'))}`} · neste mês ${esc(money(total))}${somaBonus(bonusMes) > 0.004 ? ` · bônus ${esc(money(somaBonus(bonusMes)))}` : ''}${pagoMes > 0.004 ? ` · já pago ${esc(money(pagoMes))}` : ''}</span>
+              : `${esc(horas(r.horas))} · ${esc(plural(noMes.length, 'turno', 'turnos'))}`}</span>
+            ${total > 0.004 ? `<span class="ficha ficha-neutra">neste mês ${esc(money(total))}</span>` : ''}
+            ${somaBonus(bonusMes) > 0.004 ? `<span class="ficha ficha-neutra">bônus ${esc(money(somaBonus(bonusMes)))}</span>` : ''}
             ${ehMesCorrente && Math.abs(saldoGeral?.carregado || 0) > 0.5
               ? `<span class="ficha ficha-neutra">já puxa ${esc(money(saldoGeral.carregado))} do mês anterior</span>` : ''}
             ${htmlRecadoExtraPessoa(fixo ? null : extraDoPeriodo(noMes), { compacto: true })}
-            ${fichaVar}
           </div>
         </div>
         ${htmlExtratoSaldo({
@@ -1739,43 +1766,59 @@ export async function telaDeAdmin(raiz, ctx) {
           partes: fixo ? r.porTarefa.map((x) => ({ ...x, horas: 0 })) : r.porTarefa,
           trabalho: r.valor,
           horasMes: fixo ? 0 : r.horas,
-          bonusEntries: bonusMes,
-          pagamentos: pagsMes,
+          grupos,
+          pagoMes,
+          qtdPagamentos: pagsMes.length,
           saldo: ehMesCorrente
             ? (saldoGeral?.saldo || 0)
             : ((saldoGeral?.meses || []).find((m) => m.ym === ym)?.disponivel || 0),
           titulo: ehMesCorrente ? 'Como chegou no disponível' : `Conta de ${nomeMes(mesRef)}`,
         })}
-        <p class="extrato-titulo" style="margin-top:18px">O que entrou em ${esc(nomeMes(mesRef))}</p>
-        ${htmlRecibo({
-          horasMes: fixo ? 0 : r.horas,
-          trabalho: r.valor, grupos, total, pago: pagoMes, ocultarPago: true,
-          partes: fixo ? r.porTarefa.map((x) => ({ ...x, horas: 0 })) : r.porTarefa,
-        })}
+        ${pagoMes > 0.004 ? `
+          <p class="apagado" style="margin:12px 0 0;font-size:12.5px;text-align:center">
+            O detalhe de cada pagamento está em <button type="button" class="btn btn-pequeno btn-fantasma" data-ir-aba="pagamentos">Pagamentos</button>
+          </p>` : ''}
       </section>
-
       ${htmlRecadoExtraPessoa(fixo ? null : extraDoPeriodo(noMes), { nomeMes: nomeMes(mesRef) })}
       ${dicaOutroMes}
-
       ${esperado != null ? `
         <div class="recado ${Math.abs(diff) < 0.5 ? '' : 'ruim'}" style="margin-top:14px">
           <span class="recado-emoji">${Math.abs(diff) < 0.5 ? '✅' : '⚠️'}</span>
           <span>Planilha: <strong>${esc(money(esperado))}</strong> · App: <strong>${esc(money(total))}</strong>
             · diferença <strong>${esc(money(diff))}</strong>
             ${Math.abs(diff) >= 0.5 ? ' — confira extras/horários que escaparam.' : ' — batendo.'}</span>
-        </div>` : ''}
+        </div>` : ''}`;
 
-      <section class="cartao" style="margin-top:16px">
-        ${htmlPizzas({ porTurno, payMode: p.pay_mode })}
+    const htmlPags = `
+      <section class="cartao">
+        <div class="cartao-topo">
+          <h2 class="cartao-titulo">Em ${esc(nomeMes(mesRef))}</h2>
+          <span class="apagado num">${esc(money(somaPagamentos(pagsDeste)))}</span>
+        </div>
+        ${pagsDeste.length
+          ? `<div class="lista">${pagsDeste.map(htmlItemPag).join('')}</div>`
+          : vazio({ emoji: '💸', titulo: `Nenhum pagamento em ${nomeMes(mesRef)}`,
+                    texto: 'O que entrar neste mês aparece aqui e abate o disponível.' })}
       </section>
+      ${pagsOutros.length ? `
+        <section class="cartao" style="margin-top:16px">
+          <div class="cartao-topo">
+            <h2 class="cartao-titulo">Outros meses</h2>
+            <span class="apagado">${esc(plural(pagsOutros.length, 'lançamento', 'lançamentos'))}</span>
+          </div>
+          <div class="lista">${pagsOutros.slice(0, 30).map(htmlItemPag).join('')}</div>
+        </section>` : ''}`;
 
+    const htmlHist = `
       ${htmlGradeMetricas({
         payMode: p.pay_mode,
         r, noMes, total, cmp, temAnt,
         mesAntNome: nomeMes(somaMeses(mesRef, -1)),
         periodoTxt,
       })}
-
+      <section class="cartao" style="margin-top:16px">
+        ${htmlPizzas({ porTurno, payMode: p.pay_mode })}
+      </section>
       <section class="cartao" style="margin-top:16px">
         <div class="cartao-topo">
           <h2 class="cartao-titulo">${fixo ? (p.pay_mode === 'shift' ? 'Turnos por dia' : 'Tarefas por dia') : 'Horas por dia'}</h2>
@@ -1784,90 +1827,81 @@ export async function telaDeAdmin(raiz, ctx) {
         <div class="grafico" id="vp-dias"></div>
         <div id="vp-tabela"></div>
       </section>
-
       <section class="cartao">
         <div class="cartao-topo"><h2 class="cartao-titulo">Mês a mês</h2>
           <span class="apagado" style="font-size:13px">trabalho + bônus · toque na barra</span></div>
         <div class="grafico" id="vp-meses"></div>
       </section>
-
       <section class="cartao" style="margin-top:16px">
         <div class="cartao-topo"><h2 class="cartao-titulo">Turnos do mês</h2>
           <span class="apagado">${esc(plural(noMes.length, 'turno', 'turnos'))}</span></div>
-        ${noMes.length ? `<div class="lista">${noMes.map((t) => {
-          const ehFixoT = pagamentoFixo(t.pay_mode);
-          return `
-          <button class="item clicavel" data-turno="${esc(t.id)}">
-            <span class="item-faixa" style="background:${esc(t.segments?.[0]?.cor || PALETA[0])}"></span>
-            <span class="item-corpo">
-              <span class="item-titulo">${esc(maiuscula(dataLonga(t.started_at)))}</span>
-              <span class="item-sub">${ehFixoT
-                ? `${esc(hora(t.started_at))} · concluído`
-                : `${esc(hora(t.started_at))} → ${t.ended_at ? esc(hora(t.ended_at)) : '—'}`}
-                ${t.company_name ? ` · ${esc(t.company_name)}` : ''}
-                · ${esc(rotuloDoTurno(t))}
-                ${t.source === 'import' ? ' · importado' : t.source === 'manual' ? ' · lançado na mão' : ''}</span>
-            </span>
-            <span class="item-fim">
-              ${ehFixoT
-                ? `<span class="num" style="font-weight:600">${esc(money(valorDoTurno(t)))}</span>`
-                : `<span class="num" style="font-weight:600">${esc(horasCurto(horasDoTurno(t)))}</span>
-                   <span class="num apagado" style="display:block;font-size:12px">${esc(money(valorDoTurno(t)))}</span>`}
-            </span>
-          </button>`;
-        }).join('')}</div>`
+        ${noMes.length ? `<div class="lista">${noMes.map(htmlItemTurno).join('')}</div>`
           : vazio({ emoji: '📭', titulo: 'Nenhum turno neste mês',
                     texto: 'Lance pela administração ou ela bate o ponto no app.' })}
-      </section>
-
-      <section class="cartao" style="margin-top:16px">
-        <div class="cartao-topo"><h2 class="cartao-titulo">Pagamentos / recebimentos</h2>
-          <span class="apagado">${esc(plural(pagamentos.length, 'lançamento', 'lançamentos'))}</span></div>
-        ${pagamentos.length ? `<div class="lista">${pagamentos.slice(0, 40).map((pg) => `
-          <button class="item clicavel" data-pag="${esc(pg.id)}">
-            <div class="item-corpo">
-              <div class="item-titulo">${esc(pg.title)}</div>
-              <div class="item-sub">${esc(dataBR(pg.paid_on))} · ${esc(pg.year_month)}
-                ${pg.source === 'import' ? ' · importado' : ''}
-                ${pg.note ? ` · ${esc(String(pg.note).slice(0, 60))}` : ''}</div>
-            </div>
-            <div class="num" style="font-weight:600">${esc(money(pg.amount))}</div>
-          </button>`).join('')}</div>`
-          : vazio({ emoji: '💸', titulo: 'Nenhum pagamento registrado',
-                    texto: 'Importe das planilhas ou lance na mão.' })}
       </section>`;
 
-    const serieD = serieDoMes(mesRef, r.porDia);
-    const metricaDia = fixo ? 'qtd' : 'horas';
-    try { graficoDias($('#vp-dias', alvo), serieD, { cor: PALETA[0], metrica: metricaDia }); } catch { /* gráfico opcional */ }
-    try { pintaPizzas(alvo, r.porTarefa, grupos, { porTurno, payMode: p.pay_mode }); } catch { /* gráfico opcional */ }
-    try { graficoMeses($('#vp-meses', alvo), serieDeMeses(turnos, mesRef, 6, new Date(), bonusTodos)); } catch { /* gráfico opcional */ }
-    $('#vp-tabela', alvo).innerHTML = tabelaDeApoio(
-      serieD.filter((d) => (fixo ? d.qtd : d.horas) > 0).map((d) => [
-        dataCurta(d.data),
-        fixo ? String(d.qtd || 0) : horasCurto(d.horas),
-        money(d.valor),
-      ]),
-      ['Dia', fixo ? (p.pay_mode === 'shift' ? 'Turnos' : 'Tarefas') : 'Horas', 'Valor'],
-    );
+    function pintar() {
+      alvo.innerHTML = `
+        ${htmlSeletorMes({ sticky: true })}
+        <div class="linha-botoes visao-acoes">
+          <button class="btn btn-primario" id="v-novo-turno">
+            ${ICONE.mais}<span>Lançar horários</span>
+          </button>
+          <button class="btn" id="v-novo-pag">
+            ${ICONE.pagar}<span>Pagamento</span>
+          </button>
+        </div>
+        ${htmlSubnavConta(visaoSubAba)}
+        ${visaoSubAba === 'conta' ? htmlConta : ''}
+        ${visaoSubAba === 'pagamentos' ? htmlPags : ''}
+        ${visaoSubAba === 'historico' ? htmlHist : ''}`;
 
-    $$('[data-mes]', alvo).forEach((b) => b.addEventListener('click', () => {
-      mesRef = somaMeses(mesRef, +b.dataset.mes);
-      abaVisaoPessoa(alvo, p);
-    }));
-    $('[data-mes-escolhe]', alvo)?.addEventListener('change', (ev) => {
-      const [y, mo] = ev.target.value.split('-').map(Number);
-      mesRef = inicioDoMes(new Date(y, mo - 1, 1));
-      abaVisaoPessoa(alvo, p);
-    });
-    $('#v-novo-turno', alvo).addEventListener('click', () => editaTurno(null, { userId: p.id }));
-    $$('[data-turno]', alvo).forEach((b) => b.addEventListener('click', () => {
-      editaTurno(noMes.find((t) => t.id === b.dataset.turno) || turnos.find((t) => t.id === b.dataset.turno), { userId: p.id });
-    }));
-    $('#v-novo-pag', alvo).addEventListener('click', () => abrePagar(p));
-    $$('[data-pag]', alvo).forEach((b) => b.addEventListener('click', () => {
-      editaPagamentoLanc(pagamentos.find((x) => x.id === b.dataset.pag), p);
-    }));
+      $$('[data-visao-aba]', alvo).forEach((b) => b.addEventListener('click', () => {
+        visaoSubAba = b.dataset.visaoAba;
+        pintar();
+      }));
+      $$('[data-ir-aba]', alvo).forEach((b) => b.addEventListener('click', () => {
+        visaoSubAba = b.dataset.irAba;
+        pintar();
+      }));
+      $$('[data-mes]', alvo).forEach((b) => b.addEventListener('click', () => {
+        mesRef = somaMeses(mesRef, +b.dataset.mes);
+        abaVisaoPessoa(alvo, p);
+      }));
+      $('[data-mes-escolhe]', alvo)?.addEventListener('change', (ev) => {
+        const [y, mo] = ev.target.value.split('-').map(Number);
+        mesRef = inicioDoMes(new Date(y, mo - 1, 1));
+        abaVisaoPessoa(alvo, p);
+      });
+      $('#v-novo-turno', alvo).addEventListener('click', () => editaTurno(null, { userId: p.id }));
+      $('#v-novo-pag', alvo).addEventListener('click', () => abrePagar(p));
+      $$('[data-turno]', alvo).forEach((b) => b.addEventListener('click', () => {
+        editaTurno(noMes.find((t) => t.id === b.dataset.turno) || turnos.find((t) => t.id === b.dataset.turno), { userId: p.id });
+      }));
+      $$('[data-pag]', alvo).forEach((b) => b.addEventListener('click', () => {
+        editaPagamentoLanc(pagamentos.find((x) => x.id === b.dataset.pag), p);
+      }));
+
+      if (visaoSubAba === 'historico') {
+        const serieD = serieDoMes(mesRef, r.porDia);
+        const metricaDia = fixo ? 'qtd' : 'horas';
+        try { graficoDias($('#vp-dias', alvo), serieD, { cor: PALETA[0], metrica: metricaDia }); } catch { /* gráfico opcional */ }
+        try { pintaPizzas(alvo, r.porTarefa, grupos, { porTurno, payMode: p.pay_mode }); } catch { /* gráfico opcional */ }
+        try { graficoMeses($('#vp-meses', alvo), serieDeMeses(turnos, mesRef, 6, new Date(), bonusTodos)); } catch { /* gráfico opcional */ }
+        const tab = $('#vp-tabela', alvo);
+        if (tab) {
+          tab.innerHTML = tabelaDeApoio(
+            serieD.filter((d) => (fixo ? d.qtd : d.horas) > 0).map((d) => [
+              dataCurta(d.data),
+              fixo ? String(d.qtd || 0) : horasCurto(d.horas),
+              money(d.valor),
+            ]),
+            ['Dia', fixo ? (p.pay_mode === 'shift' ? 'Turnos' : 'Tarefas') : 'Horas', 'Valor'],
+          );
+        }
+      }
+    }
+    pintar();
   }
 
   function editaPagamentoLanc(pg, p) {
@@ -2112,8 +2146,9 @@ export async function telaDeAdmin(raiz, ctx) {
           partes: fixo ? r.porTarefa.map((x) => ({ ...x, horas: 0 })) : r.porTarefa,
           trabalho: r.valor,
           horasMes: fixo ? 0 : r.horas,
-          bonusEntries: bonusMes,
-          pagamentos: pagsMes,
+          grupos: agrupaBonus(bonusMes),
+          pagoMes: somaPagamentos(pagsMes),
+          qtdPagamentos: pagsMes.length,
           saldo: lin.saldo,
           titulo: 'De onde veio',
         })}

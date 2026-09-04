@@ -86,9 +86,8 @@ function linhaExtrato({ nome, detalhe = '', valor = 0, sentido = '' }) {
 }
 
 /**
- * Conta do saldo: o que veio do mês anterior + trabalho + cada bônus
- * − cada pagamento = disponível. É isso que sobe quando lança bônus
- * e desce quando paga.
+ * Conta do saldo, compacta: iguais somados (3× Noite = um item).
+ * Pagamentos entram só como um total — o detalhe fica no menu Pagamentos.
  */
 export function htmlExtratoSaldo({
   mesNome = '',
@@ -98,7 +97,10 @@ export function htmlExtratoSaldo({
   trabalho = 0,
   horasMes = 0,
   bonusEntries = [],
+  grupos = null,
   pagamentos = [],
+  pagoMes = null,
+  qtdPagamentos = null,
   saldo = 0,
   titulo = 'Como chegou no disponível',
 } = {}) {
@@ -129,24 +131,25 @@ export function htmlExtratoSaldo({
     }));
   }
 
-  const bons = [...(bonusEntries || [])].sort((a, b) =>
-    String(a.bonus_on || a.created_at || '').localeCompare(String(b.bonus_on || b.created_at || '')));
-  for (const e of bons) {
+  const gruposBonus = grupos || agrupaBonus(bonusEntries);
+  for (const g of gruposBonus) {
+    if (!(g.total > 0.004)) continue;
     linhas.push(linhaExtrato({
-      nome: e.title || 'Bônus',
-      detalhe: [e.bonus_on ? dataBR(e.bonus_on) : null, origemBonus(e), e.note]
-        .filter(Boolean).join(' · '),
-      valor: +e.amount || 0,
+      nome: g.title,
+      detalhe: g.count > 1 ? `${g.count}× ${money(g.unit)}` : '',
+      valor: g.total,
     }));
   }
 
-  const pags = [...(pagamentos || [])].sort((a, b) =>
-    String(a.paid_on || '').localeCompare(String(b.paid_on || '')));
-  for (const pg of pags) {
+  const pago = pagoMes != null
+    ? +pagoMes || 0
+    : (pagamentos || []).reduce((s, pg) => s + (+pg.amount || 0), 0);
+  const qtdPg = qtdPagamentos != null ? qtdPagamentos : (pagamentos || []).length;
+  if (pago > 0.004) {
     linhas.push(linhaExtrato({
-      nome: pg.title || 'Pagamento',
-      detalhe: pg.paid_on ? dataBR(pg.paid_on) : '',
-      valor: -(+pg.amount || 0),
+      nome: 'Já pago',
+      detalhe: qtdPg > 1 ? `${qtdPg} pagamentos` : '',
+      valor: -pago,
       sentido: 'menos',
     }));
   }
@@ -155,7 +158,7 @@ export function htmlExtratoSaldo({
     return `
       <div class="extrato-saldo">
         <p class="extrato-titulo">${esc(titulo)}</p>
-        <p class="apagado" style="margin:0">Ainda não entrou trabalho, bônus nem pagamento em ${esc(mesNome || 'neste mês')}.</p>
+        <p class="apagado" style="margin:0">Ainda não entrou trabalho nem bônus em ${esc(mesNome || 'neste mês')}.</p>
       </div>`;
   }
 
@@ -171,7 +174,22 @@ export function htmlExtratoSaldo({
         <span>${esc(rotuloFim)}</span>
         <span class="num">${esc(money(valorFim))}</span>
       </div>
-      <p class="extrato-nota">Bônus (na mão ou automático) soma aqui. Cada pagamento abate esse valor.</p>
+    </div>`;
+}
+
+/** Menu Conta · Pagamentos · Histórico — mesma tela, três recortes. */
+export function htmlSubnavConta(aba = 'conta') {
+  const itens = [
+    { id: 'conta', nome: 'Conta' },
+    { id: 'pagamentos', nome: 'Pagamentos' },
+    { id: 'historico', nome: 'Histórico' },
+  ];
+  return `
+    <div class="pg-filtros visao-subnav" role="tablist" aria-label="O que ver">
+      ${itens.map((it) => `
+        <button type="button" class="pg-filtro ${aba === it.id ? 'on' : ''}"
+                data-visao-aba="${esc(it.id)}" role="tab"
+                aria-selected="${aba === it.id}">${esc(it.nome)}</button>`).join('')}
     </div>`;
 }
 
