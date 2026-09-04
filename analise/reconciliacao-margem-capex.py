@@ -1,119 +1,117 @@
 # -*- coding: utf-8 -*-
-"""Reconciliação: de onde vem a margem, e por que a minha era 23% e a dele 40-50%."""
+"""
+Reconciliação v2: o dono TINHA funcionário. Então a explicação anterior (folha)
+não fecha. Onde está a diferença de verdade?
+"""
 def brl(v): return ("R$ %s" % f"{v:,.0f}").replace(",",".")
+def pct(v,b): return f"{v/b*100:.1f}%"
 
-FAT_PRO, LUCRO_PRO, FOLHA = 389_376, 90_665, 68_200
-FAT_DEG, LUCRO_DEG        = 365_040, 62_101
-
-print("="*98)
-print("PARTE 1 · POR QUE A MINHA MARGEM DEU 23% E A DELE 40–50%")
-print("="*98)
-print("""
-O dono comentou: faturando R$ 15 mil, sobravam R$ 6 a 8 mil  ->  40% a 53%.
-Meu modelo deu 17% a 23%. Não é contradição — são duas contas diferentes.
-A diferença tem UM nome só: FOLHA DE PAGAMENTO.
-""")
-for nome,fat,lu in (("Marca própria",FAT_PRO,LUCRO_PRO),("Mantém Degusta",FAT_DEG,LUCRO_DEG)):
-    sem = lu + FOLHA
-    print(f"  {nome}")
-    print(f"    Faturamento .......................... {brl(fat)}")
-    print(f"    Lucro COM equipe contratada .......... {brl(lu):>12}   margem {lu/fat*100:>5.1f}%   <- o meu número")
-    print(f"    + folha de volta ..................... {brl(FOLHA):>12}")
-    print(f"    Lucro SEM folha (dono opera) ......... {brl(sem):>12}   margem {sem/fat*100:>5.1f}%   <- o número dele\n")
-
-print("""  Ou seja: os 40–50% que ele ouviu são de uma operação FAMILIAR, em que o dono
-  e a família estão atrás do balcão e o próprio trabalho não aparece como custo.
-  Os 17–23% do meu modelo são de uma operação com equipe CLT contratada.
-  As duas contas estão certas. Só respondem perguntas diferentes.""")
-
-print("\n"+"="*98)
-print("PARTE 2 · O CENÁRIO QUE PROVAVELMENTE É O SEU: FAMÍLIA NO BALCÃO")
-print("="*98)
-# Estrutura de folha atual (equipe 100% contratada)
-print("""
-  Folha modelada até aqui (100% contratada, com encargos do Simples):
-    Jan e Fev (pico) .... R$ 16.000/mês  ~ 5 pessoas
-    Dez e Mar ........... R$ 10.500/mês  ~ 3-4 pessoas
-    Set a Nov / Abr ..... R$  3.800/mês  ~ 1-2 pessoas
-    Total ............... R$ 68.200/ano
-""")
-CEN = [
- ("A · Tudo contratado (o que modelei)",      16_000,10_500,3_800),
- ("B · Você e mais um da família no balcão",   9_500, 5_500,1_200),
- ("C · Família opera, contrata só no pico",    6_500, 3_000,    0),
+print("="*100)
+print("TESTE 1 · A CONTA DELE É POSSÍVEL? R$ 15 mil/mês, COM funcionário, sobrando R$ 6-8 mil")
+print("="*100)
+FAT = 15_000
+SM  = 1_621          # salário mínimo 2026
+CLT = SM*1.4         # custo real de 1 CLT no Simples
+linhas = [
+    ("Faturamento",                 FAT,        None),
+    ("− CMV (32,5%)",              -FAT*.325,  "polpa R$ 15-22/kg + toppings + embalagem + quebra"),
+    ("− 1 funcionário CLT",        -CLT,        f"salário mínimo R$ {SM} x 1,4 (encargos no Simples)"),
+    ("− Simples Anexo I (4%)",     -FAT*.04,    "faixa 1: até R$ 180 mil/ano"),
+    ("− Cartão (2,8%)",            -FAT*.028,   "maquininha"),
 ]
-MESES_PICO, MESES_CHEIO, MESES_BAIXA = 2, 2, 4   # jan-fev / dez-mar / set-nov+abr (hiberna mai-ago)
-print(f"  {'Cenário de equipe':<42}{'Folha/ano':>12}{'Lucro própria':>15}{'Margem':>9}{'Payback*':>10}")
-print("  "+"-"*94)
-INVEST_REAL = 52_000   # ver PARTE 3
-for nome,p,c,b in CEN:
-    folha = p*MESES_PICO + c*MESES_CHEIO + b*MESES_BAIXA
-    lucro = LUCRO_PRO + (FOLHA - folha)
-    print(f"  {nome:<42}{brl(folha):>12}{brl(lucro):>15}{lucro/FAT_PRO*100:>8.1f}%"
-          f"{INVEST_REAL/lucro*12:>9.1f}m")
-print("""
-  *Payback sobre R$ 52 mil de investimento real (ver Parte 3), não sobre os R$ 86 mil
-   que eu tinha colocado antes.
-
-  ATENÇÃO: no cenário C o seu trabalho e o do seu pai valem dinheiro e não estão
-  na conta. Se vocês tirassem R$ 4 mil/mês cada um nos 5 meses de operação, seriam
-  R$ 40 mil — que sairiam desse lucro. Não é errado fazer assim; só não confunda
-  'lucro do negócio' com 'lucro depois de me pagar'.""")
-
-print("\n"+"="*98)
-print("PARTE 3 · O CAPEX — ONDE EU ERREI, COM O DEDO NA FERIDA")
-print("="*98)
-antes = [
- ("Obra e adequação dos 35 m²",           22_000,  9_000, "Elétrica p/ freezers e balcão, pia da Vigilância, piso lavável. Inflei: se o ponto está em bom estado, é metade"),
- ("Abrir a tela do deck",                  7_000,  1_500, "ERREI FEIO. Tirar tela e mourão é serviço de meio dia"),
- ("Mobiliário do deck",                   11_000,  6_000, "8 mesas + 24 cadeiras. Se veio no lote da unidade, é ZERO"),
- ("Estoque inicial",                       9_000,  9_000, "Esse é real e você já apontou"),
- ("Licenças (alvará, VISA, balança)",      3_000,  1_800, "Se a balança INMETRO veio no lote, cai para ~R$ 800"),
- ("Marketing de abertura",                 6_000,  2_500, "Você tem agência própria. Só a mídia paga é custo"),
-]
-print(f"  {'Item':<38}{'Eu pus':>10}{'Realista':>11}   Por quê")
-print("  "+"-"*94)
-for n,a,d,por in antes:
-    print(f"  {n:<38}{brl(a):>10}{brl(d):>11}   {por}")
-ta, td = sum(x[1] for x in antes), sum(x[2] for x in antes)
-print("  "+"-"*94)
-print(f"  {'SUBTOTAL — dinheiro que sai e não volta':<38}{brl(ta):>10}{brl(td):>11}")
+acc=0
+for n,v,obs in linhas:
+    acc = v if acc==0 and v>0 else acc+v
+    print(f"  {n:<28}{brl(v):>12}   {obs or ''}")
+print(f"  {'':<28}{'-'*12}")
+print(f"  {'= SOBRA antes de aluguel':<28}{brl(acc):>12}   <<<  {pct(acc,FAT)} do faturamento")
+print(f"  {'  e contas fixas':<28}")
 print(f"""
-  + Capital de giro ..................... R$ 28.000  ->  R$ 22.000
-    Isso NÃO é gasto. É caixa que fica na conta para pagar folha e reposição até
-    o dinheiro das vendas girar. Volta para você. Eu errei em somar isso no
-    investimento e calcular payback em cima — inflou o payback artificialmente.
+  >>> R$ {acc:,.0f}/mês CAI EXATAMENTE DENTRO DA FAIXA "R$ 6 A 8 MIL" QUE ELE FALOU.
 
-  INVESTIMENTO REAL (o que some) ......... {brl(td)}
-  CAIXA DE GIRO (o que fica e volta) ..... R$ 22.000
-  TOTAL A TER DISPONÍVEL ................. {brl(td+22_000)}   (eu tinha dito R$ 86.000)""")
+  Ou seja: os R$ 6-8 mil dele quase certamente são a sobra ANTES de pagar aluguel,
+  energia, água, gás e contador — que é como quase todo dono de loja pequena pensa
+  em "sobrar". Não é lucro líquido no fim do mês.
+""".replace(",","."))
 
-print("\n"+"="*98)
-print("PARTE 4 · MUDAR A MARCA — A CONTA MÍNIMA E A CONTA CHEIA")
-print("="*98)
-plot = [
- ("Embalagem personalizada (copo, tampa, colher, sacola)", 7_000, 7_000, "número seu"),
- ("Adesivagem de balcão, freezers e vitrine",              2_500, 2_500, "trocar o adesivo da Degusta pelo seu"),
- ("Uniformes (12 a 15 camisetas)",                         1_200, 1_200, "precisa em qualquer cenário, mas com sua arte"),
- ("Registro no INPI (1 classe, ME/EPP)",                     880, 1_500, "taxa oficial R$ 440-880 + assessoria opcional"),
- ("Cardápio e menu board",                                   800, 1_500, "precisa em qualquer cenário"),
- ("Identidade visual (logo, manual, aplicações)",              0, 5_000, "VOCÊ TEM AGÊNCIA. Custo de fora seria R$ 5 mil"),
- ("Letreiro / fachada",                                        0, 4_000, "NÃO É EXTRA: hoje não tem letreiro nenhum, precisa nos dois caminhos"),
-]
-print(f"  {'Item':<52}{'Mínimo':>9}{'Cheio':>9}   Observação")
-print("  "+"-"*94)
-for n,mi,ch,ob in plot:
-    print(f"  {n:<52}{brl(mi):>9}{brl(ch):>9}   {ob}")
-mi,ch = sum(x[1] for x in plot), sum(x[2] for x in plot)
-print("  "+"-"*94)
-print(f"  {'TOTAL':<52}{brl(mi):>9}{brl(ch):>9}")
-GANHO = 28_565
+print("="*100)
+print("TESTE 2 · E SE FOSSE LUCRO LÍQUIDO MESMO? O que teria que ser verdade")
+print("="*100)
+fixos_tipicos = 1_500 + 800   # aluguel + energia/água/gás/contador
+liq = acc - fixos_tipicos
+print(f"""  Descontando aluguel de R$ 1.500 e contas de R$ 800:
+     Lucro líquido real dele ......... {brl(liq)}/mês  ({pct(liq,FAT)})
+
+  Para sobrarem R$ 7.000 LÍQUIDOS de R$ 15.000, com 1 funcionário, seria preciso:
+     - CMV de apenas {pct(FAT - CLT - FAT*.04 - FAT*.028 - fixos_tipicos - 7000, FAT)} (contra os 32,5% de mercado), OU
+     - ponto próprio, sem aluguel, e contas muito baixas, OU
+     - o funcionário não ser CLT, OU
+     - faturamento informal (sem nota em parte das vendas)
+
+  Nenhuma dessas é impossível — só precisa ser confirmada.""")
+
+print("\n"+"="*100)
+print("TESTE 3 · A MESMA CONTA, LINHA POR LINHA, NOS DOIS NEGÓCIOS")
+print("="*100)
+# Nossa operação (marca própria, hiberna mai-ago)
+N = dict(fat=389_376, cmv=126_547, folha=68_200, imp=23_131, cart=18_002,
+         mkt=13_628, alug=21_000, ovh=28_200)
+D = dict(fat=180_000, cmv=58_500, folha=CLT*12, imp=7_200, cart=5_040,
+         mkt=0, alug=18_000, ovh=9_600)
+def bloco(nome, x):
+    sobra = x['fat']-x['cmv']-x['folha']-x['imp']-x['cart']-x['mkt']
+    liq   = sobra-x['alug']-x['ovh']
+    return sobra, liq
+ns, nl = bloco("nosso", N)
+ds, dl = bloco("dele",  D)
+
+print(f"  {'Linha':<34}{'A loja dele':>15}{'%':>8}{'Nosso projeto':>17}{'%':>8}")
+print("  "+"-"*96)
+rows = [("Faturamento", D['fat'], N['fat']),
+        ("− CMV", -D['cmv'], -N['cmv']),
+        ("− Folha", -D['folha'], -N['folha']),
+        ("− Impostos", -D['imp'], -N['imp']),
+        ("− Cartão e delivery", -D['cart'], -N['cart']),
+        ("− Marketing", -D['mkt'], -N['mkt'])]
+for n,d,o in rows:
+    print(f"  {n:<34}{brl(d):>15}{pct(abs(d),D['fat']):>8}{brl(o):>17}{pct(abs(o),N['fat']):>8}")
+print("  "+"-"*96)
+print(f"  {'= SOBRA antes de aluguel e fixos':<34}{brl(ds):>15}{pct(ds,D['fat']):>8}{brl(ns):>17}{pct(ns,N['fat']):>8}")
+print(f"  {'− Aluguel':<34}{brl(-D['alug']):>15}{pct(D['alug'],D['fat']):>8}{brl(-N['alug']):>17}{pct(N['alug'],N['fat']):>8}")
+print(f"  {'− Energia, gás, contador, PDV':<34}{brl(-D['ovh']):>15}{pct(D['ovh'],D['fat']):>8}{brl(-N['ovh']):>17}{pct(N['ovh'],N['fat']):>8}")
+print("  "+"-"*96)
+print(f"  {'= LUCRO LÍQUIDO':<34}{brl(dl):>15}{pct(dl,D['fat']):>8}{brl(nl):>17}{pct(nl,N['fat']):>8}")
+
 print(f"""
-  Custo mínimo (fazendo a arte na S7, sem letreiro extra) .... {brl(mi)}
-  Custo cheio (contratando tudo de fora) ..................... {brl(ch)}
-  Ganho anual estimado da marca própria ...................... {brl(GANHO)}
+  Leitura:
+   . Na linha "sobra antes de aluguel e fixos" ele fica em {pct(ds,D['fat'])} e nós em {pct(ns,N['fat'])}.
+     A diferença de ~{abs(ds/D['fat']-ns/N['fat'])*100:.0f} pontos é marketing (3,5%) e comissão de delivery,
+     que são ESCOLHAS nossas, não ineficiência.
+   . Na linha de lucro líquido ele fica em {pct(dl,D['fat'])} e nós em {pct(nl,N['fat'])}.
+   . Se a gente cortasse marketing pago e delivery, nosso líquido subiria para
+     {pct((nl+N['mkt']+N['cart']*0.5)/N['fat']*N['fat'],N['fat'])} — mas perderia faturamento junto. Não é troca óbvia.""")
 
-  Payback no cenário mínimo .... {mi/GANHO*12:.1f} meses
-  Payback no cenário cheio ..... {ch/GANHO*12:.1f} meses
+print("\n"+"="*100)
+print("TESTE 4 · E SE A MARGEM DELE FOR REAL? O que muda no nosso projeto")
+print("="*100)
+for m,rot in ((.233,"minha projeção"),(.30,"se a dele for 30% líquido"),
+              (.40,"se a dele for 40% líquido")):
+    print(f"  Margem líquida de {m*100:>4.1f}% ({rot:<26}) -> lucro/ano de {brl(N['fat']*m):>12}"
+          f"  · investimento de R$ 51.800 volta em {51_800/(N['fat']*m)*12:>4.1f} meses")
+print("""
+  Mesmo na minha projeção conservadora o primeiro verão paga o investimento.
+  Se a margem dele for real, o negócio é melhor do que eu projetei — não pior.
+  Por isso a pergunta certa vale ouro.""")
 
-  Nos dois casos: menos de uma temporada.""")
+print("\n"+"="*100)
+print("A PERGUNTA, REESCRITA — mande exatamente assim")
+print("="*100)
+print("""
+  "Quando tu falou que faturando R$ 15 mil sobravam R$ 6 a 8 mil:
+   1. Isso era ANTES ou DEPOIS de pagar o aluguel e as contas (luz, água, gás, contador)?
+   2. O ponto era alugado ou próprio? Se alugado, quanto era?
+   3. Era um funcionário só, ou mais? Registrado em carteira?
+   4. Esses R$ 15 mil eram de um mês de verão ou a média do ano?
+   5. Quanto do faturamento ia embora só em polpa e complemento?"
+
+  Com essas cinco respostas eu fecho a conta e paro de estimar.""")
