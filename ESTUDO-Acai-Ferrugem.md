@@ -222,6 +222,108 @@ A diferença entre os caminhos segue em **R$ 27.344/ano** — o markup do insumo
 
 ---
 
+## 1-A. Recalibração com a curva do dono — e um erro meu
+
+O dono, que conhece a Ferrugem, deu a própria curva: **janeiro pode passar de R$ 200 mil**; abril e outubro no máximo R$ 20–30 mil; maio a setembro R$ 15–20 mil; novembro a março alto, com dezembro e janeiro maiores.
+
+| Mês | Curva dele (piso–teto) | Minha projeção | Clientes/dia a R$ 32 |
+|---|---|---|---|
+| Jan | 190–230k | 125k | **212** |
+| Fev | 110–150k | 81k | 145 |
+| Mar | 50–70k | 40k | 60 |
+| Abr | 20–30k | 21k | 26 |
+| Mai–Set | 15–20k/mês | fechado | 18 |
+| Out | 20–30k | 19k | 25 |
+| Nov | 40–60k | 25k | 52 |
+| Dez | 120–160k | 66k | 141 |
+| **Ano** | **625–830k** | **390k** | |
+
+**A curva dele dá R$ 727.500/ano contra os R$ 390.000 que projetei — 1,9 vezes mais.**
+
+### O erro que ele apontou sem saber
+
+Ele descreveu 5 pessoas no verão. Eu modelei 5 pessoas — **e projetei 126 clientes/dia**. Isso nunca fechou: ninguém coloca cinco pessoas atrás de um balcão para atender 126 pessoas em 12 horas. **A conta dele é internamente coerente e a minha não era.** Eu dimensionei custo de 200/dia com receita de 126/dia.
+
+### Teste de capacidade
+
+| | |
+|---|---|
+| R$ 210 mil em janeiro, ticket R$ 32 | 212 clientes/dia · 18/hora na média · ~21/hora no pico |
+| Teto real com 2 balanças e 5 pessoas | ~350 clientes/dia |
+| **Ocupação** | **60% do teto — cabe com folga** |
+
+### O que ainda me segura
+
+- R$ 727.500/ano em 35 m² = **R$ 20.786 por m² por ano**. A média por loja da The Best Açaí é R$ 12.063/m²/ano (100 m², ano todo). **A curva dele pede 72% a mais por metro quadrado que a líder do setor.**
+- Janeiro a R$ 210 mil exige **3.500 a 5.300 pedestres/dia** passando na porta (conversão de 4% a 6%).
+- Não é impossível — self-service por peso em praia no verão é outro jogo — mas é exatamente o número a medir antes de investir.
+
+> **Quatro dias contando gente resolvem R$ 167 mil de dúvida.** Acima de 3.500 pedestres/dia em janeiro, a curva dele se sustenta. Abaixo de 2.000, a minha.
+
+### Consequência: não fechar no inverno
+
+Eu havia recomendado hibernar de maio a agosto. **Isso era conclusão da minha curva, não da dele.**
+
+| Um mês de baixa a R$ 17.500 | R$ |
+|---|---|
+| Receita | 17.500 |
+| − Insumo (27,4%) | −4.795 |
+| − 1 funcionário | −2.269 |
+| − Aluguel | −2.500 |
+| − Overhead | −1.200 |
+| − Imposto, cartão e marketing | −2.749 |
+| **= Lucro** | **+3.987 (22,8%)** |
+
+A R$ 15–20 mil/mês a porta aberta se paga; a R$ 12 mil, que era minha projeção, dava prejuízo. **Com o movimento dele, abre o ano inteiro** — e ainda mantém o time treinado para dezembro.
+
+---
+
+## 1-A-2. O espaço kids
+
+Nenhuma açaiteria da Ferrugem tem espaço kids. Isso muda a pergunta que a família faz: deixa de ser *"quero açaí?"* e passa a ser *"onde eu paro com as crianças?"*.
+
+| Investimento | R$ |
+|---|---|
+| Brinquedão compacto | 14.000 |
+| Piso emborrachado (25 m²) | 3.250 |
+| Cercamento e portão | 3.000 |
+| Sombreamento | 2.500 |
+| Mesas e bancos infantis | 2.000 |
+| Sinalização e regras | 800 |
+| **Total** | **25.550** |
+
+| Custo anual | R$ |
+|---|---|
+| Seguro de responsabilidade civil | 3.000 |
+| 1 monitor em janeiro e fevereiro | 4.539 |
+| **Total** | **7.539** |
+
+**Se trouxer 2% a mais de faturamento, já se pagou.** E o efeito tende a ser maior: a família para *porque* tem onde a criança ficar, permanência maior puxa segunda rodada, e você deixa de disputar só quem já queria açaí.
+
+| Efeito do kids | Faturamento | Lucro/ano |
+|---|---|---|
+| Sem kids | 727.500 | 300.682 |
+| +8% | 785.700 | 331.994 |
+| +15% | 836.625 | 359.392 |
+| +22% | 887.550 | 386.789 |
+
+---
+
+## 1-A-3. A conta final, com as duas curvas
+
+Marca própria, balcão gerido (CMV 27,4%), 12 meses abertos, espaço kids incluído. Investimento total de **R$ 77.350** (R$ 51.800 da operação + R$ 25.550 do kids).
+
+| Cenário | Faturamento | Folha | Lucro/ano | Margem | Payback |
+|---|---|---|---|---|---|
+| Minha conta conservadora | 390.000 | 43.119 | **133.302** | 34,2% | 7,0 m |
+| Curva do dono · piso | 625.000 | 61.274 | **244.397** | 39,1% | 3,8 m |
+| **Curva do dono · média** | **727.500** | 61.274 | **300.682** | **41,3%** | **3,1 m** |
+| Curva do dono · teto | 830.000 | 61.274 | **355.827** | 42,9% | 2,6 m |
+
+**Nos dois casos dá certo. A diferença é o tamanho do certo.**
+
+---
+
 ## 1-B-2c. A ficha técnica de verdade — e por que o preço decide a margem
 
 Com o balde de 10 kg a **R$ 175** (R$ 17,50/kg) e venda por peso, dá para montar a conta item a item. **Tudo sai da mesma balança pelo mesmo preço — mas cada item custa um preço diferente.**
