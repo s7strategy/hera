@@ -1,0 +1,102 @@
+# ===========================================================================
+# TROCAR O CTA — VERSÃO AVANÇADA
+#
+# Rode com:   python -m s7editor.cli run recipes/trocar-cta-avancado.yaml
+#
+# Esta receita mostra os três recursos que resolvem 90% dos casos difíceis:
+#
+#   1. CAIXA NORMALIZADA (box + norm: true)
+#      Os valores são FRAÇÃO da imagem (0 a 1), não pixels. Assim a mesma
+#      caixa serve para peças de tamanhos diferentes no mesmo lote.
+#      Exemplo: x 0.10 = 10% da largura a partir da esquerda
+#               y 0.82 = 82% da altura a partir do topo
+#               w 0.80 = 80% da largura
+#               h 0.07 =  7% da altura
+#
+#   2. STYLE OVERRIDE (style)
+#      Por padrão o editor LÊ o estilo dos pixels originais (fonte, peso, cor,
+#      espaçamento) e redesenha igualzinho. Use 'style' só para forçar o que
+#      você quer diferente — o que não for declarado continua sendo copiado
+#      do original.
+#
+#   3. SCOPE (scope)
+#      Limita a operação a alguns arquivos do lote. Aceita, separados por
+#      vírgula: glob de nome ("*.png", "story-*"), índices ("1,3,5"),
+#      intervalos ("1-10", "5-", "-3") e exclusões com "!" ("all,!*.jpg").
+#
+# Continua sendo tudo determinístico: nenhuma chamada de rede, e os pixels
+# fora das caixas editadas saem idênticos aos do original.
+# ===========================================================================
+
+job: cta-black-friday
+input: inbox/campanha-agosto
+output: outbox/cta-black-friday
+engine: deterministic
+recursive: false          # true para varrer também as subpastas do input
+
+operations:
+
+  # -----------------------------------------------------------------------
+  # 1) CAIXA NORMALIZADA + STYLE OVERRIDE
+  #    O CTA fica sempre na mesma faixa da peça, mas o texto varia — então
+  #    localizamos pela POSIÇÃO, não pelo conteúdo.
+  # -----------------------------------------------------------------------
+  - type: replace_text
+    box: {x: 0.10, y: 0.82, w: 0.80, h: 0.07, norm: true}
+    replace: "BLACK FRIDAY 50% OFF"
+    style:
+      family: Inter             # nome da família; ponha o .ttf em fonts/
+      weight: bold              # thin|light|regular|medium|semibold|bold|black
+      italic: false
+      color: "#ffffff"          # aceita hex, [255,255,255] ou "branco"
+      uppercase: true           # força caixa alta no texto novo
+      align: center             # left | center | right
+      valign: middle            # top | middle | bottom
+      letter_spacing: 1.5       # em pixels; pode ser negativo para apertar
+      line_height: 1.15         # múltiplo do corpo da fonte
+      stroke_width: 0           # contorno, em pixels
+      # stroke_color: "#000000"
+      # shadow: true
+      # shadow_color: "#000000"
+      # shadow_offset: [0, 2]
+      # shadow_blur: 4
+      # size_px: 48             # deixe fora para o editor calcular o corpo que cabe
+    autofit: true               # reduz o corpo até caber na caixa
+    max_lines: 2                # quebra em no máximo 2 linhas
+    grow_box: false             # true autoriza crescer a caixa até 25% se o
+                                # fundo ao redor for da mesma cor (mais arriscado)
+
+  # -----------------------------------------------------------------------
+  # 2) SCOPE por glob — só as peças de story (.png) levam o selo
+  # -----------------------------------------------------------------------
+  - type: replace_text
+    role: badge
+    replace: "FRETE GRÁTIS"
+    scope: "story-*.png"
+    style: {color: "#ffffff", weight: black, uppercase: true}
+
+  # -----------------------------------------------------------------------
+  # 3) SCOPE por índice — as 5 primeiras da lista (ordem alfabética) recebem
+  #    uma headline diferente para teste A/B
+  # -----------------------------------------------------------------------
+  - type: replace_text
+    role: headline
+    replace: "SÓ HOJE"
+    scope: "1-5"
+
+  # -----------------------------------------------------------------------
+  # 4) SCOPE com exclusão — apaga o texto legal de tudo, menos dos JPEGs
+  # -----------------------------------------------------------------------
+  - type: remove_text
+    role: legal
+    scope: "all,!*.jpg"
+    enabled: false              # desligada; troque para true quando quiser usar
+
+deliver:
+  zip: true
+  report: true
+  contact_sheet: true
+  format: png                   # master sem perdas: a garantia byte a byte vale
+  quality: 95
+  prefix: "bf_"                 # bf_criativo-01.png
+  suffix: "-v2"                 # bf_criativo-01-v2.png

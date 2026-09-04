@@ -1,0 +1,33 @@
+# ---------------------------------------------------------------------------
+# S7 Editor — dependências
+#
+# Instalação:
+#     python3 -m venv .venv
+#     source .venv/bin/activate
+#     pip install -r requirements.txt
+#
+# Python 3.11 ou mais novo.
+# ---------------------------------------------------------------------------
+
+# --- OBRIGATÓRIAS: sem elas nada roda ---------------------------------------
+Pillow>=10.0.0                  # abrir, desenhar texto e salvar imagem
+numpy>=1.24.0                   # toda a matemática de pixel e a prova de zero drift
+
+# --- PRATICAMENTE OBRIGATÓRIAS ----------------------------------------------
+# O projeto degrada com elegância se faltarem, mas o resultado piora bastante.
+PyYAML>=6.0                     # ler as receitas .yaml (sem isto, só os comandos diretos)
+opencv-python-headless>=4.8.0   # segmentar letra, inpaint e detectar rosto.
+                                # "headless" de propósito: não puxa GTK/Qt e roda em VPS.
+                                # Sem ela o apagamento de texto cai num inpaint mais
+                                # simples em numpy puro (bom em fundo liso, pior em foto).
+
+# --- OPCIONAIS: só para os recursos com IA ----------------------------------
+# Pode remover estas duas linhas se você só vai usar a trilha determinística
+# (trocar texto, apagar texto, reframe pad/crop). Nada disso chama a internet.
+openai>=1.40.0                  # gpt-image-1 (outpaint, variações) e leitura por visão
+
+# --- OPCIONAIS: só para a interface web (s7edit ui) -------------------------
+# Pode remover estas três linhas se você só vai usar a linha de comando.
+fastapi>=0.110.0                # servidor da interface web
+uvicorn>=0.27.0                 # roda o servidor da FastAPI
+python-multipart>=0.0.9         # upload de arquivo no formulário da interface web
