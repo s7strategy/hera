@@ -1,6 +1,6 @@
 # Açaí na Praia da Ferrugem — manter a Degusta ou fazer a nossa marca?
 
-**Estudo de decisão · Garopaba / SC · setembro de 2026 · v4**
+**Estudo de decisão · Garopaba / SC · setembro de 2026 · v5**
 Ponto: nº **2956**, ~**35 m² fechados + pátio com deck sob pergolado**
 Aluguel real: **R$ 2.500** (dez–fev) e **R$ 1.500** (mar–nov) = **R$ 21.000/ano**
 Equipamento **já comprado** — unidade Degusta que quebrou, em estado de nova.
@@ -326,4 +326,4 @@ Seu pai e o dono da Degusta são amigos — é por isso que ele só compraria de
 
 ---
 
-*Estudo v4 · setembro de 2026 · modelo reproduzível em `analise/modelo-acai-ferrugem.py`*
+*Estudo v5 · setembro de 2026 · modelo reproduzível em `analise/modelo-acai-ferrugem.py`*
