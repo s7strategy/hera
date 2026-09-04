@@ -30,10 +30,10 @@ Isso é novo. Nas versões anteriores havia caminhos que davam prejuízo. **Agor
 
 | Caminho | Falta investir | Faturamento | Lucro/ano | Margem | Payback |
 |---|---|---|---|---|---|
-| Mantém Degusta · 12 meses | R$ 86.000 | R$ 410.778 | R$ 59.855 | 14,6% | 17 m |
-| **Mantém Degusta · hiberna mai–ago** | **R$ 86.000** | R$ 365.040 | **R$ 62.101** | **17,0%** | **17 m** |
-| Plota marca própria · 12 meses | R$ 108.000 | R$ 438.163 | R$ 91.998 | 21,0% | 14 m |
-| **Plota marca própria · hiberna mai–ago** | **R$ 108.000** | R$ 389.376 | **R$ 90.665** | **23,3%** | **14 m** |
+| Mantém Degusta · 12 meses | R$ 21.000 | R$ 410.778 | R$ 59.855 | 14,6% | 4,2 m |
+| **Mantém Degusta · hiberna mai–ago** | **R$ 21.000** | R$ 365.040 | **R$ 62.101** | **17,0%** | **4,1 m** |
+| Plota marca própria · 12 meses | R$ 37.000 | R$ 438.163 | R$ 91.998 | 21,0% | 4,8 m |
+| **Plota marca própria · hiberna mai–ago** | **R$ 37.000** | R$ 389.376 | **R$ 90.665** | **23,3%** | **4,9 m** |
 
 **Os dois funcionam.** A diferença é de R$ 28,5 mil por ano — importante, mas não é a diferença entre fazer e não fazer. É a diferença entre um bom negócio e um negócio melhor.
 
@@ -43,15 +43,13 @@ O equipamento está pago. O que resta:
 
 | Item | Valor |
 |---|---|
-| Obra e adequação dos 35 m² (elétrica, hidráulica, pia da Vigilância) | R$ 22.000 |
-| Abrir a tela do deck e ajustar a estrutura | R$ 7.000 |
-| Mobiliário do deck | R$ 11.000 |
-| Estoque inicial | R$ 9.000 |
-| Licenças — alvará, Vigilância Sanitária, balança INMETRO | R$ 3.000 |
-| Marketing de abertura | R$ 6.000 |
-| Capital de giro | R$ 28.000 |
-| **Base comum** | **R$ 86.000** |
-| *+ identidade própria (marca, INPI, fachada, plotagem, copos e embalagens)* | *+ R$ 22.000* |
+| Reforma do ponto | R$ 8.000 |
+| Frete e transporte do equipamento | R$ 8.000 |
+| Insumos iniciais | R$ 5.000 |
+| **Base** | **R$ 21.000** |
+| *+ marca própria — embalagem R$ 7.000, plotagem R$ 6.000, decoração R$ 3.000* | *+ R$ 16.000* |
+| *+ espaço kids* | *+ R$ 25.550* |
+| **Total com marca própria e espaço kids** | **R$ 62.550** |
 
 ---
 
@@ -94,11 +92,11 @@ Numa versão anterior eu disse que a diferença entre a margem dele (40%) e a mi
 
 ### Se a margem dele for líquida mesmo
 
-| Margem líquida | Lucro/ano no nosso projeto | Investimento de R$ 51.800 volta em |
+| Margem líquida | Lucro/ano no nosso projeto | Investimento de R$ 62.550 volta em |
 |---|---|---|
-| 23,3% (minha projeção) | R$ 90.725 | 6,9 meses |
-| 30,0% (o líquido dele) | R$ 116.813 | 5,3 meses |
-| 40,0% (se for líquido mesmo) | R$ 155.750 | 4,0 meses |
+| 23,3% | R$ 90.725 | 8,3 meses |
+| 30,0% (o líquido dele) | R$ 116.813 | 6,4 meses |
+| 40,0% | R$ 155.750 | 4,8 meses |
 
 **Se ele estiver certo, o negócio é melhor do que projetei — não pior.** Em todos os casos o primeiro verão paga o investimento.
 
@@ -198,12 +196,12 @@ Janeiro projetado: 141 clientes/dia em 12h = 12/hora na média, 14 a 20/hora no 
 
 ### Os dois caminhos, refeitos
 
-| Caminho | Lucro/ano | Margem | Payback de R$ 51.800 |
+| Caminho | Lucro/ano | Margem | Payback de R$ 62.550 |
 |---|---|---|---|
-| Mantém Degusta · 1 CLT + extras | 105.302 | 28,8% | 5,9 meses |
-| **Marca própria · 1 CLT + extras** | **132.646** | **34,1%** | **4,7 meses** |
-| Mantém Degusta · família no balcão | 118.918 | 32,6% | 5,2 meses |
-| **Marca própria · família no balcão** | **146.262** | **37,6%** | **4,2 meses** |
+| Mantém Degusta · 1 CLT + extras | 105.302 | 28,8% | 7,1 meses |
+| **Marca própria · 1 CLT + extras** | **132.646** | **34,1%** | **5,7 meses** |
+| Mantém Degusta · família no balcão | 118.918 | 32,6% | 6,3 meses |
+| **Marca própria · família no balcão** | **146.262** | **37,6%** | **5,1 meses** |
 
 A diferença entre os caminhos segue em **R$ 27.344/ano** — o markup do insumo incide sobre o CMV nos dois. **O que mudou foi o patamar dos dois.**
 
@@ -284,18 +282,24 @@ Com balcão solto (CMV 31,5%): lucro de R$ 225.898 e margem de 35,4%.
 
 | Item | R$ |
 |---|---|
-| Obra e adequação dos 35 m² | 9.000 |
-| Mobiliário do deck | 6.000 |
-| Estoque inicial | 9.000 |
-| Marketing de abertura | 2.500 |
-| Licenças, alvará e balança INMETRO | 1.800 |
-| Abrir a tela do deck | 1.500 |
-| Marca própria (embalagem, adesivagem, INPI, uniforme, cardápio) | 12.380 |
+| Reforma do ponto | 8.000 |
+| Frete e transporte do equipamento | 8.000 |
+| Insumos iniciais | 5.000 |
+| **Base** | **21.000** |
+| Embalagem personalizada | 7.000 |
+| Plotagem | 6.000 |
+| Decoração do local | 3.000 |
+| **Com marca própria** | **37.000** |
 | Espaço kids | 25.550 |
-| Capital de giro (volta) | 22.000 |
-| **Total** | **89.730** |
+| **Total** | **62.550** |
 
-Equipamento pesado — balcão refrigerado, freezers, vitrine, PDV — já comprado e fora desta conta.
+Equipamento pesado — balcão refrigerado, freezers, vitrine, PDV, balança — já comprado e fora desta conta.
+
+| Cenário | Investe | Lucro/ano | Payback |
+|---|---|---|---|
+| Mantendo a marca da rede | R$ 21.000 | R$ 233.437 | 1,1 mês |
+| Marca própria | R$ 37.000 | R$ 259.636 | 1,7 mês |
+| Marca própria + espaço kids | R$ 62.550 | R$ 252.097 | 3,0 meses |
 
 ### Espaço kids
 
@@ -441,23 +445,24 @@ São **R$ 18.750/mês, todo mês, de abril a novembro** — cerca de 20 clientes
 
 ---
 
-## 1-C. Correção: falta muito menos do que eu disse
+## 1-C. O que falta gastar para abrir
 
-Eu tinha colocado **R$ 86 mil** de investimento. Revendo item por item, com o argumento certo de que o equipamento já está comprado:
+O equipamento pesado já está pago. O que sai do bolso agora:
 
-| Item | Eu tinha posto | Realista | Por quê mudou |
-|---|---|---|---|
-| Obra e adequação dos 35 m² | 22.000 | 9.000 | Elétrica, pia da Vigilância, piso lavável. **Inflei** — com o ponto em bom estado é metade |
-| Abrir a tela do deck | 7.000 | 1.500 | **Errei feio.** Tirar tela e mourão é serviço de meio dia |
-| Mobiliário do deck | 11.000 | 6.000 | 8 mesas + 24 cadeiras. **Se veio no lote, é zero** |
-| Estoque inicial | 9.000 | 9.000 | Real |
-| Licenças (alvará, VISA, balança) | 3.000 | 1.800 | Se a balança INMETRO veio no lote, cai para ~R$ 800 |
-| Marketing de abertura | 6.000 | 2.500 | Você tem agência própria |
-| **Dinheiro que sai e não volta** | **58.000** | **29.800** | |
-| Capital de giro | 28.000 | 22.000 | **Não é gasto.** É caixa que volta. Somar no investimento e calcular payback em cima estava errado |
-| **Total a ter disponível** | **86.000** | **51.800** | |
+| Item | R$ | O que é |
+|---|---|---|
+| Reforma do ponto | 8.000 | Elétrica, pia da Vigilância, piso lavável, pintura |
+| Frete e transporte do equipamento | 8.000 | Trazer balcão, freezers e vitrine até a Ferrugem |
+| Insumos iniciais | 5.000 | Primeira carga de polpa, complementos e embalagem |
+| **Base** | **21.000** | Abre com a marca da rede |
+| Embalagem personalizada | 7.000 | Copo, tampa e sacola com a marca nova |
+| Plotagem | 6.000 | Balcão, freezers, vitrine e fachada |
+| Decoração do local | 3.000 | Deck, parede, iluminação |
+| **Com marca própria** | **37.000** | |
+| Espaço kids | 25.550 | Brinquedão, piso, cerca, sombra e mesas |
+| **Total** | **62.550** | |
 
-**E o payback muda de figura:** a marca própria acumula **R$ 97.740 de lucro só de novembro a março**, contra R$ 51.800 de tudo que precisa ter na mão. **O primeiro verão paga o investimento inteiro**, mesmo com equipe toda contratada.
+**O primeiro verão paga tudo.** Dezembro, janeiro e fevereiro somam R$ 410.000 de faturamento — 64% do ano. O investimento inteiro volta em 3,0 meses de operação.
 
 ### Confira o que veio no lote
 
@@ -474,18 +479,16 @@ Estes itens mudam a conta conforme o que veio junto com a unidade comprada:
 
 ## 1-D. Mudar a marca: a conta mínima e a cheia
 
-| Item | Mínimo | Cheio | Observação |
-|---|---|---|---|
-| Embalagem personalizada | 7.000 | 7.000 | Número seu — é o item mais caro |
-| Adesivagem de balcão, freezers e vitrine | 2.500 | 2.500 | Adesivo sai, adesivo entra |
-| Uniformes (12–15 camisetas) | 1.200 | 1.200 | Precisa nos dois caminhos |
-| Registro no INPI (1 classe, ME/EPP) | 880 | 1.500 | Taxa oficial R$ 440–880 |
-| Cardápio e menu board | 800 | 1.500 | Precisa nos dois caminhos |
-| Identidade visual | 0 | 5.000 | **Você tem agência** |
-| Letreiro e fachada | 0 | 4.000 | **Não é extra** — hoje não tem letreiro nenhum |
-| **Total** | **12.380** | **22.700** | |
+| Item | R$ | Observação |
+|---|---|---|
+| Embalagem personalizada | 7.000 | Copo, tampa e sacola — é o item mais caro |
+| Plotagem | 6.000 | Balcão, freezers, vitrine e fachada. Adesivo sai, adesivo entra |
+| Decoração do local | 3.000 | Deck, parede, iluminação |
+| **Total** | **16.000** | |
+| *Registro no INPI (1 classe, ME/EPP)* | *440 a 880* | *Taxa oficial. Protege o nome — não é opcional* |
+| *Identidade visual* | *0* | *Você tem agência* |
 
-Payback da marca: **5,2 meses** no mínimo, **9,5 meses** no cheio. Nos dois casos, dentro da primeira temporada.
+A marca própria custa R$ 16.000 a mais e devolve **R$ 26.199 de lucro extra no primeiro ano** — CMV de 27,4% contra 31,5% comprando pronto da rede. **Payback de 7,3 meses**, dentro da primeira temporada.
 
 **Uma pergunta fecha a conta:** a Degusta fornece embalagem junto no preço do insumo, ou é à parte? Se você compraria copo de qualquer jeito, só o *design* é extra e o custo real cai para ~R$ 8 mil.
 
@@ -769,7 +772,7 @@ Seu pai e o dono da Degusta são amigos — é por isso que ele só compraria de
 3. **CMV Degusta de 38,5% é estimativa** de markup de insumo. A seção 3 mostra a conta em toda a faixa — troque pelo número real quando tiver.
 4. **Teto físico de 250 clientes/dia** derivado de 2 balanças a ~60–70/hora e da capacidade do deck.
 5. **Equipamento tratado como custo afundado.** Não entra no payback, porque já foi pago e não é recuperável na decisão.
-6. **CAPEX de R$ 86 mil é estimativa** de obra, deck, estoque, licenças, marketing e giro. Precisa de orçamento real.
+6. **Investimento de R$ 62.550 são os valores do dono** — reforma, frete, insumos, marca própria e espaço kids. Equipamento pesado já pago, fora da conta.
 7. Reais correntes de 2026. Simples Nacional Anexo I. Sem pró-labore nem custo de capital.
 
 ---

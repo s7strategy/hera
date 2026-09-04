@@ -17,7 +17,10 @@ FOLHA=CLT*(5*2+4*1+3*2+1*7)          # 5 no pico, 4 em dez, 3 em mar/nov, 1 o re
 ALUG=30_000                           # R$ 2.500/mês com luz e água inclusas
 OVH=14_400                            # gás, contador, PDV, internet, limpeza
 KIDS_OP=7_539; KIDS_CAPEX=25_550
-INV=29_800+12_380+KIDS_CAPEX+22_000   # gasto + marca + kids + giro
+# Investimento nos valores do dono. Equipamento pesado já comprado — fora da conta.
+INV_BASE=8_000+8_000+5_000            # reforma + frete do equipamento + insumos iniciais
+INV_MARCA=7_000+6_000+3_000           # embalagem + plotagem + decoração
+INV=INV_BASE+INV_MARCA+KIDS_CAPEX
 CMV_GERIDO=.274; CMV_SOLTO=.315
 
 print("="*88); print("A CURVA"); print("="*88)
@@ -49,11 +52,21 @@ for m,rot in ((.75,"−25%"),(.85,"−15%"),(1.0,"conforme o plano"),(1.15,"+15%
     print(f"  Verão {rot:<18}{brl(f):>13}   lucro {brl(l):>12}   margem {pc(l/f):>7}   payback {INV/l*12:>4.1f} m")
 
 print("\n"+"="*88); print("INVESTIMENTO"); print("="*88)
-ITENS=[("Obra e adequação dos 35 m²",9_000),("Mobiliário do deck",6_000),
-       ("Estoque inicial",9_000),("Marketing de abertura",2_500),
-       ("Licenças, alvará e balança INMETRO",1_800),("Abrir a tela do deck",1_500),
-       ("Marca própria (embalagem, adesivagem, INPI, uniforme)",12_380),
-       ("Espaço kids",KIDS_CAPEX),("Capital de giro (volta)",22_000)]
-for n,v in ITENS: print(f"  {n:<52}{brl(v):>11}")
-print(f"  {'TOTAL':<52}{brl(sum(v for _,v in ITENS)):>11}")
-print("\n  Equipamento pesado (balcão, freezers, vitrine, PDV) já comprado — fora desta conta.")
+ITENS=[("Reforma do ponto",8_000),("Frete e transporte do equipamento",8_000),
+       ("Insumos iniciais",5_000),(">Base",INV_BASE),
+       ("Embalagem personalizada",7_000),("Plotagem",6_000),("Decoração do local",3_000),
+       (">Com marca própria",INV_BASE+INV_MARCA),
+       ("Espaço kids",KIDS_CAPEX),(">TOTAL",INV)]
+for n,v in ITENS:
+    if n.startswith(">"): print(f"  {'':<52}{'':>11}\n  {n[1:]:<52}{brl(v):>11}\n")
+    else: print(f"  {n:<52}{brl(v):>11}")
+print("  Equipamento pesado (balcão, freezers, vitrine, PDV) já comprado — fora desta conta.")
+
+print("\n"+"="*88); print("PAYBACK POR CENÁRIO"); print("="*88)
+a=aliq(FAT)
+def lucro(cmv,kids): return FAT-FAT*cmv-FOLHA-FAT*a-FAT*.046-FAT*.035-ALUG-OVH-(KIDS_OP if kids else 0)
+CEN=[("Mantendo a marca da rede",INV_BASE,lucro(CMV_SOLTO,False)),
+     ("Marca própria",INV_BASE+INV_MARCA,lucro(CMV_GERIDO,False)),
+     ("Marca própria + espaço kids",INV,lucro(CMV_GERIDO,True))]
+for n,i,l in CEN:
+    print(f"  {n:<34}investe {brl(i):>10}   lucro/ano {brl(l):>12}   payback {i/l*12:>4.1f} meses")
