@@ -149,6 +149,79 @@ A faixa de R$ 6 a 8 mil de sobra volta a bater quando o verão dele fatura entre
 
 ---
 
+## 1-B-2b. O cenário enxuto — as três correções juntas
+
+Você trouxe três coisas: **1 funcionário**, **aluguel de R$ 2.500 com as contas incluídas** e a suspeita de que o **açaí tem margem maior**. Testei as três. **Você está certo nas três.**
+
+### 1 · O CMV: eu fui pessimista
+
+A referência pública é clara: **o CMV ideal de açaiteria fica entre 28% e 35%**, e açaiterias bem geridas alcançam margens de 30% a 50% — das maiores do food service. Eu usei 32,5%, que é o *topo* da faixa ideal.
+
+**Por que o açaí ajuda:** polpa a R$ 15–22/kg vendida a R$ 65–75/kg (CMV da polpa pura de 22% a 31%); fruta custa R$ 5–15/kg e vende pelo mesmo preço por peso; leite condensado, calda e granola são baratos por quilo.
+
+**Por que pode piorar:** castanha e nozes custam R$ 40–80/kg e vendidas a R$ 65/kg dão prejuízo; embalagem pesa 3–5% do ticket; quebra de 2–4%.
+
+> **A alavanca real é o mix do balcão.** No self-service por peso quem monta o CMV é o cliente, e ele monta pelo que está mais à mão. Fruta, granola e calda na frente; castanha e importado em porção fechada ou cobrados à parte. Essa decisão de layout vale a diferença entre 28% e 38% de CMV.
+
+### 2 · Aluguel de R$ 2.500 com as contas dentro
+
+| Item | Antes | Com contas inclusas |
+|---|---|---|
+| Energia (freezers 24h) | 12.000 | no aluguel |
+| Água | 1.800 | no aluguel |
+| Gás | 600 | 600 |
+| Contador | 4.800 | 4.800 |
+| PDV | 2.400 | 2.400 |
+| Internet | 1.200 | 1.200 |
+| Limpeza e manutenção | 5.400 | 5.400 |
+| **Overhead total** | **28.200** | **14.400** |
+| Aluguel anual | 21.000 | 30.000 |
+| **Aluguel + overhead** | **49.200** | **44.400** |
+
+**Pagar R$ 1.000/mês a mais para não pagar luz e água vale a pena.** Freezer e balcão refrigerado ligados 24h em janeiro fazem a conta de energia explodir — e nesse arranjo o risco é do locador. Economia líquida de R$ 4.800/ano com o pico protegido.
+
+### 3 · Um funcionário dá conta?
+
+Janeiro projetado: 141 clientes/dia em 12h = 12/hora na média, 14 a 20/hora no pico da tarde. Uma pessoa no caixa com balança faz 20 a 30 atendimentos/hora — **dá conta de cobrar**. Não dá conta, ao mesmo tempo, de repor o buffet, lavar cuba, montar milk shake, separar delivery e limpar o deck.
+
+> **1 funcionário + vocês no balcão fecha janeiro.** 5 pessoas, como eu tinha modelado, não cabem atrás de um balcão de 3,5 m em 35 m² — você estava certo de estranhar. Arranjo realista: 1 CLT o ano todo, 2 contratados em jan/fev e 1 em dez/mar. Folha de **R$ 40.849** em vez de R$ 68.200.
+
+### As três juntas
+
+| Cenário | Lucro/ano | Margem |
+|---|---|---|
+| Modelo anterior (5 no pico, CMV 32,5%) | 90.760 | 23,3% |
+| 1 CLT + extras, contas no aluguel | 122.911 | 31,6% |
+| **... e CMV de 30% (bem gerido)** | **132.646** | **34,1%** |
+| ... e CMV de 28% (muito bem gerido) | 140.433 | 36,1% |
+| **1 CLT + família no balcão, CMV 30%** | **146.262** | **37,6%** |
+
+### Os dois caminhos, refeitos
+
+| Caminho | Lucro/ano | Margem | Payback de R$ 51.800 |
+|---|---|---|---|
+| Mantém Degusta · 1 CLT + extras | 105.302 | 28,8% | 5,9 meses |
+| **Marca própria · 1 CLT + extras** | **132.646** | **34,1%** | **4,7 meses** |
+| Mantém Degusta · família no balcão | 118.918 | 32,6% | 5,2 meses |
+| **Marca própria · família no balcão** | **146.262** | **37,6%** | **4,2 meses** |
+
+A diferença entre os caminhos segue em **R$ 27.344/ano** — o markup do insumo incide sobre o CMV nos dois. **O que mudou foi o patamar dos dois.**
+
+### Cruzando com o faturamento
+
+| Faturamento | 1 CLT + extras | Margem | 1 CLT + família | Margem |
+|---|---|---|---|---|
+| R$ 389.376 (conservador) | 132.646 | 34,1% | 146.262 | 37,6% |
+| R$ 430.000 (defensável) | 155.379 | 36,1% | 168.995 | 39,3% |
+| R$ 460.000 (alta forte) | 172.167 | 37,4% | 185.783 | 40,4% |
+
+### Duas ressalvas
+
+1. **Confirme o aluguel.** Modelei R$ 2.500/mês o ano inteiro com luz e água inclusas. Se as contas ficarem por sua conta, a margem cai de 34,1% para ~30,6%. Deixe escrito no contrato.
+2. **O trabalho de vocês continua fora da conta.** No cenário de 37,6% você e seu pai estão no balcão de graça. R$ 4 mil/mês para cada um nos cinco meses são R$ 40 mil desse lucro — e a margem volta para perto de 27%.
+
+---
+
 ## 1-B-3. O plano de R$ 350 mil na alta + R$ 150 mil no resto
 
 | | Meu modelo | Seu plano | Diferença |
