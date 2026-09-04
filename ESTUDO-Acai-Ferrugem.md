@@ -1,32 +1,42 @@
-# Açaí na Praia da Ferrugem — manter a Degusta ou fazer a nossa marca?
+# Açaí na Praia da Ferrugem — o plano da nossa marca
 
-**Estudo de decisão · Garopaba / SC · setembro de 2026 · v5**
+**Estudo de decisão · Garopaba / SC · setembro de 2026 · v6**
 Ponto: nº **2956**, ~**35 m² fechados + pátio com deck sob pergolado**
 Aluguel real: **R$ 2.500** (dez–fev) e **R$ 1.500** (mar–nov) = **R$ 21.000/ano**
 Equipamento **já comprado** — unidade Degusta que quebrou, em estado de nova.
 
 ---
 
-## 0. A pergunta mudou
+## 0. A decisão da marca está tomada
 
-As versões anteriores comparavam *franquia contra marca própria*. Com a informação correta, essa comparação não existe:
+**A marca é nossa.** A comparação com manter a plotagem de rede está encerrada e as seções que a
+discutem ficam no documento só como registro de como se chegou aqui.
 
-- **Não há taxa de franquia.** Não há royalty. Não há fundo de propaganda.
-- O vínculo com a Degusta é de **compra de insumo**. O único custo de usar a marca está embutido no CMV.
-- **O equipamento já está pago.** É custo afundado — não entra na decisão daqui pra frente.
-- O aluguel é **R$ 21 mil/ano**, não os R$ 29,6 mil que eu havia modelado.
+O que isso fixa:
 
-A pergunta real virou:
+- **Não há taxa de franquia, royalty nem fundo de propaganda.** Nunca houve — o vínculo era de compra
+  de insumo.
+- **O equipamento já está pago.** Custo afundado, fora da decisão.
+- Comprando direto no mercado livre, o insumo fica em **27,4% da receita** em vez de 31,5%. São
+  R$ 26.199 a mais de lucro por ano, contra R$ 16.000 de custo da marca, uma vez só.
+- O ativo — nome, embalagem, fachada — fica com a família.
 
-> **Manter a plotagem Degusta e comprar deles, ou plotar marca própria e comprar no mercado livre?**
+A pergunta que sobra é outra:
 
-E há uma resposta clara — mas ela depende de **um número que você ainda não tem**.
+> **De quem se compra a polpa, e a que preço o quilo?**
+
+São 539 baldes de 10 kg por ano. Cada R$ 1,00 no quilo vale **R$ 5.392 de lucro por ano**. É por isso
+que se pedem doze orçamentos — e é a última linha da conta ainda em aberto.
 
 ---
 
 ## 1. Primeiro: o negócio fecha
 
 Isso é novo. Nas versões anteriores havia caminhos que davam prejuízo. **Agora não há nenhum.**
+
+*A comparação abaixo é registro da fase em que a marca ainda estava em aberto — o caminho escolhido é
+o de marca própria. As seções 1-A em diante trabalham só com ele, sobre a curva conservadora de
+R$ 639.000/ano.*
 
 | Caminho | Falta investir | Faturamento | Lucro/ano | Margem | Payback |
 |---|---|---|---|---|---|
@@ -35,7 +45,8 @@ Isso é novo. Nas versões anteriores havia caminhos que davam prejuízo. **Agor
 | Plota marca própria · 12 meses | R$ 37.000 | R$ 438.163 | R$ 91.998 | 21,0% | 4,8 m |
 | **Plota marca própria · hiberna mai–ago** | **R$ 37.000** | R$ 389.376 | **R$ 90.665** | **23,3%** | **4,9 m** |
 
-**Os dois funcionam.** A diferença é de R$ 28,5 mil por ano — importante, mas não é a diferença entre fazer e não fazer. É a diferença entre um bom negócio e um negócio melhor.
+**Os dois funcionavam.** A diferença de R$ 28,5 mil por ano é o que fez a marca própria ganhar — mas
+nenhum dos dois era a diferença entre fazer e não fazer.
 
 ### 1.1 O que ainda falta investir
 
@@ -477,7 +488,10 @@ Estes itens mudam a conta conforme o que veio junto com a unidade comprada:
 
 ---
 
-## 1-D. Mudar a marca: a conta mínima e a cheia
+## 1-D. A nossa marca: a conta
+
+**Decisão tomada — a marca é nossa.** O que segue é o custo dela e o que ainda falta fechar
+com fornecedor.
 
 | Item | R$ | Observação |
 |---|---|---|
@@ -488,15 +502,58 @@ Estes itens mudam a conta conforme o que veio junto com a unidade comprada:
 | *Registro no INPI (1 classe, ME/EPP)* | *440 a 880* | *Taxa oficial. Protege o nome — não é opcional* |
 | *Identidade visual* | *0* | *Você tem agência* |
 
-A marca própria custa R$ 16.000 a mais e devolve **R$ 26.199 de lucro extra no primeiro ano** — CMV de 27,4% contra 31,5% comprando pronto da rede. **Payback de 7,3 meses**, dentro da primeira temporada.
+A marca custa R$ 16.000 e devolve **R$ 26.199 de lucro extra no primeiro ano**: comprando direto o
+insumo fica em 27,4% da receita, contra 31,5% comprando pronto de rede. **Payback de 7,3 meses**,
+dentro da primeira temporada — e o ativo fica com a família.
+
+### O preço da polpa é a única linha ainda em aberto
+
+São **539 baldes de 10 kg por ano** (5.392 kg). Cada R$ 1,00 no quilo vale **R$ 5.392 de lucro por
+ano**, todo ano.
+
+| Balde de 10 kg | R$/kg | Insumo | Lucro do ano | Payback |
+|---|---|---|---|---|
+| R$ 145 | 14,50 | 24,9% | R$ 268.272 | 2,8 m |
+| R$ 155 | 15,50 | 25,7% | R$ 262.880 | 2,9 m |
+| **R$ 175 (o plano)** | **17,50** | **27,4%** | **R$ 252.097** | **3,0 m** |
+| R$ 195 | 19,50 | 29,1% | R$ 241.314 | 3,1 m |
+| R$ 230 | 23,00 | 32,0% | R$ 222.443 | 3,4 m |
+| R$ 350 (a polpa ao dobro) | 35,00 | 42,2% | R$ 157.745 | 4,8 m |
+
+Nenhum preço realista de polpa derruba o negócio — o que ele muda é o tamanho da sobra. Modelo em
+`analise/preco-da-polpa.py`.
 
 **Uma pergunta fecha a conta:** a Degusta fornece embalagem junto no preço do insumo, ou é à parte? Se você compraria copo de qualquer jeito, só o *design* é extra e o custo real cai para ~R$ 8 mil.
 
 ---
 
-## 1-E. As perguntas para o dono da Degusta
+## 1-E. O que pedir em cada orçamento
 
-**Bloco 1 · Preço do insumo — é o que decide a marca**
+Doze fornecedores cotados, uma linha cada: fornecedor, balde de 10 kg, R$/kg, frete até Garopaba e o
+lucro do ano que aquele preço produz.
+
+1. Preço do quilo por tipo de polpa — tradicional, zero açúcar, com guaraná
+2. Preço do balde de 10 kg fechado, na tabela e à vista
+3. Frete até Garopaba: incluso, à parte, ou grátis acima de quanto
+4. Pedido mínimo por entrega
+5. Frequência garantida em janeiro — faltar polpa no dia 5 custa mais que qualquer desconto
+6. Vende embalagem junto? Copo, tampa, colher e sacola pesam R$ 1,10 por tigela
+7. Vende complementos — granola, leite em pó, calda, fruta? A que preço
+8. Reajuste na entressafra (set–dez) e se dá para travar preço comprando em agosto
+9. Prazo de pagamento e desconto à vista
+10. Amostra grátis para teste cego antes de fechar
+
+Preço mais baixo não ganha sozinho: entrega garantida em janeiro pesa igual.
+
+---
+
+## 1-F. Registro: as perguntas da fase da marca
+
+Estas perguntas foram escritas quando ainda se avaliava manter a plotagem de rede. **Os blocos 2 e 3
+perderam a função** com a decisão tomada. O bloco 1 continua valendo — virou a lista da seção 1-E,
+agora endereçada a doze fornecedores em vez de um.
+
+**Bloco 1 · Preço do insumo — segue valendo, para todos os fornecedores**
 
 1. Qual o preço por quilo da polpa? Peça a tabela inteira, por tipo.
 2. Esse preço inclui frete até Garopaba?
@@ -574,13 +631,18 @@ Os quatro meses fechados custam **R$ 10.200 no ano** — só aluguel e overhead 
 
 ---
 
-## 3. A única pergunta que decide
+## 3. A única pergunta que ainda decide
 
-Sem taxa e sem royalty, usar a marca Degusta custa **apenas o markup do insumo**. Então:
+Com a marca definida, o que sobra em aberto é o preço do quilo da polpa:
 
-> ### 📞 Quanto a Degusta cobra pela polpa, comparado ao mercado livre?
+> ### 📞 Quanto custa o quilo, em cada um dos doze fornecedores?
 >
-> Uma ligação resolve. Peça a **tabela de preços dos insumos obrigatórios** e cote a mesma coisa com a **Ice Mix Fruits** (fábrica de açaí em Campo Duna, dentro de Garopaba). Polpa no atacado livre custa **R$ 15 a 22/kg**; premium chega a R$ 20/kg.
+> Polpa no atacado livre custa **R$ 15 a 22/kg**; premium chega a R$ 20/kg. São **539 baldes de 10 kg
+> por ano** — cada R$ 1,00 no quilo vale **R$ 5.392 de lucro por ano**. A tabela da seção 1-D mostra o
+> lucro do ano em cada faixa de preço; a lista da 1-E mostra o que pedir em cada orçamento.
+
+**A tabela abaixo é registro da fase anterior**, quando a decisão da marca ainda dependia do markup do
+insumo de rede. Ela mostra por que a marca própria ganhou:
 
 | CMV Degusta | Markup vs. mercado livre | Lucro Degusta | Lucro marca própria | Diferença |
 |---|---|---|---|---|
@@ -591,7 +653,7 @@ Sem taxa e sem royalty, usar a marca Degusta custa **apenas o markup do insumo**
 | 40,0% | +23% | R$ 56.625 | R$ 90.665 | R$ 34.040 |
 | 42,0% | +29% | R$ 49.324 | R$ 90.665 | R$ 41.341 |
 
-### 3.1 Em quanto tempo os R$ 22 mil de plotagem se pagam
+### 3.1 Registro: em quanto tempo a plotagem se pagava
 
 | Se a Degusta cobrar | Ganho anual da marca própria | Plotagem se paga em |
 |---|---|---|
@@ -653,18 +715,20 @@ Tudo parte de **140 clientes/dia em janeiro** — estimativa minha, não mediç�
 
 ## 5. A recomendação
 
-**Plote marca própria — se, e somente se, a cotação confirmar o markup.**
+**A marca é nossa. O que falta é fechar o fornecedor e abrir em dezembro.**
 
 O caminho prático, em ordem:
 
 | # | Ação | Prazo | Por quê |
 |---|---|---|---|
-| 1 | **Peça a tabela de preços da Degusta** e cote o mesmo com Ice Mix Fruits e 1 distribuidor do RS | 1 semana | É o número que decide tudo. Custa uma ligação |
-| 2 | **Conte pedestres no ponto** — 3 dias de alta, 1 de baixa | 4 dias do verão | Valida os 140 clientes/dia. Vale mais que este estudo |
-| 3 | **Feche a decisão da marca** com os dois números na mão | — | Markup acima de 8% → plota. Abaixo → mantém |
-| 4 | **Obra e licenças** — adequação dos 35 m², pia da Vigilância, alvará | 6–8 semanas, em paralelo | Não espera a decisão da marca |
-| 5 | **Abrir a tela do deck** | com a obra | A obra que mais retorna por real gasto |
-| 6 | **Abrir no início de dezembro** | — | Janeiro sozinho é 32% do faturamento do ano |
+| 1 | **Fechar os doze orçamentos de polpa** com a lista da seção 1-E | 2 semanas | Cada R$ 1 no quilo vale R$ 5.392 por ano |
+| 2 | **Conte pedestres no ponto** — 3 dias de alta, 1 de baixa | 4 dias do verão | Valida os 171 clientes/dia. Vale mais que este estudo |
+| 3 | **Teste cego com os três finalistas** | 1 semana | Preço não decide sozinho — entrega garantida em janeiro pesa igual |
+| 4 | **Marca, INPI e embalagem** — R$ 16.000 | em paralelo | Registro protege o nome; embalagem é o item mais caro e o de maior prazo |
+| 5 | **Obra e licenças** — adequação dos 35 m², pia da Vigilância, alvará | 6–8 semanas, em paralelo | Não espera nada |
+| 6 | **Abrir a tela do deck e montar o espaço kids** | com a obra | A obra que mais retorna por real gasto |
+| 7 | **Comprar estoque em agosto** | agosto | Na entressafra a polpa sobe 15% a 25% |
+| 8 | **Abrir no início de dezembro** | — | Dezembro e janeiro somam R$ 280 mil |
 
 ### 5.1 A alternativa inteligente, se o prazo apertar
 
@@ -743,8 +807,8 @@ Seu pai e o dono da Degusta são amigos — é por isso que ele só compraria de
 | Risco | Gravidade | Mitigação |
 |---|---|---|
 | **Fluxo real abaixo do estimado** | Alta | Continua sendo o risco nº 1. Medir antes. Nos dois caminhos o negócio aguenta −35% |
-| **Uso da marca revogado sem contrato** | Média | A amizade reduz muito na prática. Ainda assim: autorização por e-mail, com prazo e condições |
-| **Fornecimento cortado em janeiro** | Alta | Sempre ter um segundo fornecedor homologado, mesmo mantendo a Degusta |
+| **Nome não registrado e alguém registrar antes** | Média | INPI custa R$ 440 a R$ 880 numa classe. Protocolar antes de plotar a fachada |
+| **Fornecimento cortado em janeiro** | Alta | Dos doze orçamentos, homologar dois. Nunca depender de um só no pico |
 | **Ticket premium não sustentar** | Média-alta | Testar preço nas primeiras 3 semanas. Se R$ 7,49/100 g não pegar, cai para R$ 6,99 e a conta ainda fecha |
 | **Equipamento não caber nos 35 m²** | Média-alta | Layout no papel ANTES de assinar o aluguel |
 | **Temporada fraca como 2026** | Média | Gasto do turista em SC caiu 16,4% e alimentação fora do lar 26,6% na última. O modelo aguenta |
@@ -755,21 +819,30 @@ Seu pai e o dono da Degusta são amigos — é por isso que ele só compraria de
 
 ## 8. Conclusão
 
-**Faça.** Com aluguel de R$ 21 mil/ano e o equipamento já pago, o negócio entrega **R$ 62 a 91 mil de lucro anual** sobre **R$ 86 a 108 mil** que ainda faltam investir. Payback de **14 a 17 meses**, e nenhum dos caminhos quebra nem no cenário ruim. Isso é um bom negócio.
+**Faça, com a marca nossa.** Com o equipamento já pago e aluguel de R$ 2.500/mês com as contas
+dentro, faltam **R$ 62.550** para abrir — reforma, frete, primeira carga, marca e espaço kids. Sobre
+a curva conservadora de R$ 639.000 no ano, o lucro é de **R$ 252.097** e o investimento volta em
+**3,0 meses**. No cenário 25% pior, sobram R$ 164 mil. Não há cenário realista em que isso não
+feche.
 
-**Sobre a marca:** plotar a sua ganha R$ 28,5 mil/ano na minha estimativa e se paga em 9 meses — mas metade dessa vantagem depende de um ticket premium que ainda é aposta, e a outra metade depende de um markup de insumo que **você pode confirmar com uma ligação**. Faça a ligação antes de decidir.
+**A marca custa R$ 16.000, uma vez só, e devolve R$ 26.199 por ano** — comprando direto, o insumo cai
+de 31,5% para 27,4% da receita. Mas o argumento mais forte não é esse: é que o nome, a embalagem e a
+fachada passam a ser um ativo da família, sem depender de autorização de ninguém.
 
-**E o argumento mais forte para plotar o seu não é financeiro.** É que hoje sua marca, seu fornecedor e seu direito de operar são a mesma pessoa — e não há um papel sequer que te proteja disso. Vinte e dois mil reais para nunca mais depender de uma autorização verbal é barato.
+**O que ainda está em aberto é de quem se compra a polpa.** São 539 baldes de 10 kg por ano; cada
+R$ 1,00 no quilo vale R$ 5.392 de lucro por ano. Doze orçamentos em andamento, nenhum recebido —
+a seção 1-E lista o que pedir em cada um.
 
-**As três coisas para fazer esta semana:** pedir a tabela de preços da Degusta, cotar a Ice Mix Fruits, e descobrir por que a unidade que você comprou quebrou.
+**As três coisas para fazer esta semana:** fechar os doze orçamentos, contar gente na calçada por
+quatro dias, e protocolar o nome no INPI antes de plotar qualquer coisa.
 
 ---
 
 ## 9. Notas metodológicas
 
-1. **140 clientes/dia em janeiro é estimativa minha.** É a premissa mais sensível e a única que muda a viabilidade.
-2. **Ticket de R$ 32 para marca própria é aposta**, não fato. A seção 4.1 isola esse efeito.
-3. **CMV Degusta de 38,5% é estimativa** de markup de insumo. A seção 3 mostra a conta em toda a faixa — troque pelo número real quando tiver.
+1. **171 clientes/dia em janeiro é estimativa.** É a premissa mais sensível e a única que muda a viabilidade.
+2. **Ticket de R$ 32 é aposta**, não fato. A seção 4.1 isola esse efeito.
+3. **Polpa a R$ 17,50/kg é premissa** — o balde de 10 kg a R$ 175. Nenhum dos doze orçamentos chegou. A seção 1-D mostra o lucro do ano em toda a faixa de preço; troque pelo número real quando tiver.
 4. **Teto físico de 250 clientes/dia** derivado de 2 balanças a ~60–70/hora e da capacidade do deck.
 5. **Equipamento tratado como custo afundado.** Não entra no payback, porque já foi pago e não é recuperável na decisão.
 6. **Investimento de R$ 62.550 são os valores do dono** — reforma, frete, insumos, marca própria e espaço kids. Equipamento pesado já pago, fora da conta.

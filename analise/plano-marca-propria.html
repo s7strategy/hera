@@ -121,6 +121,12 @@ h3{font-size:clamp(26px,3.6vw,44px); font-weight:800; margin-top:clamp(46px,6vw,
   transition:width 1.1s cubic-bezier(.2,.7,.2,1);}
 .anim .bar .fl{width:0;} .anim .bar.on .fl{width:var(--w);}
 .bar.destaque{background:linear-gradient(120deg,rgba(255,201,60,.22),rgba(255,159,46,.08));}
+.escuro .bar{background:rgba(255,248,236,.09); box-shadow:none;
+  border:1px solid rgba(255,248,236,.15); color:#FFF8EC;}
+.escuro .bar .nm small{color:rgba(255,248,236,.62);}
+.escuro .bar .tr{background:rgba(255,248,236,.15);}
+.escuro .bar.destaque{background:linear-gradient(120deg,rgba(255,201,60,.26),rgba(255,159,46,.09));
+  border-color:rgba(255,201,60,.5);}
 .bar.perigo{background:linear-gradient(120deg,rgba(238,81,56,.16),rgba(238,81,56,.05));}
 
 /* ───────── duas colunas ───────── */
@@ -161,11 +167,45 @@ h3{font-size:clamp(26px,3.6vw,44px); font-weight:800; margin-top:clamp(46px,6vw,
   letter-spacing:.11em; text-transform:uppercase; color:var(--ink3);}
 .tl .v{font-weight:700; font-variant-numeric:tabular-nums; text-align:right; min-width:5ch;}
 .tl.tot{background:var(--bg3); font-weight:800;}
+.escuro .tl:first-child{color:rgba(255,248,236,.6);}
+.escuro .tl.tot{background:rgba(255,248,236,.17); color:#FFF8EC;}
 .tl.win{background:linear-gradient(90deg,rgba(255,201,60,.22),rgba(255,201,60,.05));}
 .tl.bad{background:linear-gradient(90deg,rgba(238,81,56,.15),rgba(238,81,56,.03));}
 
 /* ───────── passos ───────── */
 .passos{margin-top:clamp(30px,4vw,54px); display:flex; flex-direction:column; gap:14px;}
+
+/* ───────── tabela larga, rolável ───────── */
+.rolo{overflow-x:auto; -webkit-overflow-scrolling:touch; margin-top:clamp(30px,4vw,52px);
+  border-radius:26px; box-shadow:var(--som); background:var(--bg2);}
+.escuro .rolo{background:rgba(255,248,236,.09); box-shadow:none;
+  border:1px solid rgba(255,248,236,.16);}
+.orc{width:100%; min-width:700px; border-collapse:collapse;
+  font-size:clamp(16px,1.7vw,21px); font-variant-numeric:tabular-nums;}
+.orc th,.orc td{padding:clamp(13px,1.6vw,22px) clamp(14px,1.7vw,24px); text-align:left;
+  border-top:1px solid var(--linha); white-space:nowrap;}
+.escuro .orc th,.escuro .orc td{border-top-color:rgba(255,248,236,.14);}
+.orc thead th{border-top:none; font-size:clamp(12px,1.3vw,15px); font-weight:800;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--ink3);}
+.escuro .orc thead th{color:rgba(255,248,236,.6);}
+.orc td.nm{font-weight:700; white-space:normal;}
+.orc td.vaz{color:var(--ink3); font-weight:700;}
+.escuro .orc td.vaz{color:rgba(255,248,236,.4);}
+.orc td.i{width:1%; font-weight:900; color:var(--acento);}
+.escuro .orc td.i{color:var(--amarelo);}
+
+/* ───────── grade de perguntas ───────── */
+.perg{margin:clamp(30px,4vw,52px) 0 0; padding:0; display:grid; gap:clamp(12px,1.5vw,18px);
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));}
+.perg li{list-style:none; background:var(--bg2); border-radius:22px; box-shadow:var(--som);
+  padding:clamp(18px,2.2vw,30px); display:flex; gap:16px; align-items:flex-start;
+  font-size:clamp(17px,1.8vw,22px); line-height:1.4;}
+.escuro .perg li{background:rgba(255,248,236,.09); box-shadow:none;
+  border:1px solid rgba(255,248,236,.16);}
+.perg li i{font-style:normal; font-weight:900; color:var(--acento); flex:none; min-width:1.7em;
+  font-size:clamp(21px,2.3vw,28px); line-height:1.15; font-variant-numeric:tabular-nums;}
+.escuro .perg li i{color:var(--amarelo);}
+.perg li b{display:block; font-weight:800; margin-bottom:4px;}
 .passo{background:var(--bg2); border-radius:24px; box-shadow:var(--som);
   padding:clamp(22px,2.8vw,36px); display:grid; grid-template-columns:auto 1fr; gap:22px;
   align-items:start;}
@@ -204,14 +244,14 @@ footer::before{content:""; position:absolute; inset:0; z-index:-1;
     <p class="olho r">Açaí com espaço kids · Praia da Ferrugem · Garopaba</p>
     <h2 class="r d1" style="max-width:13ch">O plano, <em>em números</em>.</h2>
     <p class="sub r d2">35 m² e um deck. Self-service por peso. Espaço kids no pátio.
-      Aberto o ano inteiro.</p>
+      <b>Marca nossa.</b> Aberto o ano inteiro.</p>
     <div class="grid">
       <div class="bx r d1"><div class="n" data-c="639000" data-pre="R$ ">R$ 639.000</div>
         <div class="l">faturamento no ano</div></div>
       <div class="bx r d2"><div class="n ou" data-c="252097" data-pre="R$ ">R$ 252.097</div>
         <div class="l">lucro no ano · margem de 39,5%</div></div>
       <div class="bx r d3"><div class="n" data-c="62550" data-pre="R$ ">R$ 62.550</div>
-        <div class="l">investimento total, com marca própria e espaço kids</div></div>
+        <div class="l">investimento total, com a nossa marca e o espaço kids</div></div>
       <div class="bx r d4"><div class="n ps" data-c="30" data-dec="1" data-suf=" meses">3,0 meses</div>
         <div class="l">para o investimento voltar</div></div>
     </div>
@@ -418,7 +458,8 @@ footer::before{content:""; position:absolute; inset:0; z-index:-1;
     <h3 class="r">E se o verão vier abaixo do plano</h3>
     <div class="bars" id="sens"></div>
     <p class="punch r">Mesmo com <em>25% a menos</em>, sobram R$ 164 mil.</p>
-    <p class="nota r d1">A conta abaixo é com marca própria e espaço kids. Sem o kids, o lucro sobe para R$ 259.636.</p>
+    <p class="nota r d1">Insumo de 27,4% é o preço de comprar direto, com a marca nossa. O espaço kids já está
+      dentro da conta — sem ele o lucro sobe para R$ 259.636.</p>
   </div>
 </section>
 
@@ -427,27 +468,27 @@ footer::before{content:""; position:absolute; inset:0; z-index:-1;
     <p class="olho r">08 · O investimento</p>
     <h2 class="r d1">R$ 62.550 e a loja <em>abre</em></h2>
     <p class="sub r d2">O equipamento pesado já está comprado. O que falta é trazer, reformar,
-      encher a prateleira e dar a cara da casa.</p>
+      encher a prateleira e botar a nossa marca na casa.</p>
 
     <div class="tabela r d1" style="background:rgba(255,248,236,.09);border:1px solid rgba(255,248,236,.16);box-shadow:none">
       <div class="tl"><span>Para abrir</span><span class="v">R$</span><span class="v"></span></div>
       <div class="tl"><span>Reforma do ponto</span><span class="v">8.000</span><span class="v"></span></div>
       <div class="tl"><span>Frete e transporte do equipamento</span><span class="v">8.000</span><span class="v"></span></div>
       <div class="tl"><span>Insumos iniciais</span><span class="v">5.000</span><span class="v"></span></div>
-      <div class="tl tot"><span>Base</span><span class="v">21.000</span><span class="v"></span></div>
+      <div class="tl tot"><span>Abrir a porta</span><span class="v">21.000</span><span class="v"></span></div>
       <div class="tl"><span>Embalagem personalizada</span><span class="v">7.000</span><span class="v"></span></div>
       <div class="tl"><span>Plotagem</span><span class="v">6.000</span><span class="v"></span></div>
       <div class="tl"><span>Decoração do local</span><span class="v">3.000</span><span class="v"></span></div>
-      <div class="tl tot"><span>Com marca própria</span><span class="v">37.000</span><span class="v"></span></div>
+      <div class="tl tot"><span>A nossa marca</span><span class="v">16.000</span><span class="v"></span></div>
       <div class="tl"><span>Espaço kids</span><span class="v">25.550</span><span class="v"></span></div>
       <div class="tl win"><span><b>Total</b></span><span class="v"><b>62.550</b></span><span class="v"></span></div>
     </div>
 
     <div class="grid">
-      <div class="bx r d1"><div class="n">R$ 21.000</div><div class="l">mantendo a marca da rede · payback de 1,1 mês</div></div>
-      <div class="bx r d2"><div class="n">R$ 37.000</div><div class="l">com marca própria · payback de 1,7 mês</div></div>
-      <div class="bx r d3"><div class="n ou">R$ 62.550</div><div class="l">com marca própria e espaço kids · payback de 3,0 meses</div></div>
-      <div class="bx r d4"><div class="n ps">R$ 252.097</div><div class="l">lucro no primeiro ano</div></div>
+      <div class="bx r d1"><div class="n">R$ 21.000</div><div class="l">para abrir a porta — reforma, frete e primeira carga</div></div>
+      <div class="bx r d2"><div class="n">R$ 16.000</div><div class="l">a nossa marca — embalagem, plotagem e decoração</div></div>
+      <div class="bx r d3"><div class="n">R$ 25.550</div><div class="l">o espaço kids, que ninguém na Ferrugem tem</div></div>
+      <div class="bx r d4"><div class="n ou">R$ 62.550</div><div class="l">total · volta em 3,0 meses de operação</div></div>
     </div>
 
     <p class="punch r">O equipamento pesado <em>já está pago</em>.</p>
@@ -461,12 +502,12 @@ footer::before{content:""; position:absolute; inset:0; z-index:-1;
     <p class="olho r">09 · O plano</p>
     <h2 class="r d1">Da decisão à porta aberta em <em>12 semanas</em></h2>
     <div class="passos">
-      <div class="passo r d1"><span class="num">1</span><span class="tx"><b>Ligar para a Degusta</b>As perguntas da última seção definem se a marca é nossa ou dele, e a que preço compramos a polpa.</span></div>
+      <div class="passo r d1"><span class="num">1</span><span class="tx"><b>Fechar os 12 orçamentos de polpa</b>A marca é nossa — o que falta decidir é de quem se compra. Cada R$ 1 no quilo vale R$ 5.392 por ano.</span></div>
       <div class="passo r d1"><span class="num">2</span><span class="tx"><b>Contar gente na calçada</b>Três dias de alta e um de baixa, das 11h às 23h, em blocos de 15 minutos. Confirma os 171 clientes/dia de janeiro.</span></div>
       <div class="passo r d1"><span class="num">3</span><span class="tx"><b>Layout do equipamento no papel</b>Antes de assinar o aluguel. Balcão, freezers, pia da Vigilância e caixa precisam caber nos 35 m² — e a carga elétrica do ponto precisa aguentar.</span></div>
       <div class="passo r d1"><span class="num">4</span><span class="tx"><b>Aluguel com as contas dentro, por escrito</b>R$ 2.500/mês com luz e água inclusas. Freezer e balcão ligados 24h em janeiro fazem a conta de energia explodir.</span></div>
-      <div class="passo r d1"><span class="num">5</span><span class="tx"><b>Marca, INPI e embalagem</b>Embalagem personalizada R$ 7.000, plotagem R$ 6.000, decoração R$ 3.000. Total de R$ 16.000. O registro no INPI custa R$ 440 a R$ 880 e protege o nome.</span></div>
-      <div class="passo r d1"><span class="num">6</span><span class="tx"><b>Três fornecedores de polpa</b>Ice Mix Fruits (fábrica em Campo Duna, dentro de Garopaba), Maria Açaí (Joinville) e um distribuidor do RS. Teste cego antes de fechar.</span></div>
+      <div class="passo r d1"><span class="num">5</span><span class="tx"><b>Marca, INPI e embalagem</b>Embalagem personalizada R$ 7.000, plotagem R$ 6.000, decoração R$ 3.000. Total de R$ 16.000. O registro no INPI custa R$ 440 a R$ 880 e trava o nome no papel.</span></div>
+      <div class="passo r d1"><span class="num">6</span><span class="tx"><b>Teste cego com os três finalistas</b>Dos 12 orçamentos saem três. Prova às cegas com gente de fora antes de assinar — preço não decide sozinho.</span></div>
       <div class="passo r d1"><span class="num">7</span><span class="tx"><b>Obra, alvará e Vigilância Sanitária</b>Adequação elétrica, pia exclusiva de higienização, piso lavável, balança homologada. Seis a oito semanas, em paralelo.</span></div>
       <div class="passo r d1"><span class="num">8</span><span class="tx"><b>Abrir a tela do deck e montar o espaço kids</b>A tela de galinheiro sai. No lugar entram brinquedão, piso emborrachado, cerca de segurança e sombreamento.</span></div>
       <div class="passo r d1"><span class="num">9</span><span class="tx"><b>Comprar estoque em agosto</b>De setembro a dezembro a polpa sobe 15% a 25% por causa da entressafra amazônica.</span></div>
@@ -478,23 +519,66 @@ footer::before{content:""; position:absolute; inset:0; z-index:-1;
 
 <section class="escuro">
   <div class="w">
-    <p class="olho r">10 · Para o Degusta</p>
-    <h2 class="r d1">As perguntas que <em>fecham a conta</em></h2>
-    <p class="sub r d2">Três definem tudo: o preço do quilo, se a embalagem vem junto, e se podemos
-      ter marca própria continuando a comprar dele.</p>
+    <p class="olho r">10 · O preço da polpa</p>
+    <h2 class="r d1">Cada R$&nbsp;1 no quilo vale <em>R$&nbsp;5.392 por ano</em></h2>
+    <p class="sub r d2">São 539 baldes de 10 kg por ano. É a única linha da conta que ainda está
+      em aberto — e é por isso que vale pedir doze orçamentos.</p>
 
-    <div class="passos">
-      <div class="passo r d1" style="background:rgba(255,248,236,.09);border:1px solid rgba(255,248,236,.16);box-shadow:none"><span class="num">1</span><span class="tx"><b>Quanto custa o quilo da polpa?</b>A tabela inteira, por tipo. O plano usa R$ 17,50/kg — o balde de 10 kg a R$ 175.</span></div>
-      <div class="passo r d1" style="background:rgba(255,248,236,.09);border:1px solid rgba(255,248,236,.16);box-shadow:none"><span class="num">2</span><span class="tx"><b>A embalagem vem junto no preço, ou é à parte?</b>Copo, tampa, colher e sacola pesam R$ 1,10 por tigela.</span></div>
-      <div class="passo r d1" style="background:rgba(255,248,236,.09);border:1px solid rgba(255,248,236,.16);box-shadow:none"><span class="num rx">3</span><span class="tx"><b>Se quisermos marca própria, continuamos comprando de vocês?</b>A resposta pode ser sim — e aí não é escolher entre negócio e amizade.</span></div>
-      <div class="passo r d1" style="background:rgba(255,248,236,.09);border:1px solid rgba(255,248,236,.16);box-shadow:none"><span class="num">4</span><span class="tx"><b>Podemos definir nosso próprio preço por 100 g?</b>Sete pontos de CMV passam por aqui.</span></div>
-      <div class="passo r d1" style="background:rgba(255,248,236,.09);border:1px solid rgba(255,248,236,.16);box-shadow:none"><span class="num">5</span><span class="tx"><b>E os complementos — granola, leite em pó, calda, fruta?</b>Compramos de vocês ou no mercado? A que preço?</span></div>
-      <div class="passo r d1" style="background:rgba(255,248,236,.09);border:1px solid rgba(255,248,236,.16);box-shadow:none"><span class="num">6</span><span class="tx"><b>Tem frete até Garopaba? Pedido mínimo? Entrega semanal garantida em janeiro?</b></span></div>
-      <div class="passo r d1" style="background:rgba(255,248,236,.09);border:1px solid rgba(255,248,236,.16);box-shadow:none"><span class="num">7</span><span class="tx"><b>O preço muda na entressafra?</b>De setembro a dezembro o mercado sobe 15% a 25%.</span></div>
-      <div class="passo r d1" style="background:rgba(255,248,236,.09);border:1px solid rgba(255,248,236,.16);box-shadow:none"><span class="num">8</span><span class="tx"><b>Tem exclusividade em Garopaba?</b>Pode abrir outra Degusta na Ferrugem?</span></div>
-      <div class="passo r d1" style="background:rgba(255,248,236,.09);border:1px solid rgba(255,248,236,.16);box-shadow:none"><span class="num">9</span><span class="tx"><b>Quanto a loja de vocês faturava no verão e no inverno?</b>Quantos clientes por dia no pico, qual o ticket médio e qual era o CMV.</span></div>
-      <div class="passo r d1" style="background:rgba(255,248,236,.09);border:1px solid rgba(255,248,236,.16);box-shadow:none"><span class="num">10</span><span class="tx"><b>Quantos m² tinha a loja? Veio mesa, cadeira e balança homologada no lote?</b>Precisamos saber se o equipamento cabe nos 35 m².</span></div>
+    <div class="bars" id="polpa"></div>
+
+    <p class="punch r">Mesmo com a polpa <em>ao dobro</em>, sobram R$ 157 mil.</p>
+    <p class="nota r d1">O plano usa o balde de 10 kg a R$ 175 — R$ 17,50 o quilo. Fechar a R$ 155
+      são R$ 10.783 a mais no ano, todo ano. Nenhum preço realista de polpa derruba o negócio: o que
+      ele muda é o tamanho da sobra.</p>
+  </div>
+</section>
+
+<section>
+  <div class="w">
+    <p class="olho r">11 · Os doze orçamentos</p>
+    <h2 class="r d1">Doze fornecedores, <em>uma linha cada</em></h2>
+    <p class="sub r d2">A tabela está montada e vazia. Cada orçamento que chegar preenche uma linha,
+      e o vencedor aparece sozinho.</p>
+
+    <div class="rolo r d1">
+      <table class="orc">
+        <thead><tr><th></th><th>Fornecedor</th><th>Balde 10 kg</th><th>R$/kg</th>
+          <th>Frete a Garopaba</th><th>Lucro no ano</th></tr></thead>
+        <tbody>
+          <tr><td class="i">01</td><td class="nm vaz">aguardando</td><td class="vaz">—</td><td class="vaz">—</td><td class="vaz">—</td><td class="vaz">—</td></tr>
+          <tr><td class="i">02</td><td class="nm vaz">aguardando</td><td class="vaz">—</td><td class="vaz">—</td><td class="vaz">—</td><td class="vaz">—</td></tr>
+          <tr><td class="i">03</td><td class="nm vaz">aguardando</td><td class="vaz">—</td><td class="vaz">—</td><td class="vaz">—</td><td class="vaz">—</td></tr>
+          <tr><td class="i">04</td><td class="nm vaz">aguardando</td><td class="vaz">—</td><td class="vaz">—</td><td class="vaz">—</td><td class="vaz">—</td></tr>
+          <tr><td class="i">05</td><td class="nm vaz">aguardando</td><td class="vaz">—</td><td class="vaz">—</td><td class="vaz">—</td><td class="vaz">—</td></tr>
+          <tr><td class="i">06</td><td class="nm vaz">aguardando</td><td class="vaz">—</td><td class="vaz">—</td><td class="vaz">—</td><td class="vaz">—</td></tr>
+          <tr><td class="i">07</td><td class="nm vaz">aguardando</td><td class="vaz">—</td><td class="vaz">—</td><td class="vaz">—</td><td class="vaz">—</td></tr>
+          <tr><td class="i">08</td><td class="nm vaz">aguardando</td><td class="vaz">—</td><td class="vaz">—</td><td class="vaz">—</td><td class="vaz">—</td></tr>
+          <tr><td class="i">09</td><td class="nm vaz">aguardando</td><td class="vaz">—</td><td class="vaz">—</td><td class="vaz">—</td><td class="vaz">—</td></tr>
+          <tr><td class="i">10</td><td class="nm vaz">aguardando</td><td class="vaz">—</td><td class="vaz">—</td><td class="vaz">—</td><td class="vaz">—</td></tr>
+          <tr><td class="i">11</td><td class="nm vaz">aguardando</td><td class="vaz">—</td><td class="vaz">—</td><td class="vaz">—</td><td class="vaz">—</td></tr>
+          <tr><td class="i">12</td><td class="nm vaz">aguardando</td><td class="vaz">—</td><td class="vaz">—</td><td class="vaz">—</td><td class="vaz">—</td></tr>
+        </tbody>
+      </table>
     </div>
+    <p class="nota r d1">A última coluna sai da seção anterior: R$ 252.097 menos (preço do quilo
+      menos R$ 17,50) vezes 5.392. Preço mais baixo não ganha sozinho — entrega garantida em janeiro
+      pesa igual.</p>
+
+    <h3 class="r">O que pedir em cada um</h3>
+    <ul class="perg">
+      <li><i>01</i><span><b>Preço do quilo por tipo</b>Tradicional, zero açúcar, com guaraná.</span></li>
+      <li><i>02</i><span><b>Preço do balde de 10 kg fechado</b>Na tabela e à vista.</span></li>
+      <li><i>03</i><span><b>Frete até Garopaba</b>Incluso, à parte, ou grátis acima de quanto.</span></li>
+      <li><i>04</i><span><b>Pedido mínimo por entrega</b>Em janeiro a reposição é semanal.</span></li>
+      <li><i>05</i><span><b>Frequência garantida em janeiro</b>Faltar polpa no dia 5 de janeiro custa mais do que qualquer desconto.</span></li>
+      <li><i>06</i><span><b>Vende embalagem junto?</b>Copo, tampa, colher e sacola pesam R$ 1,10 por tigela.</span></li>
+      <li><i>07</i><span><b>Vende complementos?</b>Granola, leite em pó, calda, fruta — e a que preço.</span></li>
+      <li><i>08</i><span><b>Reajuste na entressafra</b>De setembro a dezembro o mercado sobe 15% a 25%. Dá para travar preço comprando em agosto?</span></li>
+      <li><i>09</i><span><b>Prazo de pagamento e desconto à vista</b>Trinta dias em janeiro valem dinheiro.</span></li>
+      <li><i>10</i><span><b>Amostra grátis</b>Sem prova às cegas não se assina.</span></li>
+    </ul>
+
+    <p class="punch r">Cada R$ 10 a menos no balde: <em>R$ 5.392 por ano</em>.</p>
   </div>
 </section>
 
@@ -505,7 +589,7 @@ footer::before{content:""; position:absolute; inset:0; z-index:-1;
       <div class="bx r d1"><div class="n" style="font-size:clamp(28px,3.6vw,44px)">171</div>
         <div class="l">clientes/dia em janeiro. Quatro dias contando gente na calçada confirmam ou derrubam.</div></div>
       <div class="bx r d2"><div class="n" style="font-size:clamp(28px,3.6vw,44px)">R$ 17,50</div>
-        <div class="l">o quilo da polpa. Confirmar com a tabela do fornecedor.</div></div>
+        <div class="l">o quilo da polpa. Os doze orçamentos fecham esse número.</div></div>
       <div class="bx r d3"><div class="n" style="font-size:clamp(28px,3.6vw,44px)">R$ 2.500</div>
         <div class="l">de aluguel com luz e água inclusas. Deixar escrito no contrato.</div></div>
       <div class="bx r d4"><div class="n" style="font-size:clamp(28px,3.6vw,44px)">35 m²</div>
@@ -576,7 +660,7 @@ footer::before{content:""; position:absolute; inset:0; z-index:-1;
     d.className="bar r"+(prej?" perigo":(otimo?" destaque":""));
     d.innerHTML='<span class="nm">'+it[0]+
       '<small>R$ '+it[1].toFixed(2).replace(".",",")+' o quilo · vendido a R$ 59,90</small></span>'+
-      '<span class="vv" style="color:'+(prej?"var(--neg)":(ruim?"var(--ouro)":"var(--pos)"))+'">'+
+      '<span class="vv" style="color:'+(prej?"#FF8168":(ruim?"#FFC93C":"#4ED596"))+'">'+
       Math.round(cmv*100)+'%'+(prej?" ⚠":"")+'</span>'+
       '<span class="tr"><span class="fl" style="--w:'+Math.min(cmv*100,100)+'%;background:'+
       (prej?"linear-gradient(90deg,#F5866F,#EE5138)":
@@ -598,6 +682,24 @@ footer::before{content:""; position:absolute; inset:0; z-index:-1;
       '<span class="tr"><span class="fl" style="--w:'+(c[2]/320000*100)+'%;background:'+
       (c[3]?"linear-gradient(90deg,#FFDE7A,#FF9026)":"linear-gradient(90deg,#9B45CE,#4A1A6B)")+'"></span></span>';
     sc.appendChild(d);
+  });
+
+  /* ─── preço da polpa ─── */
+  var POLPA=[["Balde a R$ 145","R$ 14,50 o quilo · insumo 24,9%",268272,false],
+             ["Balde a R$ 155","R$ 15,50 o quilo · insumo 25,7%",262880,false],
+             ["Balde a R$ 175","o preço do plano · insumo 27,4%",252097,true],
+             ["Balde a R$ 195","R$ 19,50 o quilo · insumo 29,1%",241314,false],
+             ["Balde a R$ 230","R$ 23,00 o quilo · insumo 32,0%",222443,false],
+             ["Balde a R$ 350","a polpa ao dobro · insumo 42,2%",157745,false]];
+  var pc=document.getElementById("polpa");
+  if(pc) POLPA.forEach(function(c){
+    var d=document.createElement("div");
+    d.className="bar r"+(c[3]?" destaque":"");
+    d.innerHTML='<span class="nm">'+c[0]+'<small>'+c[1]+'</small></span>'+
+      '<span class="vv" style="color:'+(c[3]?"#FFC93C":"#DDB8F0")+'">R$ '+fmt(c[2])+'</span>'+
+      '<span class="tr"><span class="fl" style="--w:'+(c[2]/290000*100)+'%;background:'+
+      (c[3]?"linear-gradient(90deg,#FFDE7A,#FF9026)":"linear-gradient(90deg,#D9A6F5,#8134B0)")+'"></span></span>';
+    pc.appendChild(d);
   });
 
   /* ─── alavancas de CMV ─── */
