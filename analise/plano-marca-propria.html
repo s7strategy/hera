@@ -116,7 +116,8 @@ h3{font-size:clamp(26px,3.6vw,44px); font-weight:800; margin-top:clamp(46px,6vw,
 .bar .vv{font-size:clamp(20px,2.4vw,32px); font-weight:800; font-variant-numeric:tabular-nums;
   letter-spacing:-.03em;}
 .bar .tr{display:block; grid-column:1/-1; height:16px; border-radius:9px; background:var(--bg3);
-  overflow:hidden; margin-top:8px;}
+  overflow:hidden; margin-top:8px; position:relative;}
+.bar .tr .fl[style*="absolute"]{top:0; left:0;}
 .bar .fl{display:block; height:100%; border-radius:9px; width:var(--w);
   transition:width 1.1s cubic-bezier(.2,.7,.2,1);}
 .anim .bar .fl{width:0;} .anim .bar.on .fl{width:var(--w);}
@@ -582,6 +583,67 @@ footer::before{content:""; position:absolute; inset:0; z-index:-1;
   </div>
 </section>
 
+<section class="escuro">
+  <div class="w">
+    <p class="olho r">12 · O segundo motor</p>
+    <h2 class="r d1">Sete meses magros. <em>Uma manhã livre.</em></h2>
+    <p class="sub r d2">O balcão de açaí vende de tarde e de noite, e vende pouco de abril a outubro.
+      O hóspede de Airbnb está na Ferrugem nas duas horas em que a loja está parada.</p>
+
+    <div class="duo">
+      <div class="card ou r d1">
+        <p class="tag">A caixa · casal</p>
+        <div class="big">R$ 89<small>sobra R$ 41,25 por caixa</small></div>
+        <ul>
+          <li><i>·</i><span>Pão de fermentação natural, manteiga e geleia</span></li>
+          <li><i>·</i><span>Queijo, frios e fruta da estação</span></li>
+          <li><i>·</i><span>Bolo ou cookie da vitrine</span></li>
+          <li><i>·</i><span>Café da casa em garrafa térmica</span></li>
+          <li><i>!</i><span><b>Nada quente</b> — ovo e torrada chegam ruins. A caixa é montagem, não cozinha</span></li>
+        </ul>
+      </div>
+      <div class="card rx r d2">
+        <p class="tag">A tigela de açaí, para comparar</p>
+        <div class="big">R$ 31,08<small>sobra R$ 22,95 por tigela</small></div>
+        <ul>
+          <li><i>·</i><span>415 g a R$ 74,90 o quilo</span></li>
+          <li><i>·</i><span>Vende das 14h às 22h</span></li>
+          <li><i>·</i><span>Disputa a fila de janeiro</span></li>
+          <li><i>!</i><span>A caixa sobra <b>1,8× a tigela</b> — às 8h, com o balcão parado</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 class="r">O que acontece com os meses fracos</h3>
+    <div class="bars" id="manha"></div>
+    <p class="nota r d1">Sobra do mês depois de insumo, folha, aluguel, overhead e impostos. Em cinza,
+      o que sobra hoje. Cenário de 200 proprietários parceiros — 46% dos 435 anúncios da Ferrugem.</p>
+
+    <div class="grid">
+      <div class="bx r d1"><div class="n">R$ 134.402</div><div class="l">de faturamento novo no ano, com 200 parceiros</div></div>
+      <div class="bx r d2"><div class="n ps">R$ 38.628</div><div class="l">a mais de lucro, sem contratar ninguém</div></div>
+      <div class="bx r d3"><div class="n ou">60%</div><div class="l">a concentração no verão cai de 64% para 60%</div></div>
+      <div class="bx r d4"><div class="n">7</div><div class="l">caixas na manhã de pico. O teto da cozinha é 30</div></div>
+    </div>
+
+    <p class="punch r">A restrição não é a cozinha. <em>É assinar proprietário.</em></p>
+
+    <h3 class="r">Como isso funciona de verdade</h3>
+    <div class="passos">
+      <div class="passo r d1" style="background:rgba(255,248,236,.09);border:1px solid rgba(255,248,236,.16);box-shadow:none"><span class="num">1</span><span class="tx"><b>O Airbnb não tem order bump de terceiro no checkout</b>Não existe caixinha para marcar na reserva. O que existe é a mensagem automática que o anfitrião dispara 48h antes do check-in, o guia da casa e o cartão com QR na cozinha do imóvel. É por aí que a oferta entra.</span></div>
+      <div class="passo r d1" style="background:rgba(255,248,236,.09);border:1px solid rgba(255,248,236,.16);box-shadow:none"><span class="num">2</span><span class="tx"><b>Vender para a gestora, não para o proprietário</b>Três imobiliárias de temporada em Garopaba assinam mais de 100 unidades numa conversa. Duzentos proprietários, um a um, são duzentas conversas para o mesmo resultado.</span></div>
+      <div class="passo r d1" style="background:rgba(255,248,236,.09);border:1px solid rgba(255,248,236,.16);box-shadow:none"><span class="num rx">3</span><span class="tx"><b>O hóspede compra da moka, não do proprietário</b>Se o proprietário passa a "oferecer café da manhã", a prefeitura pode reclassificar o imóvel de locação para hospedagem e cobrar ISS. A nota sai no nosso CNPJ e ele recebe comissão de indicação. Isso protege ele — e é o melhor argumento para ele topar.</span></div>
+      <div class="passo r d1" style="background:rgba(255,248,236,.09);border:1px solid rgba(255,248,236,.16);box-shadow:none"><span class="num">4</span><span class="tx"><b>15% de comissão para quem indica</b>R$ 13,35 por caixa de casal, por mandar uma mensagem que já está automatizada. A 10% sobra R$ 6.720 a mais para nós no ano; a 20%, R$ 6.720 a menos. Começar em 15% deixa margem para negociar com a gestora grande.</span></div>
+      <div class="passo r d1" style="background:rgba(255,248,236,.09);border:1px solid rgba(255,248,236,.16);box-shadow:none"><span class="num">5</span><span class="tx"><b>Entrega grátis acima de R$ 79</b>Abaixo disso, R$ 8. Empurra o pedido para a caixa de casal, que é onde está a sobra. As entregas saem agrupadas entre 7h e 9h, num raio de dois quilômetros.</span></div>
+      <div class="passo r d1" style="background:rgba(255,248,236,.09);border:1px solid rgba(255,248,236,.16);box-shadow:none"><span class="num">6</span><span class="tx"><b>A caixa é uma degustação paga</b>A família recebe a marca na cozinha do apartamento no primeiro dia de uma estadia de cinco, a três quadras da loja. O café da manhã se paga sozinho e ainda traz gente para o balcão à tarde.</span></div>
+    </div>
+
+    <p class="nota r d1">Nada disso está na conta do ano da seção 07 — aquela conta é só a loja, com zero
+      parceiros assinados. Este é o motor que se liga depois, e é a resposta para os sete meses em que
+      a loja hoje anda de lado.</p>
+  </div>
+</section>
+
 <footer>
   <div class="w">
     <p class="olho r">O que ainda precisa ser confirmado</p>
@@ -700,6 +762,27 @@ footer::before{content:""; position:absolute; inset:0; z-index:-1;
       '<span class="tr"><span class="fl" style="--w:'+(c[2]/290000*100)+'%;background:'+
       (c[3]?"linear-gradient(90deg,#FFDE7A,#FF9026)":"linear-gradient(90deg,#D9A6F5,#8134B0)")+'"></span></span>';
     pc.appendChild(d);
+  });
+
+  /* ─── as manhãs da baixa temporada ─── */
+  var MANHA=[["Abril","hoje sobram R$ 8.331",11435,8331],
+             ["Maio","hoje sobram R$ 3.183",5474,3183],
+             ["Junho","hoje sobram R$ 2.611",4607,2611],
+             ["Julho","hoje sobram R$ 3.755",6275,3755],
+             ["Agosto","hoje sobram R$ 2.611",4673,2611],
+             ["Setembro","hoje sobram R$ 3.755",6194,3755],
+             ["Outubro","hoje sobram R$ 7.759",11196,7759]];
+  var mc=document.getElementById("manha");
+  if(mc) MANHA.forEach(function(c){
+    var d=document.createElement("div");
+    d.className="bar r";
+    d.innerHTML='<span class="nm">'+c[0]+'<small>'+c[1]+'</small></span>'+
+      '<span class="vv" style="color:#4ED596">R$ '+fmt(c[2])+'</span>'+
+      '<span class="tr">'+
+      '<span class="fl" style="--w:'+(c[2]/12000*100)+'%;background:linear-gradient(90deg,#7DE8B4,#1F9A61);position:absolute"></span>'+
+      '<span class="fl" style="--w:'+(c[3]/12000*100)+'%;background:rgba(255,248,236,.42);position:relative"></span>'+
+      '</span>';
+    mc.appendChild(d);
   });
 
   /* ─── alavancas de CMV ─── */

@@ -593,6 +593,87 @@ agora endereçada a doze fornecedores em vez de um.
 
 ---
 
+## 1-G. O formato: açaí-café, e o café da manhã do Airbnb
+
+O formato definido é **açaí + café**, no modelo das casas de Dubai e da Califórnia: balcão de açaí
+por peso, cafeteria de verdade, bowls montados, toasts e focaccias. Isso muda duas coisas do plano
+original.
+
+**Equipamento.** Máquina de espresso e moedor não vieram no lote da unidade comprada. Usada boa
+custa R$ 8 a 15 mil, nova R$ 15 a 35 mil. Chapa, fogão e coifa para ovo e focaccia também não estão
+nos R$ 21.000 de "abrir a porta", e mudam a classe da Vigilância Sanitária em 35 m². **É a única
+lacuna de investimento ainda em aberto.**
+
+**Fila.** O teto de 350 clientes/dia pressupõe balança e saco. Espresso extraído, marshmallow
+maçaricado e toast na chapa levam de 2 a 4 minutos cada, em série. Em janeiro a restrição deixa de
+ser demanda e passa a ser o balcão.
+
+### O canal de café da manhã
+
+O contraponto é que o formato café abre um canal que a açaiteria pura não tinha: **caixa de café da
+manhã entregue ao hóspede de Airbnb, com o proprietário indicando e recebendo comissão.**
+
+A Praia da Ferrugem tem **435 anúncios listados**. O Airbnb reporta 53% dos alojamentos disponíveis
+ao longo do ano — ou seja ~47% ocupados — com a maior disponibilidade em julho (72%), junho (70,5%)
+e agosto (68,4%).
+
+| Kit | Venda | Insumo | Entrega | Comissão 15% | Sobra |
+|---|---|---|---|---|---|
+| Solo | R$ 39 | R$ 12,60 | R$ 2,50 | R$ 5,85 | R$ 18,05 |
+| **Casal** | **R$ 89** | **R$ 31,90** | **R$ 2,50** | **R$ 13,35** | **R$ 41,25** |
+| Família (4) | R$ 159 | R$ 56,80 | R$ 2,50 | R$ 23,85 | R$ 75,85 |
+
+Uma tigela de açaí de 415 g vende R$ 31,08 e sobra R$ 22,95. **A caixa de casal sobra 1,8× isso —
+às 8h, com o balcão parado, sem disputar a fila de janeiro.**
+
+Premissas do funil: 15% das estadias pedem ao menos uma vez, 30% dessas pedem uma segunda manhã.
+
+| Parceiros | % do parque | Pedidos/ano | Faturamento | Ganho no lucro | Pico/manhã |
+|---|---|---|---|---|---|
+| 50 | 11% | 371 | R$ 33.600 | +R$ 9.817 | 2 |
+| 100 | 23% | 743 | R$ 67.201 | +R$ 19.635 | 4 |
+| **200** | **46%** | **1.485** | **R$ 134.402** | **+R$ 38.628** | **7** |
+| 300 | 69% | 2.228 | R$ 201.602 | +R$ 57.456 | 11 |
+
+O teto operacional da manhã é ~30 caixas com 2 pessoas entre 6h30 e 9h30. **Em nenhum cenário a
+operação é a restrição — a restrição é assinar proprietário.**
+
+### O prêmio é a baixa temporada, não o verão
+
+| Mês | Loja | Café da manhã | Sobra do mês |
+|---|---|---|---|
+| Abril | R$ 25.000 | R$ 9.883 | R$ 8.331 → **R$ 11.435** |
+| Maio | R$ 16.000 | R$ 7.294 | R$ 3.183 → **R$ 5.474** |
+| Junho | R$ 15.000 | R$ 6.353 | R$ 2.611 → **R$ 4.607** |
+| Julho | R$ 17.000 | R$ 8.024 | R$ 3.755 → **R$ 6.275** |
+| Agosto | R$ 15.000 | R$ 6.565 | R$ 2.611 → **R$ 4.673** |
+| Setembro | R$ 17.000 | R$ 7.765 | R$ 3.755 → **R$ 6.194** |
+| Outubro | R$ 24.000 | R$ 10.941 | R$ 7.759 → **R$ 11.196** |
+
+Média mensal de abril a outubro: **R$ 18.429 → R$ 26.546**. Concentração em dez+jan+fev: **64% →
+60%**. Junho quase dobra de sobra. Era o ponto mais fraco de todo o plano.
+
+### Quatro correções de mecânica
+
+1. **O Airbnb não tem order bump de terceiro no checkout.** Não existe caixinha para o hóspede
+   marcar na reserva. O que existe é a mensagem automática que o anfitrião dispara antes do
+   check-in (via Hospitable, Guesty, Duve), o guia da casa e o cartão com QR dentro do imóvel. A
+   venda é B2B — assinar anfitrião, não anunciar para hóspede.
+2. **Vender para a gestora, não para o proprietário.** Três imobiliárias de temporada em Garopaba
+   assinam mais de 100 unidades numa conversa. Duzentos proprietários, um a um, são duzentas
+   conversas para o mesmo resultado.
+3. **O hóspede compra da moka, não do proprietário.** Se o proprietário passa a *oferecer* café da
+   manhã, a prefeitura pode reclassificar o imóvel de locação para hospedagem e cobrar ISS. A nota
+   sai no nosso CNPJ e ele recebe comissão de indicação. Isso protege ele — e é o melhor argumento
+   para ele topar.
+4. **Nada quente viaja.** Ovo, torrada e focaccia do forno chegam ruins. A caixa é fria ou de
+   temperatura ambiente, com o café em garrafa térmica. É montagem, não cozinha — roda com a mesma
+   pessoa da baixa temporada, sem contratar ninguém.
+
+Modelo em `analise/cafe-da-manha-airbnb.py`; fichas do cardápio em `analise/ficha-cardapio-moka.py`.
+
+---
+
 ## 2. DRE mês a mês
 
 ### 2.1 Mantendo a Degusta (hibernando mai–ago)
@@ -834,7 +915,12 @@ R$ 1,00 no quilo vale R$ 5.392 de lucro por ano. Doze orçamentos em andamento, 
 a seção 1-E lista o que pedir em cada um.
 
 **As três coisas para fazer esta semana:** fechar os doze orçamentos, contar gente na calçada por
-quatro dias, e protocolar o nome no INPI antes de plotar qualquer coisa.
+quatro dias, e protocolar o nome no INPI antes de plotar qualquer coisa — "moka" é termo descritivo
+no ramo de café e tem risco real de objeção na classe 43.
+
+**E a quarta, que não é para esta semana mas define o ano:** marcar conversa com as três maiores
+gestoras de temporada de Garopaba. O café da manhã do Airbnb (seção 1-G) vale mais para os sete
+meses magros do que qualquer coisa que se faça no verão.
 
 ---
 
