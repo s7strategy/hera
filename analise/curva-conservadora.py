@@ -15,7 +15,7 @@ def aliq(r):
 SM=1_621; CLT=SM*1.4
 FOLHA=CLT*(5*2+4*1+3*2+1*7)          # 5 no pico, 4 em dez, 3 em mar/nov, 1 o resto
 ALUG=30_000                           # R$ 2.500/mês com luz e água inclusas
-OVH=14_400                            # gás, contador, PDV, internet, limpeza
+OVH=16_320                            # gás, contador, PDV, internet, limpeza + máquina de café a R$ 160/mês
 KIDS_OP=7_539; KIDS_CAPEX=25_550
 # Investimento nos valores do dono. Equipamento pesado já comprado — fora da conta.
 INV_BASE=8_000+8_000+5_000            # reforma + frete do equipamento + insumos iniciais

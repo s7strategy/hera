@@ -599,12 +599,105 @@ O formato definido é **açaí + café**, no modelo das casas de Dubai e da Cali
 por peso, cafeteria de verdade, bowls montados, toasts e focaccias. Isso muda duas coisas do plano
 original.
 
-**Equipamento.** Máquina de espresso e moedor não vieram no lote da unidade comprada. Usada boa
-custa R$ 8 a 15 mil, nova R$ 15 a 35 mil. Chapa, fogão e coifa para ovo e focaccia também não estão
-nos R$ 21.000 de "abrir a porta", e mudam a classe da Vigilância Sanitária em 35 m². **É a única
-lacuna de investimento ainda em aberto.**
+**Equipamento — a lacuna fechou.** A máquina de espresso é **alugada por R$ 160/mês**, não comprada:
+sai do investimento e entra no overhead, que passa de R$ 14.400 para R$ 16.320/ano. E como massa,
+pão e croissant chegam prontos de fornecedor, não há forno, masseira nem câmara de fermentação a
+comprar.
 
-**Fila.** O teto de 350 clientes/dia pressupõe balança e saco. Espresso extraído, marshmallow
+| Item que o formato evita | R$ |
+|---|---|
+| Forno de lastro ou turbo | 14.000 |
+| Masseira espiral | 6.500 |
+| Câmara de fermentação controlada | 9.000 |
+| Bancada e utensílios de padaria | 3.500 |
+| Máquina de espresso + moedor | 12.000 |
+| **Capex evitado** | **45.000** |
+| *Padeiro CLT, o ano todo* | *27.233/ano de folha evitada* |
+
+**Efeito no lucro:** os R$ 1.920/ano de aluguel da máquina levam o lucro de R$ 252.097 para
+**R$ 250.177** (margem de 39,2%). O payback segue em 3,0 meses.
+
+### Terceirizar contra padeiro próprio
+
+| | |
+|---|---|
+| Volume anual estimado de itens de café e padaria | ~13.000 |
+| Sobrepreço médio da base pronta | R$ 2,00 por item |
+| Custo do sobrepreço no ano | R$ 25.990 |
+| Custo de um padeiro CLT no ano | R$ 27.233 |
+
+**Em insumo puro é quase empate.** O que decide são três coisas que não aparecem na conta: os
+R$ 33.000 de forno, masseira e câmara que não cabem em 35 m²; o padeiro ser custo fixo o ano todo
+enquanto a demanda vai de 80 itens/dia em janeiro a 20 em junho; e a fornada não vendida virar
+perda, coisa que base congelada não faz. **Terceirizar está certo — mas é empate no insumo, não
+folga. Vale negociar o preço da base.**
+
+### Onde a margem da linha de café realmente vaza
+
+Com louça de salão e base comprada pronta:
+
+| | CMV médio |
+|---|---|
+| Bebida quente e gelada | **22,3%** |
+| Comida (toast, croissant, focaccia) | **43,7%** |
+| Açaí self-service | 26,2% |
+
+**A massa terceirizada não é o problema** — ela custa R$ 2,10 num prato de R$ 16. O que come a
+margem é o recheio caro: búfala a R$ 60/kg e presunto cru a R$ 90/kg, em porções de 40 a 60 g,
+custam mais que a base inteira.
+
+| Item | Preço no cardápio | Custo | CMV | Preço a 35% |
+|---|---|---|---|---|
+| Croissant Caprese | R$ 17 | R$ 9,00 | 53% | **R$ 26** |
+| Croissant Moka | R$ 18 | R$ 9,12 | 51% | **R$ 26** |
+| Focaccia tomate & búfala | R$ 16 | R$ 7,84 | 49% | **R$ 22** |
+| Pão de queijo · 4 un | R$ 6 | R$ 2,88 | 48% | **R$ 8** |
+| Focaccia presunto cru & ricota | R$ 18 | R$ 8,38 | 47% | **R$ 24** |
+| Moka toast | R$ 18 | R$ 8,22 | 46% | **R$ 23** |
+| *Espresso* | *R$ 6* | *R$ 1,27* | *21%* | *ok* |
+| *Cappuccino* | *R$ 10* | *R$ 2,09* | *21%* | *ok* |
+
+A linha de bebida está bem precificada. A de comida está entre R$ 5 e R$ 8 abaixo do que fecha.
+
+### A máquina a R$ 160 — o que perguntar antes de assinar
+
+O aluguel a R$ 160/mês quase sempre vem com **compra mínima de café atrelada**. É no preço do quilo
+que o fornecedor recupera a máquina.
+
+| Café/kg | Custo por xícara | CMV do espresso a R$ 6 | 8 kg/mês custam no ano |
+|---|---|---|---|
+| R$ 45 | R$ 0,81 | 13% | R$ 4.320 |
+| R$ 55 | R$ 0,99 | 16% | R$ 5.280 |
+| R$ 70 | R$ 1,26 | 21% | R$ 6.720 |
+| R$ 85 | R$ 1,53 | 25% | R$ 8.160 |
+
+De R$ 55 para R$ 85 o quilo são **R$ 2.880/ano — vinte vezes o valor do aluguel**. Perguntar: volume
+mínimo por mês, preço do quilo travado por quanto tempo, manutenção e peça inclusas, prazo de
+contrato e multa por rescisão.
+
+### O preparo em casa não passa na Vigilância
+
+O plano de pré-preparar em casa e finalizar na loja tem um problema regulatório: pela RDC 216/2004
+da Anvisa, **a área de manipulação tem que fazer parte do estabelecimento licenciado**. Cozinha
+residencial não pode ser a cozinha de apoio de um comércio de alimentos com alvará. Numa fiscalização
+em janeiro, a pergunta "onde isso foi feito?" tem uma resposta só.
+
+Há três saídas legítimas, e a primeira já está em curso:
+
+1. **Ampliar a terceirização.** O que hoje seria feito em casa passa a vir de fornecedor licenciado,
+   como a massa já vem. Aí "finaliza lá" é literalmente finalização — legal, sem cozinha extra.
+2. **Licenciar uma cozinha de apoio** em endereço próprio, com alvará e licença sanitária próprios.
+   Depende da Vigilância de Garopaba aceitar o espaço.
+3. **Fazer o pré-preparo na própria loja**, fora do horário de pico. Cabe, porque não envolve forno
+   nem masseira.
+
+O risco não é multa — é interdição, e o pior momento possível para uma interdição é janeiro.
+
+Modelo em `analise/finaliza-la-terceirizado.py`.
+
+**Fila.**
+
+O teto de 350 clientes/dia pressupõe balança e saco. Espresso extraído, marshmallow
 maçaricado e toast na chapa levam de 2 a 4 minutos cada, em série. Em janeiro a restrição deixa de
 ser demanda e passa a ser o balcão.
 
