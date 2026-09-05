@@ -746,6 +746,52 @@ operação é a restrição — a restrição é assinar proprietário.**
 Média mensal de abril a outubro: **R$ 18.429 → R$ 26.546**. Concentração em dez+jan+fev: **64% →
 60%**. Junho quase dobra de sobra. Era o ponto mais fraco de todo o plano.
 
+### O teto da Ferrugem, e como passar dele
+
+Assinando **todos** os 435 anúncios da Ferrugem, com 15% das estadias pedindo, o pico de janeiro dá
+**16 caixas por dia**. Esse é o teto do bairro. Há dois caminhos para passar dele, e eles se somam:
+
+| Conversão por estadia | Ferrugem inteira (435) | Garopaba inteira (~1.800) |
+|---|---|---|
+| 15% (o plano) | 16/dia | 65/dia |
+| 25% | 26/dia | 108/dia |
+| **40%** | **42/dia** | **172/dia** |
+| 60% | 62/dia | 258/dia |
+
+**A jogada que move a conversão: vender a primeira manhã, não "café da manhã".** A família chega
+sexta à noite com a geladeira vazia, o mercado a dez minutos e lotado em janeiro. A manhã da chegada
+é uma dor universal e com data marcada — não depende de gosto. Uma estadia tem uma manhã de chegada
+e quatro manhãs comuns, e a de chegada converte muito mais. É essa diferença que separa 16 caixas por
+dia de 42.
+
+### 100 a 200 por dia: o que teria que ser verdade
+
+O número é alcançável — corresponde a *Garopaba inteira a 40–60% de conversão*. Não é fantasia. Mas
+não é o primeiro verão, por quatro motivos que se somam:
+
+1. Exige ~93% do parque do **município** assinado, não da Ferrugem
+2. Exige **cozinha de apoio licenciada** — 100 caixas não cabem nos 35 m²
+3. Exige 3 motos e 7 pessoas na manhã, sem tirar ninguém do balcão
+4. Exige conversão **medida**, e ninguém tem esse número hoje
+
+| Pedidos/dia | O que é | Gargalo | Equipe de manhã |
+|---|---|---|---|
+| 10 | canal | absorvido pela equipe | 1 |
+| 30 | canal | teto da loja atual | 2 |
+| 60 | operação | turno de manhã dedicado | 3 a 4 |
+| 100 | **negócio** | cozinha de apoio licenciada | 5 a 6 |
+| 200 | **negócio** | cozinha central e frota | 9 a 12 |
+
+**Plano de dois tempos:**
+
+- **Verão 1 — a Ferrugem, e medir.** Meta de 200 parceiros, 7 a 19 caixas/dia. O objetivo do primeiro
+  ano não é faturar com isso; é descobrir a conversão real. Tudo acima depende desse número.
+- **Verão 2 — Garopaba inteira e cozinha de apoio.** A 172 caixas/dia, os 60 dias de pico fazem
+  **R$ 437.828 de sobra** — mais que o dobro do lucro anual da loja inteira.
+
+A 100 caixas por dia isso deixa de ser um canal da loja e vira um segundo negócio, com CNPJ, endereço
+e equipe próprios. Modelo em `analise/escada-cafe-da-manha.py`.
+
 ### Quatro correções de mecânica
 
 1. **O Airbnb não tem order bump de terceiro no checkout.** Não existe caixinha para o hóspede
