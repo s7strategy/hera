@@ -7,8 +7,12 @@ def pc(v,c=0): return f"{v*100:.{c}f}%"
 TICKET=90.50; SOBRA=42.37
 PICO=60                    # 20/dez a 20/fev — os 60 dias que ele citou
 OCUP=.92; ESTADIA=5        # janeiro
-FERRUGEM=435               # anúncios listados na Praia da Ferrugem
-GAROPABA=1_800             # estimativa do parque do município inteiro
+# ── o tamanho do parque é a premissa que mais pesa, e ainda não está medida ──
+# 435 era o número de anúncios COM ESTACIONAMENTO num agregador — contador de
+# filtro, não total. Busca própria do dono na Ferrugem devolveu ~1.600.
+FERRUGEM_MIN=435           # piso: contagem filtrada de um agregador
+FERRUGEM=1_600             # busca do dono na Praia da Ferrugem
+GAROPABA=4_000             # município inteiro, escalado na mesma proporção
 
 def parceiros(pedidos_dia, conv, repete=.30):
     """Unidades parceiras necessárias para X pedidos/dia no pico."""
@@ -24,7 +28,7 @@ for pd in (10,30,60,100,200):
         onde="" if u<=FERRUGEM else "*"
         linha+=f"{f'{u:,.0f}'.replace(',','.')+onde:>16}"
     print(linha)
-print(f"\n  * acima de {FERRUGEM} unidades a Ferrugem acabou — precisa Silveira, centro e Garopaba")
+print(f"\n  * acima de {FERRUGEM:,} unidades a Ferrugem acabou — precisa Silveira, centro e Garopaba".replace(",","."))
 print(f"    inteira, um parque estimado em ~{GAROPABA:,} anúncios.".replace(",","."))
 print("  conv = % das estadias que pedem ao menos uma vez; 30% dessas pedem uma segunda manhã.")
 
@@ -63,13 +67,13 @@ print("  Em janeiro essa gente concorre com as 5 pessoas que o balcão já preci
 
 print("\n"+"="*94); print("O TETO DA FERRUGEM SOZINHA"); print("="*94)
 def por_dia(u,conv,repete=.30): return u*OCUP/ESTADIA*conv*(1+repete)
-print(f"  {'Conversão':<12}{'Ferrugem inteira (435)':>26}{'Garopaba inteira (1.800)':>28}")
+print(f"  {'Conversão':<12}{'Se forem 435':>18}{'Se forem 1.600':>18}{'Garopaba (4.000)':>20}")
 for c in (.15,.25,.40,.60):
-    print(f"  {pc(c):<12}{por_dia(FERRUGEM,c):>21.0f}/dia{por_dia(GAROPABA,c):>23.0f}/dia")
-print("\n  Assinando TODOS os 435 anúncios da Ferrugem, na conversão do plano, dá 16 caixas/dia.")
-print("  É esse o teto do bairro. Para passar dele há dois caminhos, e eles se somam:")
-print("    · subir a conversão — a Ferrugem a 40% já dá 42/dia")
-print("    · sair da Ferrugem — Silveira, centro e Garopaba multiplicam o parque por 4")
+    print(f"  {pc(c):<12}{por_dia(FERRUGEM_MIN,c):>13.0f}/dia{por_dia(FERRUGEM,c):>13.0f}/dia{por_dia(GAROPABA,c):>15.0f}/dia")
+print("\n  A diferença entre 435 e 1.600 é a diferença entre um canal e um negócio.")
+print("  Nenhum dos dois números está medido — o de 435 veio de um filtro de agregador")
+print("  ('com estacionamento'), o de 1.600 de uma busca no Airbnb, que varre um raio")
+print("  maior que o bairro. O número real precisa vir de uma fonte que conte de verdade.")
 
 print("\n"+"="*94); print("POR QUE 40% DE CONVERSÃO É DEFENSÁVEL"); print("="*94)
 print("  A oferta não é 'café da manhã'. É a PRIMEIRA MANHÃ da estadia.")
@@ -77,24 +81,36 @@ print("  A família chega sexta à noite, geladeira vazia, mercado a 10 minutos 
 print("  Vender a manhã da chegada é uma dor universal e datada — não depende de gosto.")
 print("  Uma estadia tem 1 manhã de chegada e 4 manhãs comuns. A de chegada converte muito mais.")
 print(f"\n  {'Cenário':<44}{'Pedidos/dia no pico':>22}")
-for rot,u,c in [("Ferrugem, metade assinada, conversão do plano",218,.15),
-                ("Ferrugem inteira, conversão do plano",435,.15),
-                ("Ferrugem inteira, manhã da chegada a 40%",435,.40),
-                ("Ferrugem + Silveira + centro (900), a 40%",900,.40),
-                ("Garopaba inteira (1.800), a 40%",1800,.40),
-                ("Garopaba inteira, a 60%",1800,.60)]:
+for rot,u,c in [("Ferrugem, 400 assinados, conversão do plano",400,.15),
+                ("Ferrugem, 400 assinados, manhã da chegada a 40%",400,.40),
+                ("Ferrugem, 800 assinados (50%), a 40%",800,.40),
+                ("Ferrugem, 1.000 assinados (63%), a 40%",1000,.40),
+                ("Ferrugem inteira (1.600), a 40%",1600,.40),
+                ("Ferrugem inteira, a 60%",1600,.60)]:
     print(f"  {rot:<44}{por_dia(u,c):>17.0f}/dia")
 
-print("\n"+"="*94); print("A RESPOSTA"); print("="*94)
-print("  100 a 200 por dia em 60 dias não é fantasia — é o cenário 'Garopaba inteira a 40 a 60%'.")
-print("  Mas não é o primeiro verão, por quatro motivos que se somam:")
-print("    1. exige ~93% do parque do município assinado, não da Ferrugem")
-print("    2. exige cozinha de apoio licenciada — 100 caixas não cabem nos 35 m²")
-print("    3. exige 3 motos e 7 pessoas na manhã, sem tirar ninguém do balcão")
-print("    4. exige conversão medida, e ninguém tem esse número ainda")
-print("\n  Plano de dois tempos:")
-print(f"    Verão 1 — Ferrugem, meta de 200 parceiros e {por_dia(200,.15):.0f} a {por_dia(200,.40):.0f} caixas/dia.")
-print("             O objetivo do ano 1 não é faturar, é MEDIR a conversão real.")
-print(f"    Verão 2 — com o número na mão, Garopaba inteira e cozinha de apoio.")
-print(f"             A {por_dia(1800,.40):.0f} caixas/dia os 60 dias de pico fazem {brl(por_dia(1800,.40)*60*SOBRA)} de sobra.")
-print(f"             Mais que o dobro do lucro anual da loja inteira.")
+print("\n"+"="*94); print("A RESPOSTA, COM O PARQUE DE 1.600"); print("="*94)
+print(f"  {'Meta':>9}{'Parceiros a 25%':>18}{'a 40%':>12}{'a 60%':>12}{'% da Ferrugem a 40%':>22}")
+for pd in (30,60,100,200):
+    u25,u40,u60=parceiros(pd,.25),parceiros(pd,.40),parceiros(pd,.60)
+    print(f"  {pd:>6}/dia{u25:>18,.0f}{u40:>12,.0f}{u60:>12,.0f}{u40/FERRUGEM*100:>21.0f}%".replace(",","."))
+print("\n  100/dia deixa de exigir o município inteiro: pede ~65% da Ferrugem a 40% de conversão,")
+print("  ou ~44% dela a 60%. Isso é meta de temporada, não de década.")
+print("  200/dia pede a Ferrugem quase inteira a 60%, ou esticar para Silveira e centro.")
+
+print("\n"+"="*94); print("MAS O NÚMERO PRECISA SER MEDIDO ANTES DE VIRAR PLANO"); print("="*94)
+print("  Nenhuma das duas contagens serve para decidir investimento:")
+print("    · 435 era filtro de agregador, não total")
+print("    · a busca do Airbnb varre um raio maior que o bairro e conta anúncio, não imóvel")
+print("      (o mesmo imóvel aparece em Airbnb, Booking e imobiliária)")
+print("\n  Quatro fontes que dão número de verdade, em ordem de esforço:")
+print("    1. As gestoras. Três conversas: quantas unidades cada uma administra e quanto")
+print("       estimam do total. Já estão no plano de qualquer forma — é pergunta de graça.")
+print("    2. A prefeitura de Garopaba. Cadastro de locação por temporada, se existir,")
+print("       ou o número de alvarás e a base de IPTU não residencial da orla.")
+print("    3. AirDNA ou Mashvisor. Dão contagem de anúncios ativos e ocupação real do")
+print("       mercado. Custa, mas resolve a premissa mais cara do plano.")
+print("    4. Contagem manual no mapa do Airbnb com o zoom travado só na Ferrugem,")
+print("       em janeiro e em junho, para separar anúncio ativo de anúncio dormindo.")
+print("\n  Enquanto o número não vier, o plano roda com 400 parceiros como meta do verão 1.")
+print(f"  A 40% de conversão isso já dá {por_dia(400,.40):.0f} caixas/dia — {por_dia(400,.40)*60*SOBRA:,.0f} de sobra nos 60 dias.".replace(",","."))

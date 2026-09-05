@@ -746,17 +746,33 @@ operação é a restrição — a restrição é assinar proprietário.**
 Média mensal de abril a outubro: **R$ 18.429 → R$ 26.546**. Concentração em dez+jan+fev: **64% →
 60%**. Junho quase dobra de sobra. Era o ponto mais fraco de todo o plano.
 
-### O teto da Ferrugem, e como passar dele
+### O teto depende de um número que ninguém tem
 
-Assinando **todos** os 435 anúncios da Ferrugem, com 15% das estadias pedindo, o pico de janeiro dá
-**16 caixas por dia**. Esse é o teto do bairro. Há dois caminhos para passar dele, e eles se somam:
+**Correção.** O 435 que eu usei antes não era o parque da Ferrugem — era o contador de anúncios *com
+estacionamento* num agregador, um número de filtro que eu li como total. A busca do dono na Praia da
+Ferrugem devolveu **~1.600**. A diferença entre os dois é a diferença entre um canal e um negócio:
 
-| Conversão por estadia | Ferrugem inteira (435) | Garopaba inteira (~1.800) |
-|---|---|---|
-| 15% (o plano) | 16/dia | 65/dia |
-| 25% | 26/dia | 108/dia |
-| **40%** | **42/dia** | **172/dia** |
-| 60% | 62/dia | 258/dia |
+| Conversão por estadia | Se forem 435 | **Se forem 1.600** | Garopaba (~4.000) |
+|---|---|---|---|
+| 15% (o plano) | 16/dia | **57/dia** | 144/dia |
+| 25% | 26/dia | **96/dia** | 239/dia |
+| **40% · manhã da chegada** | 42/dia | **153/dia** | 383/dia |
+| 60% | 62/dia | **230/dia** | 574/dia |
+
+Nenhuma das duas contagens serve para decidir investimento. A de 435 é filtro de agregador. A de
+1.600 vem da busca do Airbnb, que varre um raio maior que o bairro e conta **anúncio, não imóvel** —
+o mesmo apartamento aparece no Airbnb, no Booking e na imobiliária.
+
+**Quatro fontes que dão número de verdade**, em ordem de esforço:
+
+1. **As gestoras.** Quantas unidades cada uma administra e quanto estimam do total. Três conversas
+   triangulam — e essas conversas já estão no plano de qualquer forma.
+2. **A prefeitura de Garopaba.** Cadastro de locação por temporada, se existir; na falta, alvarás e
+   a base de IPTU da orla.
+3. **AirDNA ou Mashvisor.** Anúncios ativos e ocupação real do mercado. Custa, mas resolve a
+   premissa mais cara do plano por uma fração do que ela decide.
+4. **Contagem no mapa em janeiro e em junho**, com zoom travado só na Ferrugem. A diferença entre as
+   duas separa anúncio ativo de anúncio dormindo.
 
 **A jogada que move a conversão: vender a primeira manhã, não "café da manhã".** A família chega
 sexta à noite com a geladeira vazia, o mercado a dez minutos e lotado em janeiro. A manhã da chegada
@@ -766,13 +782,21 @@ dia de 42.
 
 ### 100 a 200 por dia: o que teria que ser verdade
 
-O número é alcançável — corresponde a *Garopaba inteira a 40–60% de conversão*. Não é fantasia. Mas
-não é o primeiro verão, por quatro motivos que se somam:
+Com o parque de 1.600, o número deixa de exigir o município inteiro:
 
-1. Exige ~93% do parque do **município** assinado, não da Ferrugem
-2. Exige **cozinha de apoio licenciada** — 100 caixas não cabem nos 35 m²
-3. Exige 3 motos e 7 pessoas na manhã, sem tirar ninguém do balcão
-4. Exige conversão **medida**, e ninguém tem esse número hoje
+| Para chegar a | Parceiros a 25% | a 40% | a 60% | % da Ferrugem a 40% |
+|---|---|---|---|---|
+| 30 caixas/dia | 502 | 314 | 209 | 20% |
+| 60 caixas/dia | 1.003 | 627 | 418 | 39% |
+| **100 caixas/dia** | 1.672 | **1.045** | 697 | **65%** |
+| 200 caixas/dia | 3.344 | 2.090 | 1.394 | 131% · estica p/ Silveira |
+
+**100 por dia é meta de temporada, não de década** — pede 65% da Ferrugem a 40% de conversão, ou
+44% dela a 60%. O que ainda impede no primeiro verão:
+
+1. Exige **cozinha de apoio licenciada** — 100 caixas não cabem nos 35 m²
+2. Exige 3 motos e 7 pessoas na manhã, sem tirar ninguém do balcão
+3. Exige as duas premissas **medidas** — o tamanho do parque e a conversão — e nenhuma das duas está
 
 | Pedidos/dia | O que é | Gargalo | Equipe de manhã |
 |---|---|---|---|
@@ -784,10 +808,11 @@ não é o primeiro verão, por quatro motivos que se somam:
 
 **Plano de dois tempos:**
 
-- **Verão 1 — a Ferrugem, e medir.** Meta de 200 parceiros, 7 a 19 caixas/dia. O objetivo do primeiro
-  ano não é faturar com isso; é descobrir a conversão real. Tudo acima depende desse número.
-- **Verão 2 — Garopaba inteira e cozinha de apoio.** A 172 caixas/dia, os 60 dias de pico fazem
-  **R$ 437.828 de sobra** — mais que o dobro do lucro anual da loja inteira.
+- **Verão 1 — 400 parceiros, e medir.** A 40% de conversão são 38 caixas/dia e R$ 96.604 de sobra
+  nos 60 dias de pico. Mas o objetivo do primeiro ano não é faturar: é sair dele sabendo o tamanho
+  do parque e a conversão real.
+- **Verão 2 — 1.000 parceiros e cozinha de apoio.** 96 caixas/dia fazem **R$ 244.051 de sobra** nos
+  60 dias — perto do lucro anual da loja inteira.
 
 A 100 caixas por dia isso deixa de ser um canal da loja e vira um segundo negócio, com CNPJ, endereço
 e equipe próprios. Modelo em `analise/escada-cafe-da-manha.py`.
