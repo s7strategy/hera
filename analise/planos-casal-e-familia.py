@@ -1,97 +1,94 @@
 # -*- coding: utf-8 -*-
-"""Dois planos: Casal (2 adultos) e Família (2 adultos + até 2 crianças).
-A parte infantil é outra caixa, não a mesma em dobro."""
+"""Matriz 2×2: Essencial e Premium, cada um em Casal e Família.
+O Premium é o Essencial mais seis itens — o upgrade lê como soma pura."""
 def brl(v,c=2): return ("R$ %s"%f"{v:,.{c}f}").replace(",","·").replace(".",",").replace("·",".")
 def pc(v,c=0): return f"{v*100:.{c}f}%"
 ENT=2.50; COM=.15
 
-ADULTO=[
- ("PÃO","2 fatias de pão de fermentação longa","120 g",1.92),
- ("PÃO","2 mini croissants","2 un",4.00),
- ("PROTEÍNA","2 ovos cozidos","2 un",1.80),
- ("PROTEÍNA","Queijo colonial","60 g",2.16),
- ("PROTEÍNA","Peito de peru","60 g",1.92),
- ("POTINHOS","Geleia em mini-pote","25 g",1.20),
- ("POTINHOS","Manteiga em tablete","2×10 g",0.92),
- ("POTINHOS","Pesto","30 g",2.05),
- ("FRUTA","Meio avocado, com casca","150 g",2.70),
- ("FRUTA","Fruta da estação","200 g",1.00),
- ("DOCE","2 mini cookies","2 un",2.40),
- ("EXTRAS","Iogurte natural com mel","100 g",1.80),
- ("EXTRAS","Granola da casa","30 g",0.60),
- ("EXTRAS","Sal e pimenta em sachê","2+2",0.10),
- ("EXTRAS","Cartão com o nome do hóspede","1",0.20),
- ("BEBIDA","Café da casa em garrafa térmica","500 ml",1.80),
-]
-EMB_CASAL=[("Caixa kraft + adesivo",1.50),("2 marmitinhas com tampa",0.70),
-           ("Garrafa térmica em comodato",0.48),("Papéis, guardanapos, talheres",0.55),
-           ("Sacola kraft",0.45)]
+BASE_AD=[("2 fatias de pão de fermentação longa","120 g",1.92),
+         ("Queijo colonial","60 g",2.16),
+         ("Peito de peru","60 g",1.92),
+         ("2 ovos cozidos","2 un",1.80),
+         ("Manteiga em tablete","2×10 g",0.92),
+         ("Geleia em mini-pote","25 g",1.20),
+         ("Fatia de bolo","100 g",2.80),
+         ("Fruta da estação","200 g",1.00),
+         ("Café da casa em garrafa térmica","500 ml",1.80)]
+PLUS_AD=[("2 mini croissants","2 un",4.00),
+         ("Pesto no potinho","30 g",2.05),
+         ("Meio avocado, com casca","150 g",2.70),
+         ("Iogurte natural com mel","100 g",1.80),
+         ("Granola da casa","30 g",0.60),
+         ("Sal e pimenta + cartão com o nome","—",0.30)]
+BASE_KID=[("6 pães de queijo","150 g",4.80),
+          ("2 mini bolos","150 g",4.20),
+          ("Leite com achocolatado na garrafinha","400 ml",2.60),
+          ("2 bananas ou fruta cortada","—",0.50),
+          ("Manteiga e geleia extras","—",2.12)]
+PLUS_KID=[("2 mini cookies","2 un",2.40),
+          ("2 iogurtes pequenos","2×80 g",2.40),
+          ("Cartão com o nome da criança","1",0.20)]
+EMB_AD=3.68; EMB_KID=2.70
 
-KIDS=[
- ("PÃO","6 pães de queijo","150 g",4.80),
- ("DOCE","2 mini bolos ou fatias","150 g",4.20),
- ("DOCE","2 mini cookies","2 un",2.40),
- ("BEBIDA","Leite com achocolatado","400 ml",2.60),
- ("FRUTA","2 bananas ou fruta cortada","—",0.50),
- ("POTINHOS","Manteiga e geleia extras","—",2.12),
- ("EXTRAS","2 iogurtes pequenos","2×80 g",2.40),
- ("EXTRAS","Cartão com o nome da criança","1",0.20),
-]
-EMB_KIDS=[("Caixa menor, colorida",1.20),("Garrafinha do achocolatado",0.80),
-          ("Marmitinha extra",0.35),("Papéis e canudo",0.35)]
+def s(itens): return sum(c for _,_,c in itens)
+bA,pA=s(BASE_AD),s(PLUS_AD); bK,pK=s(BASE_KID),s(PLUS_KID)
 
-def mostra(titulo,itens,embs,extra_ins=0,extra_emb=0):
-    print("\n"+"="*88); print(titulo); print("="*88)
-    b=None; ins=0
-    for bl,d,q,c in itens:
-        if bl!=b: print(f"\n  {bl}"); b=bl
-        print(f"    {d:<44}{q:>10}{brl(c):>10}"); ins+=c
-    print(f"\n  {'':<46}{'insumo':>10}{brl(ins):>10}")
-    emb=sum(c for _,c in embs)
-    for d,c in embs: print(f"    {d:<44}{'':>10}{brl(c):>10}")
-    print(f"  {'':<46}{'embalagem':>10}{brl(emb):>10}")
-    custo=(ins+emb)*1.03
-    print(f"  {'':<46}{'CUSTO':>10}{brl(custo):>10}")
-    return ins,emb,custo
+def custo(ins,emb): return (ins+emb)*1.03
+CUSTOS={
+ ("Essencial","Casal"):   custo(bA,EMB_AD),
+ ("Premium","Casal"):     custo(bA+pA,EMB_AD),
+ ("Essencial","Família"): custo(bA+bK,EMB_AD+EMB_KID),
+ ("Premium","Família"):   custo(bA+pA+bK+pK,EMB_AD+EMB_KID),
+}
+PRECOS={("Essencial","Casal"):69,("Premium","Casal"):109,
+        ("Essencial","Família"):119,("Premium","Família"):189}
 
-iA,eA,cA=mostra("PLANO CASAL · 2 adultos",ADULTO,EMB_CASAL)
-iK,eK,cK=mostra("A PARTE INFANTIL · até 2 crianças",KIDS,EMB_KIDS)
-cF=(iA+iK+eA+eK)*1.03
+print("="*90); print("O ESSENCIAL · 2 adultos"); print("="*90)
+for d,q,c in BASE_AD: print(f"  {d:<48}{q:>10}{brl(c):>10}")
+print(f"  {'':<48}{'insumo':>10}{brl(bA):>10}")
+print("\n"+"="*90); print("O QUE O PREMIUM ACRESCENTA · 2 adultos"); print("="*90)
+for d,q,c in PLUS_AD: print(f"  {d:<48}{q:>10}{brl(c):>10}")
+print(f"  {'':<48}{'a mais':>10}{brl(pA):>10}")
 
-print("\n"+"="*88); print("POR QUE A PARTE INFANTIL NÃO É A DE ADULTO EM DOBRO"); print("="*88)
-print("""  Criança de 6 anos não come pesto, avocado, peito de peru nem café.
-  Come pão de queijo, bolo, achocolatado, fruta, cookie e iogurte.
+print("\n"+"="*90); print("A PARTE INFANTIL · até 2 crianças"); print("="*90)
+print("  no Essencial")
+for d,q,c in BASE_KID: print(f"    {d:<46}{q:>10}{brl(c):>10}")
+print(f"    {'':<46}{'insumo':>10}{brl(bK):>10}")
+print("  o Premium acrescenta")
+for d,q,c in PLUS_KID: print(f"    {d:<46}{q:>10}{brl(c):>10}")
+print(f"    {'':<46}{'a mais':>10}{brl(pK):>10}")
 
-  Montar a caixa família como "duas caixas de casal" custaria mais e
-  entregaria metade do que a criança quer. A parte infantil sai mais barata
-  POR PESSOA e agrada mais — os dois ao mesmo tempo.
+print("\n"+"="*90); print("A MATRIZ"); print("="*90)
+print(f"  {'':<12}{'Casal':>34}{'Família · 2 adultos + 2 crianças':>44}")
+print(f"  {'':<12}{'Preço':>9}{'Custo':>9}{'Sobra':>9}{'Marg':>7}{'Preço':>13}{'Custo':>9}{'Sobra':>10}{'Marg':>7}")
+for tier in ("Essencial","Premium"):
+    l=f"  {tier:<12}"
+    for tam in ("Casal","Família"):
+        p=PRECOS[(tier,tam)]; c=CUSTOS[(tier,tam)]; so=p-c-ENT-p*COM
+        w=13 if tam=="Família" else 9
+        l+=f"{brl(p,0):>{w}}{brl(c):>9}{brl(so):>{10 if tam=='Família' else 9}}{pc(so/p):>7}"
+    print(l)
 
-    Adulto    """ + brl(cA/2) + """/pessoa
-    Criança   """ + brl(cK/2) + """/pessoa
+print("\n"+"="*90); print("O QUE CADA UPGRADE VALE"); print("="*90)
+def so(k): return PRECOS[k]-CUSTOS[k]-ENT-PRECOS[k]*COM
+ups=[("Casal: Essencial → Premium",("Essencial","Casal"),("Premium","Casal")),
+     ("Família: Essencial → Premium",("Essencial","Família"),("Premium","Família")),
+     ("Essencial: Casal → Família",("Essencial","Casal"),("Essencial","Família")),
+     ("Premium: Casal → Família",("Premium","Casal"),("Premium","Família"))]
+print(f"  {'Upgrade':<32}{'+ preço':>11}{'+ custo':>10}{'+ sobra':>11}{'quanto do upgrade sobra':>26}")
+for n,a,b in ups:
+    dp=PRECOS[b]-PRECOS[a]; dc=CUSTOS[b]-CUSTOS[a]; ds=so(b)-so(a)
+    print(f"  {n:<32}{brl(dp,0):>11}{brl(dc):>10}{brl(ds):>11}{pc(ds/dp):>25}")
+print("\n  Todo upgrade devolve mais de metade em sobra. O de Casal para Família é o")
+print("  melhor de todos, porque a entrega é a mesma moto e o mesmo minuto de montagem.")
 
-  E o cartãozinho com o nome da criança é o item de R$ 0,20 que faz o pai
-  pedir de novo na manhã seguinte.""")
-
-print("\n"+"="*88); print("OS DOIS PLANOS"); print("="*88)
-print(f"  {'Plano':<34}{'Preço':>9}{'Custo':>10}{'CMV':>7}{'Comissão':>11}{'Sobra':>11}{'Margem':>9}")
-for nome,custo,preco in (("Casal · 2 adultos",cA,99),
-                         ("Família · 2 adultos + 2 crianças",cF,169),
-                         ("Família · 2 adultos + 2 crianças",cF,179)):
-    s=preco-custo-ENT-preco*COM
-    print(f"  {nome:<34}{brl(preco,0):>9}{brl(custo):>10}{pc(custo/preco):>7}{brl(preco*COM):>11}{brl(s):>11}{pc(s/preco):>9}")
-
-sC=99-cA-ENT-99*COM; sF=169-cF-ENT-169*COM
-print(f"\n  A Família a R$ 169 é 1,7× o preço da Casal, mas sobra {sF/sC:.1f}× — porque a")
-print(f"  entrega é a mesma e a comissão é proporcional. Mesma moto, mesmo minuto.")
-print(f"  E R$ 169 lê como bom negócio contra duas caixas de casal ({brl(198,0)}).")
-
-print("\n"+"="*88); print("E QUANDO A FAMÍLIA TEM SÓ UMA CRIANÇA?"); print("="*88)
-cri=(iK/2+eK/2)*1.03
-print(f"  Cobrar Família cheia de quem tem 1 criança é injusto e perde pedido.")
-print(f"  Solução: Casal + criança avulsa.")
-print(f"\n  {'':<30}{'Preço':>9}{'Custo':>10}{'Sobra':>11}")
-print(f"  {'Casal':<30}{brl(99,0):>9}{brl(cA):>10}{brl(sC):>11}")
-print(f"  {'+ 1 criança':<30}{brl(35,0):>9}{brl(cri):>10}{brl(35-cri-35*COM):>11}   sem entrega extra")
-print(f"  {'+ 2 crianças (= Família)':<30}{brl(69,0):>9}{brl(cri*2):>10}{brl(69-cri*2-69*COM):>11}")
-print(f"\n  Casal R$ 99 + R$ 35 por criança dá R$ 169 para duas — bate com o plano fechado.")
-print(f"  Uma linha só de preço, funciona para 2, 3 ou 4 pessoas, e o hóspede paga o que usa.")
+print("\n"+"="*90); print("A LINHA COMPLETA"); print("="*90)
+for tier in ("Essencial","Premium"):
+    for tam in ("Casal","Família"):
+        k=(tier,tam); p=PRECOS[k]
+        print(f"  {tier+' · '+tam:<26}{brl(p,0):>8}   custo {brl(CUSTOS[k]):>8}   CMV {pc(CUSTOS[k]/p):>4}   sobra {brl(so(k)):>8}   {so(k)/22.95:.1f}× uma tigela")
+print(f"\n  Ticket médio, num mix de 30% Essencial Casal, 30% Premium Casal,")
+mix={("Essencial","Casal"):.30,("Premium","Casal"):.30,("Essencial","Família"):.20,("Premium","Família"):.20}
+tk=sum(PRECOS[k]*m for k,m in mix.items()); sb=sum(so(k)*m for k,m in mix.items())
+print(f"  20% Essencial Família e 20% Premium Família:  {brl(tk)} de ticket, {brl(sb)} de sobra.")
+print(f"  Contra os {brl(90.50)} e {brl(42.37)} que estão publicados na página hoje.")

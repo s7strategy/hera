@@ -710,23 +710,39 @@ A Praia da Ferrugem tem **435 anúncios listados**. O Airbnb reporta 53% dos alo
 ao longo do ano — ou seja ~47% ocupados — com a maior disponibilidade em julho (72%), junho (70,5%)
 e agosto (68,4%).
 
-| Kit | Venda | Insumo | Entrega | Comissão 15% | Sobra |
+| Caixa | Preço | Custo | CMV | Comissão 15% | Sobra |
 |---|---|---|---|---|---|
-| Solo | R$ 39 | R$ 12,60 | R$ 2,50 | R$ 5,85 | R$ 18,05 |
-| **Casal** | **R$ 89** | **R$ 31,90** | **R$ 2,50** | **R$ 13,35** | **R$ 41,25** |
-| Família (4) | R$ 159 | R$ 56,80 | R$ 2,50 | R$ 23,85 | R$ 75,85 |
+| Essencial · Casal | R$ 69 | R$ 19,78 | 29% | R$ 10,35 | R$ 38,87 |
+| Premium · Casal | R$ 109 | R$ 31,57 | 29% | R$ 16,35 | R$ 61,08 |
+| Essencial · Família | R$ 119 | R$ 37,20 | 31% | R$ 17,85 | R$ 63,95 |
+| **Premium · Família** | **R$ 189** | **R$ 54,15** | **29%** | **R$ 28,35** | **R$ 106,50** |
+| **Ticket médio da linha** | **R$ 115,00** | **R$ 33,68** | **29%** | **R$ 17,25** | **R$ 64,07** |
 
-Uma tigela de açaí de 415 g vende R$ 31,08 e sobra R$ 22,95. **A caixa de casal sobra 1,8× isso —
+Uma tigela de açaí de 415 g vende R$ 31,08 e sobra R$ 22,95. **A caixa média sobra 2,8× isso —
 às 8h, com o balcão parado, sem disputar a fila de janeiro.**
+
+**O Essencial** leva pão de fermentação longa, queijo colonial, peito de peru, 2 ovos cozidos,
+manteiga, geleia, bolo, fruta da estação e café em garrafa térmica. **O Premium acrescenta** 2 mini
+croissants, pesto, meio avocado, iogurte com granola e o cartão com o nome do hóspede — R$ 11,45 de
+custo a mais para R$ 40 de preço a mais.
+
+**A parte infantil não é a de adulto em dobro.** Criança não come pesto, avocado nem café — come
+pão de queijo, bolo, achocolatado na garrafinha e fruta. Sai **R$ 11,29 por criança contra R$ 15,58
+por adulto**, e agrada mais. Fichas montadas item a item em `analise/planos-casal-e-familia.py`.
+
+**Três regras técnicas fecham o desenho da caixa:** nada quente viaja — o ovo vai cozido, o misto
+quente encharca o pão em duas horas e o queijo derretido vira borracha; o avocado vai pela metade
+com casca, porque cortado oxida em uma hora; e a geleia é comprada em mini-pote de hotel, porque
+envasar é manipulação e exige área licenciada. Detalhes em `analise/cesta-moka-completa.py`.
 
 Premissas do funil: 15% das estadias pedem ao menos uma vez, 30% dessas pedem uma segunda manhã.
 
-| Parceiros | % do parque | Pedidos/ano | Faturamento | Ganho no lucro | Pico/manhã |
-|---|---|---|---|---|---|
-| 50 | 11% | 371 | R$ 33.600 | +R$ 9.817 | 2 |
-| 100 | 23% | 743 | R$ 67.201 | +R$ 19.635 | 4 |
-| **200** | **46%** | **1.485** | **R$ 134.402** | **+R$ 38.628** | **7** |
-| 300 | 69% | 2.228 | R$ 201.602 | +R$ 57.456 | 11 |
+| Parceiros | Pedidos/ano | Faturamento | Ganho no lucro | Pico/manhã |
+|---|---|---|---|---|
+| 50 | 371 | R$ 42.697 | +R$ 16.275 | 2 |
+| 100 | 743 | R$ 85.393 | +R$ 32.497 | 4 |
+| **200** | **1.485** | **R$ 170.787** | **+R$ 64.022** | **7** |
+| 300 | 2.228 | R$ 256.180 | +R$ 95.547 | 11 |
 
 O teto operacional da manhã é ~30 caixas com 2 pessoas entre 6h30 e 9h30. **Em nenhum cenário a
 operação é a restrição — a restrição é assinar proprietário.**
@@ -743,8 +759,9 @@ operação é a restrição — a restrição é assinar proprietário.**
 | Setembro | R$ 17.000 | R$ 7.765 | R$ 3.755 → **R$ 6.194** |
 | Outubro | R$ 24.000 | R$ 10.941 | R$ 7.759 → **R$ 11.196** |
 
-Média mensal de abril a outubro: **R$ 18.429 → R$ 26.546**. Concentração em dez+jan+fev: **64% →
-60%**. Junho quase dobra de sobra. Era o ponto mais fraco de todo o plano.
+Média mensal de abril a outubro: **R$ 18.429 → R$ 28.744**. Concentração em dez+jan+fev: **64% →
+59%**. Junho mais que dobra de sobra, de R$ 2.611 para R$ 5.865. Era o ponto mais fraco de todo o
+plano.
 
 ### O teto depende de um número que ninguém tem
 
@@ -808,11 +825,11 @@ Com o parque de 1.600, o número deixa de exigir o município inteiro:
 
 **Plano de dois tempos:**
 
-- **Verão 1 — 400 parceiros, e medir.** A 40% de conversão são 38 caixas/dia e R$ 96.604 de sobra
+- **Verão 1 — 400 parceiros, e medir.** A 40% de conversão são 38 caixas/dia e R$ 146.080 de sobra
   nos 60 dias de pico. Mas o objetivo do primeiro ano não é faturar: é sair dele sabendo o tamanho
   do parque e a conversão real.
-- **Verão 2 — 1.000 parceiros e cozinha de apoio.** 96 caixas/dia fazem **R$ 244.051 de sobra** nos
-  60 dias — perto do lucro anual da loja inteira.
+- **Verão 2 — 1.000 parceiros e cozinha de apoio.** 96 caixas/dia fazem **R$ 369.043 de sobra** nos
+  60 dias — mais que o lucro anual da loja inteira.
 
 A 100 caixas por dia isso deixa de ser um canal da loja e vira um segundo negócio, com CNPJ, endereço
 e equipe próprios. Modelo em `analise/escada-cafe-da-manha.py`.

@@ -17,18 +17,21 @@ PARQUE=435          # anúncios listados na Praia da Ferrugem
 CONV=.15; REPETE=.30
 PED=CONV*(1+REPETE)
 
-KITS=[("Solo",39,12.60,.25),("Casal",89,31.90,.55),("Família (4)",159,56.80,.20)]
-ENTREGA=2.50        # provisão; abaixo de ~15 caixas/manhã a equipe absorve
+# Matriz fechada com o dono: dois tiers × dois tamanhos. Fichas montadas
+# item a item em analise/planos-casal-e-familia.py.
+KITS=[("Essencial · Casal",69,19.78,.30),("Premium · Casal",109,31.57,.30),
+      ("Essencial · Família",119,37.20,.20),("Premium · Família",189,54.15,.20)]
+ENTREGA=0.00        # já embutida no custo da caixa
 COMISSAO=.15
 TICKET=sum(p*m for _,p,_,m in KITS); CUSTO=sum(c*m for _,_,c,m in KITS)
 COM=TICKET*COMISSAO; SOBRA=TICKET-CUSTO-ENTREGA-COM
 
 print("="*88); print("A CAIXA — nada quente além do café na garrafa térmica"); print("="*88)
-print(f"  {'Kit':<14}{'Venda':>9}{'Insumo':>10}{'Entrega':>9}{'Comissão':>10}{'Sobra':>10}{'CMV':>8}{'Mix':>6}")
+print(f"  {'Kit':<22}{'Venda':>9}{'Custo':>10}{'Comissão':>10}{'Sobra':>10}{'CMV':>8}{'Mix':>6}")
 for n,p,c,m in KITS:
-    print(f"  {n:<14}{brl(p):>9}{brl(c,2):>10}{brl(ENTREGA,2):>9}{brl(p*COMISSAO,2):>10}"
+    print(f"  {n:<22}{brl(p):>9}{brl(c,2):>10}{brl(p*COMISSAO,2):>10}"
           f"{brl(p-c-ENTREGA-p*COMISSAO,2):>10}{pc(c/p,0):>8}{pc(m,0):>6}")
-print(f"  {'PONDERADA':<14}{brl(TICKET,2):>9}{brl(CUSTO,2):>10}{brl(ENTREGA,2):>9}{brl(COM,2):>10}"
+print(f"  {'PONDERADA':<22}{brl(TICKET,2):>9}{brl(CUSTO,2):>10}{brl(COM,2):>10}"
       f"{brl(SOBRA,2):>10}{pc(CUSTO/TICKET,0):>8}")
 print(f"\n  Tigela de açaí de 415 g: vende {brl(31.08,2)}, sobra {brl(22.95,2)}.")
 print(f"  Caixa entregue: vende {brl(TICKET,2)}, sobra {brl(SOBRA,2)} — {SOBRA/22.95:.1f}× a tigela,")
@@ -54,7 +57,7 @@ def aliq(r):
         if r<=t: return max((r*n-d)/r,0)
     return .143
 SM=1_621; CLT=SM*1.4
-FOLHA=CLT*(5*2+4*1+3*2+1*7); ALUG=30_000; OVH=14_400; KIDS=7_539; CMV=.274
+FOLHA=CLT*(5*2+4*1+3*2+1*7); ALUG=30_000; OVH=16_320; KIDS=7_539; CMV=.274
 def lucro(xf,xs):
     f=BASE+xf; a=aliq(f)
     return f,(BASE-BASE*CMV)+xs-FOLHA-f*a-f*.046-f*.035-ALUG-OVH-KIDS
