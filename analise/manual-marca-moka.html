@@ -1,0 +1,3054 @@
+<title>Manual da Marca moka</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&family=Caveat:wght@600&display=swap">
+<style>
+:root{
+  /* paleta moka, amostrada dos arquivos originais */
+  --tinta:#220C17; --acai:#4D2337; --sol:#FCA203; --sol-kids:#FEBB3C;
+  --areia:#D4AE8E; --kraft:#C89469; --creme:#F4E7D5; --grafite:#272423;
+  --verde:#2E7D5B; --vermelho:#C1442E;
+
+  --papel:#FBF4E9;            /* papel do manual, mais claro que o creme da marca */
+  --papel2:#FFFFFF;
+  --papel3:#F2E7D8;
+  --texto:#2A1A20;            /* neutro com viés roxo, não cinza puro */
+  --texto2:#6B5560;
+  --texto3:#9A8590;
+  --linha:rgba(77,35,55,.16);
+  --linha2:rgba(77,35,55,.08);
+  --acento:var(--acai);
+  --realce:#8A5600;           /* Sol Terra: o único âmbar que passa em contraste sobre papel */
+  --som:0 1px 2px rgba(34,12,23,.05), 0 12px 32px rgba(34,12,23,.07);
+
+  --d:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
+  --b:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --m:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --s:"Caveat","Brush Script MT",cursive;
+  --pad:clamp(20px,4vw,56px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --papel:#1A0B12; --papel2:#241019; --papel3:#2E1620;
+  --texto:#F6E9DC; --texto2:#C3A9B3; --texto3:#8E7580;
+  --linha:rgba(246,233,220,.18); --linha2:rgba(246,233,220,.08);
+  --acento:#E7B9CF; --realce:var(--sol);
+  --som:0 1px 2px rgba(0,0,0,.4), 0 12px 32px rgba(0,0,0,.45);
+}}
+:root[data-theme="dark"]{
+  --papel:#1A0B12; --papel2:#241019; --papel3:#2E1620;
+  --texto:#F6E9DC; --texto2:#C3A9B3; --texto3:#8E7580;
+  --linha:rgba(246,233,220,.18); --linha2:rgba(246,233,220,.08);
+  --acento:#E7B9CF; --realce:var(--sol);
+  --som:0 1px 2px rgba(0,0,0,.4), 0 12px 32px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--papel); color:var(--texto);
+  font-family:var(--b); font-size:18px; line-height:1.62;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden;}
+p{margin:0 0 1.05em} p:last-child{margin-bottom:0}
+strong,b{font-weight:600}
+em{font-style:italic}
+a{color:var(--realce)}
+::selection{background:var(--sol); color:var(--tinta)}
+:focus-visible{outline:3px solid var(--sol); outline-offset:3px; border-radius:3px}
+
+/* ─────────── estrutura ─────────── */
+.doc{display:grid; grid-template-columns:1fr; }
+@media(min-width:1080px){
+  .doc{grid-template-columns:262px 1fr;}
+  .rail{position:sticky; top:0; height:100vh; overflow-y:auto; border-right:1px solid var(--linha);
+    background:var(--papel3); padding:34px 22px 60px;}
+}
+.rail{background:var(--papel3); padding:26px var(--pad) 34px; border-bottom:1px solid var(--linha);}
+.rail .marca{font-family:var(--d); font-weight:800; font-size:27px; letter-spacing:-.045em;
+  color:var(--acento); margin-bottom:2px;}
+.rail .marca i{font-style:normal; color:var(--sol)}
+.rail .sub{font-family:var(--d); font-size:10.5px; letter-spacing:.24em; text-transform:uppercase;
+  color:var(--texto3); margin-bottom:26px;}
+.rail nav{display:flex; flex-direction:column; gap:1px}
+.rail .gp{font-family:var(--d); font-size:10px; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--texto3); margin:20px 0 7px; font-weight:600;}
+.rail a{display:flex; gap:9px; text-decoration:none; color:var(--texto2); font-family:var(--d);
+  font-size:13.5px; line-height:1.35; padding:4px 7px; border-radius:6px; transition:.14s;}
+.rail a:hover{background:var(--papel2); color:var(--texto)}
+.rail a b{font-family:var(--m); font-size:11px; font-weight:400; color:var(--texto3); flex:none;
+  padding-top:1px;}
+.corpo{min-width:0}
+.w{max-width:1120px; margin:0 auto; padding:0 var(--pad)}
+.col{max-width:68ch}
+
+/* ─────────── capa ─────────── */
+.capa{background:var(--tinta); color:var(--creme); padding:clamp(52px,9vw,110px) 0 clamp(44px,7vw,84px);
+  position:relative; overflow:hidden;}
+.capa::after{content:""; position:absolute; left:0; right:0; bottom:0; height:130px; opacity:.5;
+  background:
+    radial-gradient(120% 100% at 12% 100%, var(--acai) 0 42%, transparent 43%),
+    radial-gradient(90% 100% at 52% 100%, var(--sol) 0 38%, transparent 39%),
+    radial-gradient(110% 100% at 88% 100%, var(--kraft) 0 40%, transparent 41%);}
+.capa .w{position:relative; z-index:1}
+.logo{font-family:var(--d); font-weight:800; font-size:clamp(62px,13vw,150px); letter-spacing:-.06em;
+  line-height:.85; color:var(--creme);}
+.logo i{font-style:normal; color:var(--sol)}
+.desc{font-family:var(--d); font-size:clamp(11px,1.5vw,15px); letter-spacing:.42em; text-transform:uppercase;
+  color:var(--areia); margin-top:16px;}
+.capa h1{font-family:var(--d); font-weight:600; font-size:clamp(26px,4.4vw,48px); letter-spacing:-.03em;
+  line-height:1.06; margin:clamp(34px,5vw,58px) 0 0; max-width:19ch; text-wrap:balance;}
+.capa .meta{display:flex; flex-wrap:wrap; gap:10px 34px; margin-top:32px; font-family:var(--m);
+  font-size:12px; color:var(--areia);}
+.capa .meta span{white-space:nowrap}
+.onda{display:block; width:74px; height:auto; margin:26px 0 0; color:var(--sol)}
+
+/* ─────────── abertura de parte ─────────── */
+.parte{background:var(--acai); color:var(--creme); padding:clamp(40px,6vw,72px) 0;
+  margin:clamp(56px,9vw,110px) 0 0; position:relative; overflow:hidden;}
+.parte .w{position:relative; display:flex; align-items:baseline; gap:clamp(18px,3vw,40px); flex-wrap:wrap}
+.parte .num{font-family:var(--d); font-weight:800; font-size:clamp(72px,14vw,168px); line-height:.72;
+  letter-spacing:-.06em; color:var(--sol); margin-left:-.06em;}
+.parte .tx h2{font-family:var(--d); font-weight:800; font-size:clamp(25px,4vw,46px); letter-spacing:-.035em;
+  margin:0; line-height:1.02; text-wrap:balance;}
+.parte .tx p{color:rgba(244,231,213,.74); margin:12px 0 0; max-width:46ch; font-size:16.5px}
+
+/* ─────────── seções ─────────── */
+section.s{padding:clamp(40px,6vw,68px) 0 0; scroll-margin-top:12px}
+.olho{font-family:var(--m); font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--realce); display:flex; align-items:center; gap:11px; margin-bottom:13px}
+.olho::after{content:""; height:1px; flex:1; background:var(--linha); max-width:120px}
+h3{font-family:var(--d); font-weight:800; font-size:clamp(24px,3.4vw,38px); letter-spacing:-.032em;
+  line-height:1.08; margin:0 0 18px; text-wrap:balance; max-width:22ch}
+h4{font-family:var(--d); font-weight:600; font-size:clamp(17px,2vw,22px); letter-spacing:-.018em;
+  margin:38px 0 12px; line-height:1.2;}
+h5{font-family:var(--d); font-weight:600; font-size:15px; letter-spacing:.01em; margin:26px 0 8px;
+  color:var(--texto);}
+.lede{font-size:clamp(19px,2.2vw,23px); line-height:1.48; color:var(--texto2); max-width:46ch;
+  margin-bottom:26px;}
+.nota{font-family:var(--d); font-size:14.5px; line-height:1.5; color:var(--texto2);
+  border-left:2px solid var(--sol); padding:2px 0 2px 15px; margin:22px 0; max-width:56ch}
+.script{font-family:var(--s); font-size:clamp(26px,3.6vw,38px); color:var(--realce); line-height:1.1;
+  margin:8px 0 22px}
+
+/* ─────────── listas ─────────── */
+ul.l,ol.l{margin:0 0 20px; padding-left:0; list-style:none; max-width:66ch}
+ul.l li,ol.l li{position:relative; padding-left:26px; margin-bottom:9px}
+ul.l li::before{content:""; position:absolute; left:6px; top:.66em; width:6px; height:6px;
+  border-radius:50%; background:var(--sol)}
+ol.l{counter-reset:n}
+ol.l li{counter-increment:n}
+ol.l li::before{content:counter(n); position:absolute; left:0; top:0; font-family:var(--m);
+  font-size:12px; color:var(--realce); padding-top:.34em}
+
+/* ─────────── grade genérica ─────────── */
+.g{display:grid; gap:clamp(12px,1.6vw,20px); margin:26px 0;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr))}
+.g.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr))}
+.g.g4{grid-template-columns:repeat(auto-fit,minmax(min(100%,168px),1fr))}
+.cx{background:var(--papel2); border:1px solid var(--linha2); border-radius:12px;
+  padding:clamp(17px,2vw,24px); box-shadow:var(--som)}
+.cx h6{font-family:var(--d); font-weight:600; font-size:15.5px; margin:0 0 7px; letter-spacing:-.01em}
+.cx p{font-size:15.5px; line-height:1.5; color:var(--texto2); margin:0}
+.cx .k{font-family:var(--m); font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--texto3); display:block; margin-bottom:9px}
+.cx .n{font-family:var(--d); font-weight:800; font-size:clamp(26px,3.2vw,36px); letter-spacing:-.035em;
+  line-height:1; color:var(--acento); margin-bottom:6px}
+
+/* ─────────── tabela ─────────── */
+.rolo{overflow-x:auto; margin:26px 0; border:1px solid var(--linha); border-radius:12px;
+  background:var(--papel2)}
+table{width:100%; border-collapse:collapse; font-size:15.5px; min-width:520px}
+th,td{text-align:left; padding:12px 16px; border-top:1px solid var(--linha2); vertical-align:top}
+thead th{border-top:none; font-family:var(--m); font-size:11px; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--texto3); font-weight:400; white-space:nowrap}
+td.mono,th.mono{font-family:var(--m); font-size:13px; font-variant-numeric:tabular-nums; white-space:nowrap}
+tbody tr:hover{background:var(--papel3)}
+
+/* ─────────── cor ─────────── */
+.cores{display:grid; gap:14px; margin:28px 0;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,182px),1fr))}
+.cor{border-radius:12px; overflow:hidden; border:1px solid var(--linha2); background:var(--papel2)}
+.cor .chip{height:112px; display:flex; align-items:flex-end; padding:12px;
+  font-family:var(--d); font-weight:600; font-size:13px}
+.cor .info{padding:13px 14px 15px}
+.cor .nome{font-family:var(--d); font-weight:600; font-size:15px; margin-bottom:6px}
+.cor dl{margin:0; display:grid; grid-template-columns:auto 1fr; gap:2px 10px; font-family:var(--m);
+  font-size:11.5px; color:var(--texto2)}
+.cor dt{color:var(--texto3)}
+.cor dd{margin:0; font-variant-numeric:tabular-nums}
+.prop{display:flex; height:52px; border-radius:10px; overflow:hidden; margin:22px 0 8px;
+  border:1px solid var(--linha2)}
+.prop span{display:flex; align-items:center; justify-content:center; font-family:var(--m);
+  font-size:11px; letter-spacing:.06em}
+
+/* ─────────── sim / não ─────────── */
+.dupla{display:grid; gap:14px; margin:26px 0; grid-template-columns:1fr}
+@media(min-width:700px){.dupla{grid-template-columns:1fr 1fr}}
+.sim,.nao{border-radius:12px; padding:18px 20px; border:1px solid}
+.sim{background:color-mix(in srgb,var(--verde) 8%,var(--papel2)); border-color:color-mix(in srgb,var(--verde) 30%,transparent)}
+.nao{background:color-mix(in srgb,var(--vermelho) 8%,var(--papel2)); border-color:color-mix(in srgb,var(--vermelho) 30%,transparent)}
+.sim .t,.nao .t{font-family:var(--m); font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+  margin-bottom:11px; display:flex; align-items:center; gap:7px}
+.sim .t{color:var(--verde)} .nao .t{color:var(--vermelho)}
+.sim ul,.nao ul{margin:0; padding-left:0; list-style:none}
+.sim li,.nao li{font-size:15.5px; line-height:1.46; margin-bottom:7px; padding-left:19px; position:relative}
+.sim li::before{content:"✓"; position:absolute; left:0; color:var(--verde); font-family:var(--d)}
+.nao li::before{content:"✕"; position:absolute; left:0; color:var(--vermelho); font-family:var(--d)}
+
+/* ─────────── espécime ─────────── */
+.esp{background:var(--papel2); border:1px solid var(--linha2); border-radius:12px;
+  padding:clamp(20px,3vw,34px); margin:24px 0; box-shadow:var(--som)}
+.esp .lab{font-family:var(--m); font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--texto3); margin-bottom:14px}
+.esc{display:flex; flex-direction:column; gap:12px}
+.esc .li{display:flex; align-items:baseline; gap:16px; border-bottom:1px dashed var(--linha2);
+  padding-bottom:11px}
+.esc .li:last-child{border:none; padding-bottom:0}
+.esc .v{font-family:var(--m); font-size:11px; color:var(--texto3); flex:none; width:98px;
+  font-variant-numeric:tabular-nums}
+.esc .t{font-family:var(--d); line-height:1.05; letter-spacing:-.03em; min-width:0;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+
+/* ─────────── logo caixa ─────────── */
+.lg{display:grid; gap:14px; margin:24px 0; grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr))}
+.lgb{border-radius:12px; border:1px solid var(--linha2); overflow:hidden; background:var(--papel2)}
+.lgb .p{aspect-ratio:16/10; display:flex; align-items:center; justify-content:center; padding:18px}
+.lgb .c{padding:11px 14px 13px; font-family:var(--m); font-size:11px; color:var(--texto2);
+  border-top:1px solid var(--linha2); line-height:1.4}
+.mk{font-family:var(--d); font-weight:800; letter-spacing:-.055em; line-height:1; display:inline-block}
+.mk i{font-style:normal}
+
+/* ─────────── faixa de destaque ─────────── */
+.faixa{background:var(--tinta); color:var(--creme); border-radius:14px; padding:clamp(22px,3.4vw,40px);
+  margin:30px 0}
+.faixa h4{margin-top:0; color:var(--creme)}
+.faixa p{color:rgba(244,231,213,.8)}
+.faixa .script{color:var(--sol)}
+.faixa ul.l li::before{background:var(--sol)}
+.faixa ul.l li{color:rgba(244,231,213,.86)}
+
+/* ─────────── calendário ─────────── */
+.cal{display:grid; grid-template-columns:repeat(7,1fr); gap:5px; margin:24px 0; min-width:560px}
+.calw{overflow-x:auto; margin:24px 0}
+.cal .h{font-family:var(--m); font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--texto3); text-align:center; padding-bottom:4px}
+.cal .d{background:var(--papel2); border:1px solid var(--linha2); border-radius:8px; padding:8px 8px 10px;
+  min-height:82px; font-size:12.5px; line-height:1.32}
+.cal .d b{display:block; font-family:var(--m); font-size:10px; color:var(--texto3); margin-bottom:5px;
+  font-weight:400}
+.cal .d.r{background:color-mix(in srgb,var(--sol) 16%,var(--papel2)); border-color:color-mix(in srgb,var(--sol) 40%,transparent)}
+.cal .d.c{background:color-mix(in srgb,var(--acai) 9%,var(--papel2))}
+
+/* ─────────── rodapé ─────────── */
+footer{background:var(--tinta); color:rgba(244,231,213,.62); margin-top:clamp(56px,9vw,110px);
+  padding:clamp(36px,5vw,60px) 0; font-family:var(--d); font-size:14px}
+footer .lin{display:flex; flex-wrap:wrap; gap:10px 30px; justify-content:space-between;
+  align-items:center; border-top:1px solid rgba(244,231,213,.16); padding-top:22px; margin-top:22px}
+footer .mkf{font-family:var(--d); font-weight:800; font-size:26px; letter-spacing:-.05em; color:var(--creme)}
+footer .mkf i{font-style:normal; color:var(--sol)}
+
+.pend{background:color-mix(in srgb,var(--sol) 13%,var(--papel2));
+  border:1px dashed color-mix(in srgb,var(--sol) 55%,transparent); border-radius:12px;
+  padding:18px 20px; margin:24px 0; font-family:var(--d); font-size:15px; line-height:1.5}
+.pend b{color:var(--realce)}
+.rail a[data-ativo]{background:var(--papel2); color:var(--acento); font-weight:600}
+.rail a[data-ativo] b{color:var(--sol)}
+.rail a:focus-visible,a:focus-visible{outline:2px solid var(--sol); outline-offset:3px; border-radius:5px}
+html{scroll-behavior:smooth}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}
+  *{animation:none!important; transition:none!important}}
+</style>
+<div class="doc">
+<aside class="rail">
+  <div class="marca">moka<i>.</i></div>
+  <div class="sub">Manual da marca</div>
+  <nav>
+    <a href="#usar"><b>00</b>Como usar este manual</a>
+    <div class="gp">I · A marca</div>
+    <a href="#proposito"><b>01</b>Propósito, missão e valores</a>
+    <a href="#posicao"><b>02</b>Posicionamento</a>
+    <a href="#publico"><b>03</b>Quem vem à moka</a>
+    <a href="#personalidade"><b>04</b>Personalidade e arquétipo</a>
+    <a href="#arquitetura"><b>05</b>Arquitetura de marca</a>
+    <a href="#promessa"><b>06</b>A promessa e as provas</a>
+    <div class="gp">II · O verbo</div>
+    <a href="#nome"><b>07</b>Nome e descritor</a>
+    <a href="#voz"><b>08</b>Tom de voz</a>
+    <a href="#assinaturas"><b>09</b>Assinaturas e frases</a>
+    <a href="#lexico"><b>10</b>Léxico da casa</a>
+    <a href="#copy"><b>11</b>Como escrever em cada canal</a>
+    <div class="gp">III · A identidade</div>
+    <a href="#logo"><b>12</b>O logotipo</a>
+    <a href="#versoes"><b>13</b>Versões e assinaturas</a>
+    <a href="#proibido"><b>14</b>Usos incorretos</a>
+    <a href="#cor"><b>15</b>Sistema de cor</a>
+    <a href="#contraste"><b>16</b>Acessibilidade de cor</a>
+    <a href="#tipo"><b>17</b>Tipografia</a>
+    <a href="#graficos"><b>18</b>Elementos gráficos</a>
+    <a href="#icones"><b>19</b>Ícones e pictogramas</a>
+    <a href="#foto"><b>20</b>Fotografia</a>
+    <a href="#moquinho"><b>21</b>Moquinho, o mascote</a>
+    <a href="#grid"><b>22</b>Grid e composição</a>
+    <div class="gp">IV · As aplicações</div>
+    <a href="#papelaria"><b>23</b>Papelaria e documentos</a>
+    <a href="#uniforme"><b>24</b>Uniformes</a>
+    <a href="#embalagem"><b>25</b>Embalagens</a>
+    <a href="#fachada"><b>26</b>Fachada e sinalização</a>
+    <a href="#ambiente"><b>27</b>Ambientação da loja</a>
+    <a href="#cardapio"><b>28</b>Cardápio e menu board</a>
+    <a href="#kids"><b>29</b>O universo moka Kids</a>
+    <a href="#brindes"><b>30</b>Brindes e merch</a>
+    <div class="gp">V · O digital</div>
+    <a href="#perfil"><b>31</b>Arquitetura do perfil</a>
+    <a href="#pilares"><b>32</b>Os cinco pilares de conteúdo</a>
+    <a href="#cadencia"><b>33</b>Formatos, grid e cadência</a>
+    <a href="#reels"><b>34</b>Reels: 12 roteiros prontos</a>
+    <a href="#stories"><b>35</b>Stories e destaques</a>
+    <a href="#legenda"><b>36</b>Legenda, hashtag e local</a>
+    <a href="#calendario"><b>37</b>Calendário de 30 dias</a>
+    <a href="#google"><b>38</b>Google e WhatsApp</a>
+    <a href="#movimento"><b>39</b>Movimento e animação</a>
+    <div class="gp">VI · As parcerias</div>
+    <a href="#criterio"><b>40</b>Quem é parceiro da moka</a>
+    <a href="#niveis"><b>41</b>Os quatro níveis</a>
+    <a href="#criadores"><b>42</b>Blogueiros e criadores</a>
+    <a href="#presskit"><b>43</b>Press kit</a>
+    <a href="#airbnb"><b>44</b>Gestoras e anfitriões</a>
+    <a href="#eventos"><b>45</b>Ativações e eventos</a>
+    <div class="gp">VII · A marca no dia a dia</div>
+    <a href="#atendimento"><b>46</b>O padrão de atendimento</a>
+    <a href="#jornada"><b>47</b>A jornada do cliente</a>
+    <a href="#reputacao"><b>48</b>Reputação e crise</a>
+    <a href="#kpi"><b>49</b>O que medir</a>
+    <a href="#abertura"><b>50</b>Checklist de abertura</a>
+    <a href="#governanca"><b>51</b>Quem aprova o quê</a>
+  </nav>
+</aside>
+
+<main class="corpo">
+<header class="capa">
+  <div class="w">
+    <div class="logo">moka<i>.</i></div>
+    <div class="desc">Açaí · Bowls · Café</div>
+    <svg class="onda" viewBox="0 0 120 22" fill="none" aria-hidden="true">
+      <path d="M4 15C16 3 26 3 38 12s22 9 34 0 22-9 34 0" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>
+    </svg>
+    <h1>Manual da marca — como a moka se parece, fala e se comporta.</h1>
+    <div class="meta">
+      <span>Praia da Ferrugem · Garopaba — SC</span>
+      <span>Edição 1 · setembro de 2026</span>
+      <span>51 seções</span>
+    </div>
+  </div>
+</header>
+
+<div class="w">
+<section class="s" id="usar">
+  <p class="olho">00 · Ponto de partida</p>
+  <h3>Este manual existe para uma coisa: a moka parecer a mesma pessoa em todo lugar.</h3>
+  <div class="col">
+  <p class="lede">No copo, na fachada, no Instagram, na boca de quem atende. Uma marca não é o
+    logotipo — é a soma de decisões pequenas tomadas do mesmo jeito, todo dia, por gente diferente.
+    Este documento é o acordo sobre essas decisões.</p>
+
+  <h4>Para quem é</h4>
+  <ul class="l">
+    <li><strong>Para a equipe da loja</strong> — as partes VI e VII dizem como a moka atende, responde e se comporta.</li>
+    <li><strong>Para quem produz</strong> — designer, gráfica, fornecedor de embalagem, marcenaria, plotagem: as partes III e IV têm todas as medidas, cores e arquivos.</li>
+    <li><strong>Para quem cuida do digital</strong> — a parte V é um plano operacional, não um capítulo de inspiração.</li>
+    <li><strong>Para os sócios</strong> — as partes I e II são a régua contra a qual toda ideia nova é medida.</li>
+  </ul>
+
+  <h4>O que é regra e o que é orientação</h4>
+  <p>Nem tudo aqui pesa igual. Três níveis:</p>
+  </div>
+  <div class="g">
+    <div class="cx"><span class="k">Nível 1 · Imutável</span><h6>Não muda sem decisão dos sócios</h6>
+      <p>Logotipo, as quatro cores, o nome, o descritor, a assinatura principal. Mudar isso é refazer a marca.</p></div>
+    <div class="cx"><span class="k">Nível 2 · Regra</span><h6>Segue-se, salvo exceção justificada</h6>
+      <p>Tipografia, proporção de cor, direção de fotografia, tom de voz, regras do mascote.</p></div>
+    <div class="cx"><span class="k">Nível 3 · Orientação</span><h6>É o caminho recomendado</h6>
+      <p>Roteiros de Reels, calendário, modelos de legenda, roteiros de atendimento. Adapte ao que funcionar.</p></div>
+  </div>
+  <div class="col">
+  <div class="nota">Uma marca boa é chata na repetição e generosa na execução. As regras existem
+    para libertar quem executa de decidir a mesma coisa toda vez — não para engessar o que é bom.</div>
+
+  <h4>Quantas páginas tem que ter um manual de marca</h4>
+  <p>A pergunta aparece cedo em todo projeto, e a resposta honesta é que <strong>página é
+    consequência, não meta</strong>. Ainda assim há faixas conhecidas no mercado, e vale saber em
+    qual a moka se coloca:</p>
+  </div>
+  <div class="rolo">
+    <table>
+      <thead><tr><th>Tipo de manual</th><th class="mono">Páginas</th><th>O que cobre</th><th>Serve para</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Mini-guia</strong></td><td class="mono">4 a 8</td><td>Logo, cor, fonte</td><td>Freelancer que precisa não errar o arquivo</td></tr>
+        <tr><td><strong>Guia essencial</strong></td><td class="mono">12 a 20</td><td>+ aplicações e proibições</td><td>Negócio pequeno com uma agência eventual</td></tr>
+        <tr><td><strong>Manual completo</strong></td><td class="mono">30 a 60</td><td>+ voz, fotografia, digital, aplicações</td><td>Marca com equipe própria e vários fornecedores</td></tr>
+        <tr><td><strong>Sistema de marca</strong></td><td class="mono">80 a 200+</td><td>+ arquitetura, motion, produto, ambientes</td><td>Rede, franquia, marca nacional</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col">
+  <p><strong>Este manual tem 51 seções, o equivalente a 68 a 74 páginas em A4</strong> — está no
+    topo da faixa "completo". É mais do que uma loja de 35 m² costuma ter, e é de propósito: a moka
+    vai abrir com equipe sazonal, vender por três canais (balcão, entrega e parceiros) e usar
+    fornecedores externos para embalagem, plotagem e massa. Cada um deles precisa de uma página que
+    responda sem telefonema.</p>
+  <p>O que <em>não</em> se faz é inflar: nenhuma seção aqui existe para engrossar o documento. Se
+    uma delas nunca for consultada em um ano, sai na revisão de abril.</p>
+
+  <h4>O que ainda não está aqui</h4>
+  <p>Este manual foi escrito antes da obra. Duas seções ficam abertas até a loja existir: a
+    <strong>fachada definitiva</strong> (§26) e a <strong>ambientação</strong> (§27) — ambas dependem
+    do vão real, do recuo e da planta. A §20 já traz a direção de fotografia completa; o que falta
+    ali é só a produção das 24 fotos. Tudo o mais está fechado e pode ir para produção.</p>
+  </div>
+</section>
+</div>
+<div class="parte">
+  <div class="w">
+    <div class="num">I</div>
+    <div class="tx"><h2>A marca</h2>
+      <p>Antes de qualquer cor ou tipografia: por que a moka existe, para quem, e o que ela promete.
+        Toda decisão das próximas seis partes é medida contra estas seis.</p></div>
+  </div>
+</div>
+<div class="w">
+
+<section class="s" id="proposito">
+  <p class="olho">01 · Fundamento</p>
+  <h3>Propósito, missão, visão e valores</h3>
+  <div class="col">
+  <h4>Propósito — por que existimos</h4>
+  <p class="script">Fazer o dia render mais.</p>
+  <p>A Ferrugem não é um destino de luxo e não quer ser. É praia de gente de chinelo, prancha no
+    carro e dia sem hora marcada. A moka existe para ser o lugar que <em>melhora</em> esse dia sem
+    tentar transformá-lo em outra coisa: comida boa, café de verdade, sombra, banheiro limpo,
+    gente que te reconhece na segunda vez. É isso que a assinatura quer dizer.</p>
+  <p class="script">mais da vida aqui.</p>
+
+  <h4>Missão — o que fazemos todo dia</h4>
+  <p>Servir açaí, bowls e café de qualidade honesta num lugar onde dá vontade de ficar — atendendo
+    bem o turista de janeiro e o morador de junho com o mesmo cuidado.</p>
+
+  <h4>Visão — onde queremos chegar</h4>
+  <p>Que em três anos "a moka" seja a resposta automática para <em>onde a gente para</em> na
+    Ferrugem — para o café da manhã, para a tarde de praia e para a família com criança. E que essa
+    resposta valha o ano inteiro, não só na temporada.</p>
+  </div>
+
+  <h4>Valores — cinco, e o que cada um obriga</h4>
+  <div class="g g2">
+    <div class="cx"><span class="k">Valor 01</span><h6>Comida boa não se discute</h6>
+      <p>Fruta de verdade, café extraído direito, pão que vale o nome. Antes de economizar em
+        insumo, economiza-se em outra coisa. <strong>Obriga a:</strong> ficha técnica escrita para
+        todo item, e nenhum ingrediente entra sem prova cega.</p></div>
+    <div class="cx"><span class="k">Valor 02</span><h6>Gente boa atende gente</h6>
+      <p>Ninguém trabalha de cara fechada em janeiro. <strong>Obriga a:</strong> escala que não
+        estoura, pausa de verdade no pico, e o padrão de atendimento da §46 treinado antes de abrir.</p></div>
+    <div class="cx"><span class="k">Valor 03</span><h6>Dias reais, não dias de foto</h6>
+      <p>A moka mostra o que serve. Se a tigela da foto não é a que sai do balcão, a foto está
+        errada. <strong>Obriga a:</strong> fotografia do produto real (§20), sempre.</p></div>
+    <div class="cx"><span class="k">Valor 04</span><h6>Natureza também alimenta</h6>
+      <p>Sombra, planta, madeira, luz. E lixo que a gente separa. <strong>Obriga a:</strong>
+        embalagem em papel sempre que houver opção, e o deck coberto antes do primeiro verão.</p></div>
+    <div class="cx"><span class="k">Valor 05</span><h6>A criança é cliente, não acompanhante</h6>
+      <p>Quem tem 6 anos tem menu, cadeira, espaço e um cardápio com o nome dela.
+        <strong>Obriga a:</strong> o universo moka Kids (§29) tratado com o mesmo rigor do resto.</p></div>
+  </div>
+</section>
+
+<section class="s" id="posicao">
+  <p class="olho">02 · Posicionamento</p>
+  <h3>O lugar que a moka ocupa na cabeça de quem está na praia</h3>
+  <div class="faixa">
+    <h4>Declaração de posicionamento</h4>
+    <p>Para <strong>quem passa o dia na Praia da Ferrugem</strong> — morador ou de temporada — a
+      <strong>moka</strong> é a <strong>açaiteria e café</strong> que resolve da manhã à noite com
+      produto de verdade e um lugar onde dá vontade de ficar, <strong>porque</strong> é
+      self-service por peso com 12 cremes, cafeteria completa e o único espaço kids da praia.</p>
+    <p style="margin-top:14px">Diferente das açaiterias de balcão da orla, que abrem só no verão e
+      vendem só açaí, a moka <strong>funciona o ano inteiro e serve o dia inteiro</strong>.</p>
+  </div>
+  <div class="col">
+  <h4>O quadrante vazio</h4>
+  <p>A Ferrugem tem hoje dois tipos de casa: o quiosque roots que vende bem no verão e fecha em
+    abril, e o restaurante de jantar que não abre de manhã. Ninguém ocupa o cruzamento entre
+    <em>produto elaborado</em> e <em>dia inteiro, ano inteiro</em>. É ali que a moka entra.</p>
+  </div>
+  <div class="rolo">
+    <table>
+      <thead><tr><th>Eixo</th><th>Onde está o mercado</th><th>Onde a moka fica</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Horário</strong></td><td>Açaí à tarde; restaurante à noite</td><td>Café da manhã, almoço leve, açaí à tarde, doce à noite</td></tr>
+        <tr><td><strong>Calendário</strong></td><td>Dezembro a março, depois fecha</td><td>Doze meses, com o canal de café da manhã sustentando o inverno</td></tr>
+        <tr><td><strong>Produto</strong></td><td>Açaí pronto, copo padrão</td><td>12 cremes, self-service por peso, cafeteria, padaria terceirizada premium</td></tr>
+        <tr><td><strong>Família</strong></td><td>Sem estrutura para criança</td><td>Espaço kids, cardápio kids, cadeirinha, jogo americano</td></tr>
+        <tr><td><strong>Preço</strong></td><td>R$ 55 a 65 o quilo</td><td>R$ 74,90 o quilo, justificado por produto e lugar</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="dupla">
+    <div class="sim"><div class="t">A moka é</div><ul>
+      <li>Uma casa de praia com produto sério</li>
+      <li>Um lugar para ficar, não só para comprar</li>
+      <li>Acessível — chinelo e areia no pé são bem-vindos</li>
+      <li>Da Ferrugem, e assina isso em tudo</li>
+    </ul></div>
+    <div class="nao"><div class="t">A moka não é</div><ul>
+      <li>Uma marca fitness ou de dieta — não falamos em calorias</li>
+      <li>Uma marca "gourmet" ou de luxo de praia</li>
+      <li>Uma franquia genérica de shopping</li>
+      <li>Um lugar barulhento de balada — a noite é calma</li>
+    </ul></div>
+  </div>
+</section>
+
+<section class="s" id="publico">
+  <p class="olho">03 · Público</p>
+  <h3>Quatro pessoas reais, não um perfil demográfico</h3>
+  <p class="lede">Demografia não decide nada. Estas quatro pessoas decidem — cada uma comprando por
+    um motivo diferente, num mês diferente do ano.</p>
+  <div class="g g2">
+    <div class="cx"><span class="k">Persona 01 · o motor do verão</span>
+      <h6>Carla, 38 — a família de temporada</h6>
+      <p>Aluga uma casa por sete noites em janeiro, com marido e dois filhos de 5 e 9 anos. Chega
+        sexta à noite com a geladeira vazia. Decide onde a família come e paga.<br><br>
+        <strong>Compra:</strong> o café da manhã entregue no primeiro dia, e volta à tarde porque
+        tem onde as crianças ficarem.<br>
+        <strong>Volta se:</strong> a criança pedir para voltar.<br>
+        <strong>Perde-se se:</strong> a espera passar de 15 minutos com criança com fome.</p></div>
+    <div class="cx"><span class="k">Persona 02 · a frequência</span>
+      <h6>Téo, 24 — o surfista da temporada</h6>
+      <p>Fica de dezembro a março, trabalha em bar à noite, surfa de manhã. Anda de bike, paga no
+        Pix, olha preço.<br><br>
+        <strong>Compra:</strong> tigela média depois do surf e café antes do turno. Duas a três
+        vezes por semana.<br>
+        <strong>Volta se:</strong> for tratado pelo nome e o preço for honesto.<br>
+        <strong>Perde-se se:</strong> sentir que virou lugar de turista.</p></div>
+    <div class="cx"><span class="k">Persona 03 · o ticket alto</span>
+      <h6>Marina e Rafa, 31 — o casal de fim de semana</h6>
+      <p>Vêm de Porto Alegre ou Curitiba em feriados prolongados. Escolhem onde comer pelo
+        Instagram e pelo Google antes de sair de casa. Fotografam.<br><br>
+        <strong>Compra:</strong> bowl assinatura, café especial, milkshake. Ticket 40% acima da média.<br>
+        <strong>Volta se:</strong> o lugar for bonito de verdade e o café for bom mesmo.<br>
+        <strong>Perde-se se:</strong> a foto do Instagram não bater com o que chega à mesa.</p></div>
+    <div class="cx"><span class="k">Persona 04 · quem paga o inverno</span>
+      <h6>Seu Nilton, 52 — o morador de Garopaba</h6>
+      <p>Mora na região o ano todo. De maio a setembro a praia é dele. Toma café da mesma forma
+        todo dia e reparou quando o preço subiu.<br><br>
+        <strong>Compra:</strong> café e pão de queijo de manhã, quase todo dia, o ano inteiro.<br>
+        <strong>Volta se:</strong> a moka continuar aberta e reconhecível em junho.<br>
+        <strong>Perde-se se:</strong> a casa fechar na baixa ou tratá-lo como turista.</p></div>
+  </div>
+  <div class="col">
+  <div class="nota">A tentação é desenhar tudo para Carla e Marina, que gastam mais. Mas é o Téo e o
+    Seu Nilton que fazem a casa existir em junho — e é a presença deles que faz a Carla sentir que
+    achou um lugar de verdade, e não uma armadilha de turista.</div>
+  </div>
+</section>
+
+<section class="s" id="personalidade">
+  <p class="olho">04 · Personalidade</p>
+  <h3>Se a moka fosse uma pessoa</h3>
+  <div class="col">
+  <p>Teria trinta e poucos anos, moraria em Garopaba há tempo suficiente para conhecer todo mundo
+    mas não o bastante para se achar dona da praia. Faria café bem feito sem transformar isso em
+    palestra. Chamaria a criança pelo nome. Não usaria a palavra <em>experiência</em>.</p>
+
+  <h4>Arquétipo: o Explorador, com pé no Cara Comum</h4>
+  <p>O <strong>Explorador</strong> dá a energia — "pequenas grandes aventuras", o mar, a
+    descoberta, o dia que rende. O <strong>Cara Comum</strong> mantém os pés no chão: a moka é de
+    todo mundo, não de uma tribo. Essa mistura é o que separa a marca do clichê de surf-shop e do
+    clichê de cafeteria de capital.</p>
+  </div>
+  <div class="rolo">
+    <table>
+      <thead><tr><th>A moka é</th><th class="mono">Escala</th><th>mas nunca</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Calorosa</strong></td><td class="mono">●●●●○</td><td>Melosa ou íntima demais com quem acabou de chegar</td></tr>
+        <tr><td><strong>Descontraída</strong></td><td class="mono">●●●●○</td><td>Desleixada — o balcão é impecável</td></tr>
+        <tr><td><strong>Direta</strong></td><td class="mono">●●●●●</td><td>Seca ou grossa</td></tr>
+        <tr><td><strong>Alegre</strong></td><td class="mono">●●●○○</td><td>Eufórica, com ponto de exclamação em toda frase</td></tr>
+        <tr><td><strong>Cuidadosa</strong></td><td class="mono">●●●●●</td><td>Preciosista a ponto de deixar a fila parada</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="s" id="arquitetura">
+  <p class="olho">05 · Arquitetura</p>
+  <h3>Uma marca, duas extensões, uma regra</h3>
+  <div class="g">
+    <div class="cx"><span class="k">Marca mãe</span><h6>moka<i style="color:var(--sol);font-style:normal">.</i></h6>
+      <p>Açaí · Bowls · Café. Carrega tudo. Toda extensão empresta dela, nunca o contrário.</p></div>
+    <div class="cx"><span class="k">Sub-marca</span><h6>moka Kids</h6>
+      <p>Identidade própria — mascote, paleta ampliada, tipografia mais solta. É a única extensão
+        autorizada a se afastar visualmente da mãe, e mesmo assim mantém logotipo e cores base.</p></div>
+    <div class="cx"><span class="k">Linha endossada</span><h6>Café da manhã moka</h6>
+      <p>O canal de entrega para hóspedes de temporada. <strong>Não</strong> tem logotipo próprio:
+        usa a marca mãe com o descritor da linha. Endosso, não sub-marca.</p></div>
+  </div>
+  <div class="col">
+  <h4>A regra de nomenclatura</h4>
+  <p>Produto novo <strong>não ganha marca</strong>. Ganha nome descritivo dentro da moka. Um bowl
+    chamado <em>Ferrugem</em> ou <em>Amazônia</em> é nome de produto; um serviço chamado
+    <em>Café da manhã moka</em> é linha. Nada além de <em>Kids</em> recebe identidade visual
+    própria sem decisão dos sócios.</p>
+  <div class="nota">Teste rápido: se a coisa nova pode ser explicada em três palavras depois do
+    nome moka, é produto ou linha. Se precisa de um parágrafo e de outro público, aí sim é
+    conversa de sub-marca.</div>
+  </div>
+</section>
+
+<section class="s" id="promessa">
+  <p class="olho">06 · Promessa</p>
+  <h3>O que a moka promete — e as seis provas que sustentam</h3>
+  <div class="col">
+  <p class="lede">Uma promessa sem prova é adjetivo. Cada linha abaixo é verificável por quem
+    entra na loja.</p>
+  </div>
+  <div class="g g2">
+    <div class="cx"><span class="k">Prova 01</span><h6>12 cremes, não um</h6>
+      <p>Original, Amazônia 14%, zero, cupuaçu, morango, pitaya, cookies, moka cacau, paçoca,
+        graviola, banana e o da estação. Nenhuma casa da praia chega perto.</p></div>
+    <div class="cx"><span class="k">Prova 02</span><h6>Self-service por peso</h6>
+      <p>Balança homologada, mais de 20 toppings. Quem monta é o cliente — paga o que come e vê o
+        que leva.</p></div>
+    <div class="cx"><span class="k">Prova 03</span><h6>Cafeteria de verdade</h6>
+      <p>Espresso, cappuccino, latte, matcha, gelados. Não é máquina de cápsula atrás do balcão do
+        açaí — é grão moído na hora.</p></div>
+    <div class="cx"><span class="k">Prova 04</span><h6>O único espaço kids da Ferrugem</h6>
+      <p>Brinquedão, piso emborrachado, cerca, sombra e cardápio próprio. Nenhum concorrente tem.</p></div>
+    <div class="cx"><span class="k">Prova 05</span><h6>Aberta o ano inteiro</h6>
+      <p>Junho e agosto inclusos. É a prova que o morador cobra e o turista de fevereiro nunca vê —
+        mas é a que constrói a marca.</p></div>
+    <div class="cx"><span class="k">Prova 06</span><h6>Café da manhã na sua porta</h6>
+      <p>Entrega no imóvel alugado, das 7h às 9h30. Um serviço que ninguém na região oferece de
+        forma organizada.</p></div>
+  </div>
+</section>
+</div>
+<div class="parte">
+  <div class="w">
+    <div class="num">II</div>
+    <div class="tx"><h2>O verbo</h2>
+      <p>A moka já escreveu muito antes deste manual existir. Esta parte não inventa uma voz —
+        organiza a que está no cardápio, na embalagem e no uniforme, e a torna repetível.</p></div>
+  </div>
+</div>
+<div class="w">
+
+<section class="s" id="nome">
+  <p class="olho">07 · Nome</p>
+  <h3>moka. — minúsculo, com ponto, sempre</h3>
+  <div class="col">
+  <p>O nome da marca é <strong>moka</strong> seguido de um <strong>ponto final</strong>. As duas
+    coisas são obrigatórias e nenhuma delas é decoração.</p>
+  <ul class="l">
+    <li><strong>Sempre minúsculo</strong>, inclusive no começo de frase. "moka abre às 8h" — não
+      "Moka abre às 8h".</li>
+    <li><strong>O ponto faz parte do nome</strong> na aplicação do logotipo, e é sempre na cor Sol
+      Ferrugem. Em texto corrido o ponto pode ser omitido para não brigar com a pontuação da frase.</li>
+    <li><strong>Nunca em caixa alta</strong>, nem em título, nem em placa. MOKA é outra marca.</li>
+    <li><strong>Nunca separado</strong>: mo.ka, mo-ka, MoKa estão errados.</li>
+  </ul>
+
+  <h4>O descritor</h4>
+  <p class="script">açaí · bowls · café</p>
+  <p>Acompanha o logotipo em toda primeira aparição — fachada, embalagem, perfil, cardápio. Sempre
+    em caixa alta espaçada, separado por pontos médios, alinhado à largura do logotipo. Em
+    aplicações muito pequenas (menos de 22 mm) o descritor sai e o logotipo fica sozinho.</p>
+
+  <h4>De onde vem</h4>
+  <p>Moka é a cafeteira italiana e é também o café com chocolate. O nome carrega café sem dizer
+    café, e soa bem em português e em inglês — o que importa numa praia que recebe argentino,
+    uruguaio e gringo todo verão. É curto, fácil de falar e fácil de escrever na busca.</p>
+
+  <div class="pend"><b>Pendência jurídica — resolver antes de gastar em embalagem.</b> "moka" é
+    termo descritivo no ramo de café e tem risco real de objeção no INPI na classe 43 (serviços de
+    alimentação). Fazer a busca de anterioridade (R$ 440 a R$ 880 a taxa) <b>antes</b> de fechar
+    os R$ 16.000 de embalagem, plotagem e fachada. Se houver conflito, a saída natural é registrar
+    o conjunto <em>moka. açaí · bowls · café</em> como marca mista, que tem chance bem maior que o
+    nominativo puro.</div>
+  </div>
+</section>
+
+<section class="s" id="voz">
+  <p class="olho">08 · Voz</p>
+  <h3>Quatro atributos, e a frase que cada um proíbe</h3>
+  <div class="g g2">
+    <div class="cx"><span class="k">Atributo 01</span><h6>Curta</h6>
+      <p>Frase de até doze palavras sempre que der. Ponto final em vez de vírgula. Quem lê está de
+        pé, com fome, no sol.</p></div>
+    <div class="cx"><span class="k">Atributo 02</span><h6>Concreta</h6>
+      <p>Nome do ingrediente, não a categoria. "Pão de fermentação natural" e não "pães especiais".
+        "Balde de 10 kg" e não "grande volume".</p></div>
+    <div class="cx"><span class="k">Atributo 03</span><h6>Calorosa sem ser bajuladora</h6>
+      <p>A moka fala como quem já te conhece, não como quem quer te vender. Sem "querido",
+        sem "amamos você", sem coração em toda frase.</p></div>
+    <div class="cx"><span class="k">Atributo 04</span><h6>Do lugar</h6>
+      <p>Ferrugem, praia, maré, sol, areia, inverno. A moka é de um lugar e escreve como quem é.</p></div>
+  </div>
+
+  <h4>O tique verbal da casa — e por que preservá-lo</h4>
+  <div class="col">
+  <p>A moka já tem um recurso próprio, repetido de forma consistente em toda a comunicação: a
+    construção <strong>"X também é Y"</strong>. <em>Natureza também alimenta. Chocolate também é
+    pausa. Fruta também é felicidade. Gelado também faz parte da vida aqui. Colorir também é uma
+    aventura.</em></p>
+  <p>É um recurso generoso: ele inclui em vez de vender, e faz a marca parecer alguém que repara
+    nas coisas. <strong>É marca registrada verbal da casa e deve ser usado — com parcimônia.</strong>
+    Uma vez por peça, nunca duas.</p>
+  <p>O segundo recurso recorrente é o advérbio <strong>"aqui"</strong>, que ancora tudo no lugar:
+    <em>mais da vida aqui, sempre aqui, energia pra mais dias aqui</em>. Também é da casa.</p>
+  </div>
+
+  <h4>A mesma frase, escrita errado e escrito certo</h4>
+  <div class="dupla">
+    <div class="sim"><div class="t">Assim</div><ul>
+      <li>"Bowl novo. Pistache, damasco e banana."</li>
+      <li>"Abrimos 8h. Todo dia, o ano inteiro."</li>
+      <li>"O açaí acabou hoje às 21h. Amanhã tem desde as 8h."</li>
+      <li>"Café da manhã na sua porta, das 7h às 9h30. Peça até 20h."</li>
+      <li>"Chuva na Ferrugem. O deck tá coberto."</li>
+    </ul></div>
+    <div class="nao"><div class="t">Nunca assim</div><ul>
+      <li>"Chegou a novidade que você tanto esperava!!! 😍🔥"</li>
+      <li>"Estamos ansiosos para proporcionar a melhor experiência!"</li>
+      <li>"Infelizmente nosso estoque se esgotou, pedimos desculpas."</li>
+      <li>"Que tal um delicioso café da manhã pertinho de você?"</li>
+      <li>"Dia chuvoso combina com aquele açaizinho, né? 💜"</li>
+    </ul></div>
+  </div>
+  <div class="col">
+  <div class="nota">Diminutivo é o inimigo número um: <em>açaizinho, cafezinho, pertinho,
+    docinho</em>. A moka nunca usa. O único diminutivo aceito é <strong>Moquinho</strong>, que é
+    nome próprio do mascote.</div>
+  </div>
+</section>
+
+<section class="s" id="assinaturas">
+  <p class="olho">09 · Assinaturas</p>
+  <h3>Uma assinatura principal, quatro de apoio, e uma família de frases de embalagem</h3>
+  <div class="faixa">
+    <p style="font-family:var(--s);font-size:clamp(34px,6vw,62px);color:var(--sol);line-height:1;margin:0 0 12px">mais da vida aqui.</p>
+    <p><strong>Assinatura principal.</strong> Aparece com o logotipo em fachada, embalagem
+      principal, uniforme e perfil. Sempre em caixa baixa, com ponto final. Nunca é traduzida,
+      nunca é alterada, nunca é usada no meio de uma frase.</p>
+  </div>
+  <div class="col">
+  <h4>Assinaturas de apoio</h4>
+  <p>Usadas isoladamente em peças onde a principal já apareceu, ou em contextos específicos.
+    Nunca duas na mesma peça.</p>
+  </div>
+  <div class="rolo">
+    <table>
+      <thead><tr><th>Frase</th><th>Onde usa</th><th>Onde não usa</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Coisas boas para dias reais.</strong></td><td>Comunicação de campanha, topo de cardápio, bio</td><td>Junto da assinatura principal</td></tr>
+        <tr><td><strong>Comida boa, gente boa, dias reais.</strong></td><td>Uniforme, parede, material de equipe</td><td>Embalagem de produto</td></tr>
+        <tr><td><strong>Natureza também alimenta.</strong></td><td>Rodapé de cardápio, embalagem de papel, sinalização de lixo</td><td>Peça de promoção ou preço</td></tr>
+        <tr><td><strong>Café, boas companhias, natureza. Sempre aqui.</strong></td><td>Área do café, quadro de parede</td><td>Peça de açaí ou de kids</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>Frases de embalagem — uma por superfície</h4>
+  <div class="col"><p>Cada peça de embalagem carrega uma frase própria. É o que transforma um copo
+    descartável em um pedaço de marca. Não trocar de superfície: a frase do guardanapo não vai no
+    copo.</p></div>
+  <div class="rolo">
+    <table>
+      <thead><tr><th>Superfície</th><th>Frase</th></tr></thead>
+      <tbody>
+        <tr><td>Copo de açaí</td><td>Energia pra mais dias aqui.</td></tr>
+        <tr><td>Copo de café</td><td>Café que te leva mais longe.</td></tr>
+        <tr><td>Tampa do bowl</td><td>Mais da vida aqui.</td></tr>
+        <tr><td>Guardanapo</td><td>Boas escolhas fazem dias mais felizes.</td></tr>
+        <tr><td>Sachê de talher</td><td>Pequenos momentos, grandes dias.</td></tr>
+        <tr><td>Bowl de papel</td><td>Natureza também alimenta.</td></tr>
+        <tr><td>Sacola</td><td>Açaí · Bowls · Café · Pessoas · Natureza · Ferrugem · Mais da vida aqui.</td></tr>
+        <tr><td>Caixa de café da manhã</td><td>Bom dia. O seu café da manhã chegou.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>Universo Kids — vocabulário próprio</h4>
+  <div class="col">
+  <ul class="l">
+    <li><strong>Pequenas grandes aventuras.</strong> — assinatura do universo kids</li>
+    <li><strong>Pequenos exploradores, grandes aventuras.</strong> — parede e mural</li>
+    <li><strong>Sonhe · Explore · Saboreie · Repita</strong> — quadro e disco</li>
+    <li><strong>Bowls que fazem dias mais felizes.</strong> — cardápio kids</li>
+    <li><strong>Colorir também é uma aventura!</strong> — jogo americano</li>
+  </ul>
+  <div class="nota">Só o universo Kids usa ponto de exclamação. No resto da marca, exclamação é
+    exceção — e nunca duas.</div>
+  </div>
+</section>
+
+<section class="s" id="lexico">
+  <p class="olho">10 · Léxico</p>
+  <h3>As palavras da casa</h3>
+  <div class="dupla">
+    <div class="sim"><div class="t">Dizemos</div><ul>
+      <li><strong>Tigela</strong> ou <strong>bowl</strong> — os dois valem</li>
+      <li><strong>Creme</strong> — os 12 sabores de base</li>
+      <li><strong>Balcão</strong> — o self-service</li>
+      <li><strong>A casa</strong> — a loja, quando falamos de dentro</li>
+      <li><strong>Monta do seu jeito</strong></li>
+      <li><strong>Fruta de verdade</strong>, <strong>pão de verdade</strong></li>
+      <li><strong>Do dia</strong>, <strong>da estação</strong></li>
+      <li><strong>Pessoal</strong> — para o grupo, nunca "galera"</li>
+    </ul></div>
+    <div class="nao"><div class="t">Não dizemos</div><ul>
+      <li><strong>Açaizinho</strong> e qualquer diminutivo</li>
+      <li><strong>Experiência</strong> — palavra de folder, não de praia</li>
+      <li><strong>Fit</strong>, <strong>low carb</strong>, <strong>detox</strong>, contagem de caloria</li>
+      <li><strong>Delícia</strong>, <strong>delicioso</strong>, <strong>irresistível</strong></li>
+      <li><strong>Gourmet</strong>, <strong>premium</strong>, <strong>exclusivo</strong></li>
+      <li><strong>Cliente</strong> em comunicação — dizemos "você"</li>
+      <li><strong>Unidade</strong>, <strong>estabelecimento</strong> — é "a moka" ou "a casa"</li>
+      <li><strong>Colaborador</strong> — é "a equipe", "o pessoal"</li>
+    </ul></div>
+  </div>
+  <div class="col">
+  <h4>Números e medidas</h4>
+  <ul class="l">
+    <li>Preço com <strong>R$ antes e vírgula decimal</strong>: R$ 74,90/kg. Nunca R$74.90.</li>
+    <li>Horário com <strong>h sem espaço</strong>: 8h, 9h30, das 7h às 9h30.</li>
+    <li>Peso e volume por extenso na comunicação: <strong>415 gramas</strong>, não 415g, em texto
+      corrido. Em cardápio e ficha técnica, abreviado.</li>
+    <li>O quilo do self-service é sempre escrito por inteiro: <strong>R$ 74,90 o quilo</strong>.</li>
+  </ul>
+  </div>
+</section>
+
+<section class="s" id="copy">
+  <p class="olho">11 · Aplicação</p>
+  <h3>A mesma notícia, escrita para cada canal</h3>
+  <div class="col"><p class="lede">Exercício real: a casa vai abrir uma hora mais cedo no verão.
+    A informação é a mesma; a forma muda por canal.</p></div>
+  <div class="g g2">
+    <div class="cx"><span class="k">Placa no balcão</span><h6>Uma linha, caixa alta</h6>
+      <p style="font-family:var(--d);font-size:17px;color:var(--texto);letter-spacing:.02em">
+        A PARTIR DE DEZEMBRO,<br>ABRIMOS ÀS 7H.</p></div>
+    <div class="cx"><span class="k">Post de feed</span><h6>Duas frases e o motivo</h6>
+      <p>Em dezembro a moka abre às 7h.<br>Porque tem gente que sai pra surfar antes do sol e volta
+        com fome.</p></div>
+    <div class="cx"><span class="k">Story</span><h6>Uma frase e um sticker</h6>
+      <p>7h. Todo dia, a partir de dezembro. ☀️<br><span style="color:var(--texto3)">[sticker de
+        enquete: "vem de manhã?"]</span></p></div>
+    <div class="cx"><span class="k">WhatsApp do café da manhã</span><h6>Serviço puro, sem enfeite</h6>
+      <p>Bom dia! A partir de dezembro a entrega começa às 7h. Pedidos até 20h da véspera.</p></div>
+    <div class="cx"><span class="k">Google Meu Negócio</span><h6>Fato, sem voz de marca</h6>
+      <p>Horário de verão: 7h às 22h, todos os dias, de 1º de dezembro a 28 de fevereiro.</p></div>
+    <div class="cx"><span class="k">Cartaz para o anfitrião</span><h6>Fala com quem indica</h6>
+      <p>A moka abre às 7h no verão. Se o seu hóspede pedir café da manhã até as 20h, chega quente
+        antes das 9h30.</p></div>
+  </div>
+</section>
+</div>
+<div class="parte">
+  <div class="w">
+    <div class="num">III</div>
+    <div class="tx"><h2>A identidade</h2>
+      <p>A parte técnica. Tudo aqui tem medida, valor ou proibição — é o capítulo que a gráfica, o
+        plotador e o designer abrem primeiro.</p></div>
+  </div>
+</div>
+<div class="w">
+
+<section class="s" id="logo">
+  <p class="olho">12 · Logotipo</p>
+  <h3>Construção, respiro e tamanho mínimo</h3>
+  <div class="col">
+  <p class="lede">O logotipo é um desenho fechado. Não se redesenha, não se redigita, não se
+    aproxima com uma fonte parecida. Existe um arquivo vetorial mestre e é dele que sai toda
+    aplicação.</p>
+  <div class="nota">Os exemplos desta página são <strong>representações</strong> para explicar as
+    regras. O arquivo mestre em <code>.ai</code> e <code>.svg</code> é a única fonte válida para
+    produção.</div>
+
+  <h4>A unidade de medida: o ponto</h4>
+  <p>Toda medida do logotipo é expressa em <strong>P</strong>, o diâmetro do ponto final. O ponto
+    é o módulo da marca — se ele cresce, tudo cresce junto.</p>
+  </div>
+  <div class="rolo">
+    <table>
+      <thead><tr><th>Medida</th><th class="mono">Valor</th><th>Por quê</th></tr></thead>
+      <tbody>
+        <tr><td>Altura da caixa-baixa (altura-x)</td><td class="mono">2,4 P</td><td>Define a proporção do desenho inteiro</td></tr>
+        <tr><td>Distância entre o "a" e o ponto</td><td class="mono">0,5 P</td><td>O ponto respira, mas pertence à palavra</td></tr>
+        <tr><td>Área de respiro em todos os lados</td><td class="mono">2 P</td><td>Nada entra: nem texto, nem foto, nem borda</td></tr>
+        <tr><td>Distância do logotipo ao descritor</td><td class="mono">1,2 P</td><td>Medida do baseline do logotipo ao topo do descritor</td></tr>
+        <tr><td>Largura do descritor</td><td class="mono">= largura do logotipo</td><td>O espacejamento do descritor se ajusta para alinhar as duas pontas</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col">
+  <h4>Tamanhos mínimos</h4>
+  <ul class="l">
+    <li><strong>Impresso, com descritor:</strong> 22 mm de largura. Abaixo disso o descritor some.</li>
+    <li><strong>Impresso, sem descritor:</strong> 14 mm de largura.</li>
+    <li><strong>Digital:</strong> 90 px de largura com descritor, 56 px sem.</li>
+    <li><strong>Bordado em uniforme:</strong> 40 mm — abaixo disso o ponto fecha e vira borrão.</li>
+    <li><strong>Ícone de perfil e favicon:</strong> só o <strong>m</strong> com o ponto, em bloco
+      quadrado. Nunca a palavra inteira espremida num círculo.</li>
+  </ul>
+  </div>
+  <div class="lg">
+    <div class="lgb"><div class="p" style="background:var(--creme)"><span class="mk" style="font-size:44px;color:var(--tinta)">moka<i style="color:var(--sol)">.</i></span></div>
+      <div class="c">Positivo sobre creme<br>Uso preferencial</div></div>
+    <div class="lgb"><div class="p" style="background:var(--tinta)"><span class="mk" style="font-size:44px;color:var(--creme)">moka<i style="color:var(--sol)">.</i></span></div>
+      <div class="c">Negativo sobre tinta<br>Fachada, embalagem escura</div></div>
+    <div class="lgb"><div class="p" style="background:var(--sol)"><span class="mk" style="font-size:44px;color:var(--tinta)">moka<i style="color:var(--tinta)">.</i></span></div>
+      <div class="c">Sobre Sol Ferrugem<br>O ponto vira tinta — nunca some</div></div>
+    <div class="lgb"><div class="p" style="background:var(--kraft)"><span class="mk" style="font-size:44px;color:var(--tinta)">moka<i style="color:var(--tinta)">.</i></span></div>
+      <div class="c">Sobre kraft<br>Monocromático obrigatório</div></div>
+  </div>
+</section>
+
+<section class="s" id="versoes">
+  <p class="olho">13 · Versões</p>
+  <h3>Cinco arquivos, cinco usos</h3>
+  <div class="rolo">
+    <table>
+      <thead><tr><th>Versão</th><th>Composição</th><th>Onde se usa</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Principal</strong></td><td>moka. + descritor abaixo</td><td>Fachada, primeira página de qualquer peça, embalagem principal, perfil</td></tr>
+        <tr><td><strong>Reduzida</strong></td><td>moka. sozinho</td><td>Peças pequenas, bordado, rodapé, adesivo, brindes</td></tr>
+        <tr><td><strong>Horizontal</strong></td><td>moka. · descritor ao lado</td><td>Faixas largas: topo de site, testeira, banner de evento</td></tr>
+        <tr><td><strong>Símbolo</strong></td><td>só o <strong>m</strong> com o ponto</td><td>Avatar, favicon, selo de embalagem, marca d'água</td></tr>
+        <tr><td><strong>Assinada</strong></td><td>moka. + "mais da vida aqui."</td><td>Fecho de campanha, última página, parede, uniforme</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col">
+  <h4>Uma regra sobre cor no logotipo</h4>
+  <p>O logotipo tem exatamente <strong>duas configurações de cor</strong>: palavra escura com ponto
+    Sol, ou palavra clara com ponto Sol. Sobre fundos amarelos ou kraft — onde o ponto Sol
+    desapareceria — a marca vira <strong>monocromática</strong> inteira. Não existe versão com o
+    ponto em outra cor.</p>
+  </div>
+</section>
+
+<section class="s" id="proibido">
+  <p class="olho">14 · Proibições</p>
+  <h3>Dez coisas que ninguém faz com o logotipo</h3>
+  <div class="dupla">
+    <div class="nao"><div class="t">Forma</div><ul>
+      <li>Esticar, comprimir ou inclinar</li>
+      <li>Redigitar com outra fonte</li>
+      <li>Alterar o espacejamento entre as letras</li>
+      <li>Contornar, sombrear ou aplicar relevo</li>
+      <li>Girar em qualquer ângulo</li>
+    </ul></div>
+    <div class="nao"><div class="t">Cor e contexto</div><ul>
+      <li>Usar cor fora do sistema — nada de verde, azul ou rosa</li>
+      <li>Aplicar sobre foto sem área chapada por baixo</li>
+      <li>Colocar dentro de caixa, círculo ou moldura</li>
+      <li>Invadir a área de respiro de 2 P</li>
+      <li>Trocar o ponto por ícone, coração ou fruta</li>
+    </ul></div>
+  </div>
+  <div class="col">
+  <div class="nota">O erro mais provável na prática: a fornecedora de brinde ou de camiseta
+    "adapta" a marca para caber. Envie sempre o arquivo vetorial e esta página junto — em PDF, não
+    em print de tela.</div>
+  </div>
+</section>
+
+<section class="s" id="cor">
+  <p class="olho">15 · Cor</p>
+  <h3>Quatro cores centrais, três de apoio, uma regra de proporção</h3>
+  <div class="col">
+  <p class="lede">A paleta é curta de propósito. Quatro cores fazem 95% de tudo; as de apoio
+    existem para papel, cozinha infantil e sinalização.</p>
+  </div>
+  <div class="cores">
+    <div class="cor"><div class="chip" style="background:#4D2337;color:#F4E7D5">Açaí moka</div>
+      <div class="info"><div class="nome">Açaí moka</div><dl>
+        <dt>HEX</dt><dd>#4D2337</dd><dt>RGB</dt><dd>77 · 35 · 55</dd>
+        <dt>CMYK</dt><dd>50 · 82 · 45 · 46</dd><dt>Pantone</dt><dd>7659 C (aprox.)</dd>
+        <dt>Uso</dt><dd>Principal</dd></dl></div></div>
+    <div class="cor"><div class="chip" style="background:#FCA203;color:#220C17">Sol Ferrugem</div>
+      <div class="info"><div class="nome">Sol Ferrugem</div><dl>
+        <dt>HEX</dt><dd>#FCA203</dd><dt>RGB</dt><dd>252 · 162 · 3</dd>
+        <dt>CMYK</dt><dd>0 · 41 · 99 · 0</dd><dt>Pantone</dt><dd>1375 C (aprox.)</dd>
+        <dt>Uso</dt><dd>Acento único</dd></dl></div></div>
+    <div class="cor"><div class="chip" style="background:#D4AE8E;color:#220C17">Areia Natural</div>
+      <div class="info"><div class="nome">Areia Natural</div><dl>
+        <dt>HEX</dt><dd>#D4AE8E</dd><dt>RGB</dt><dd>212 · 174 · 142</dd>
+        <dt>CMYK</dt><dd>16 · 32 · 45 · 1</dd><dt>Pantone</dt><dd>7507 C (aprox.)</dd>
+        <dt>Uso</dt><dd>Neutro quente</dd></dl></div></div>
+    <div class="cor"><div class="chip" style="background:#272423;color:#F4E7D5">Grafite Essencial</div>
+      <div class="info"><div class="nome">Grafite Essencial</div><dl>
+        <dt>HEX</dt><dd>#272423</dd><dt>RGB</dt><dd>39 · 36 · 35</dd>
+        <dt>CMYK</dt><dd>65 · 62 · 63 · 58</dd><dt>Pantone</dt><dd>Black 7 C (aprox.)</dd>
+        <dt>Uso</dt><dd>Texto e uniforme</dd></dl></div></div>
+  </div>
+  <div class="col"><h4>Cores de apoio</h4><p>Não substituem as centrais. Cada uma existe para uma
+    função específica e não migra para fora dela.</p></div>
+  <div class="cores">
+    <div class="cor"><div class="chip" style="background:#220C17;color:#F4E7D5">Tinta</div>
+      <div class="info"><div class="nome">Tinta</div><dl>
+        <dt>HEX</dt><dd>#220C17</dd><dt>Função</dt><dd>Fundo escuro profundo</dd>
+        <dt>Onde</dt><dd>Cardápio, embalagem, capa</dd></dl></div></div>
+    <div class="cor"><div class="chip" style="background:#F4E7D5;color:#220C17">Creme</div>
+      <div class="info"><div class="nome">Creme</div><dl>
+        <dt>HEX</dt><dd>#F4E7D5</dd><dt>Função</dt><dd>O papel da marca</dd>
+        <dt>Onde</dt><dd>Fundo claro de tudo</dd></dl></div></div>
+    <div class="cor"><div class="chip" style="background:#C89469;color:#220C17">Kraft</div>
+      <div class="info"><div class="nome">Kraft</div><dl>
+        <dt>HEX</dt><dd>#C89469</dd><dt>Função</dt><dd>Cor do papel não branqueado</dd>
+        <dt>Onde</dt><dd>Sacola, caixa, guardanapo</dd></dl></div></div>
+    <div class="cor"><div class="chip" style="background:#FEBB3C;color:#220C17">Sol Kids</div>
+      <div class="info"><div class="nome">Sol Kids</div><dl>
+        <dt>HEX</dt><dd>#FEBB3C</dd><dt>Função</dt><dd>Amarelo mais leve</dd>
+        <dt>Onde</dt><dd>Só no universo Kids</dd></dl></div></div>
+  </div>
+
+  <h4>A proporção: 60 · 30 · 10</h4>
+  <div class="prop">
+    <span style="flex:60;background:#F4E7D5;color:#220C17">60% — creme, kraft, areia</span>
+    <span style="flex:30;background:#4D2337;color:#F4E7D5">30% — açaí e tinta</span>
+    <span style="flex:10;background:#FCA203;color:#220C17">10% — sol</span>
+  </div>
+  <div class="col">
+  <p>O Sol Ferrugem é <strong>acento</strong>, não cor de área. Ele aparece no ponto do logotipo,
+    num detalhe, numa palavra — nunca como fundo de uma peça inteira, com a única exceção do boné
+    do uniforme e das peças do universo Kids.</p>
+  <div class="nota">Regra prática para conferir uma peça: cubra o amarelo com o dedo. Se a peça
+    continuar funcionando, a proporção está certa. Se a peça desmontar, tem amarelo demais.</div>
+  </div>
+</section>
+
+<section class="s" id="contraste">
+  <p class="olho">16 · Acessibilidade</p>
+  <h3>Uma combinação da paleta reprova — e é a mais tentadora</h3>
+  <div class="col">
+  <p class="lede">Todas as combinações abaixo foram medidas pelo critério WCAG 2.1. Uma delas é uma
+    armadilha que todo designer vai tentar usar no primeiro dia.</p>
+  </div>
+  <div class="rolo">
+    <table>
+      <thead><tr><th>Texto</th><th>Sobre</th><th class="mono">Contraste</th><th>Corpo 14px</th><th>Título 24px+</th></tr></thead>
+      <tbody>
+        <tr><td>Creme</td><td>Tinta</td><td class="mono">15,21:1</td><td>AAA</td><td>AAA</td></tr>
+        <tr><td>Tinta</td><td>Creme</td><td class="mono">15,21:1</td><td>AAA</td><td>AAA</td></tr>
+        <tr><td>Creme</td><td>Grafite</td><td class="mono">12,65:1</td><td>AAA</td><td>AAA</td></tr>
+        <tr><td>Creme</td><td>Açaí</td><td class="mono">10,70:1</td><td>AAA</td><td>AAA</td></tr>
+        <tr><td>Sol</td><td>Tinta</td><td class="mono">9,10:1</td><td>AAA</td><td>AAA</td></tr>
+        <tr><td>Tinta</td><td>Sol</td><td class="mono">9,10:1</td><td>AAA</td><td>AAA</td></tr>
+        <tr><td>Areia</td><td>Tinta</td><td class="mono">9,04:1</td><td>AAA</td><td>AAA</td></tr>
+        <tr><td>Sol</td><td>Grafite</td><td class="mono">7,56:1</td><td>AAA</td><td>AAA</td></tr>
+        <tr><td>Kraft</td><td>Tinta</td><td class="mono">6,97:1</td><td>AA</td><td>AAA</td></tr>
+        <tr><td>Sol</td><td>Açaí</td><td class="mono">6,40:1</td><td>AA</td><td>AAA</td></tr>
+        <tr style="background:color-mix(in srgb,#C1442E 12%,transparent)"><td><strong>Creme</strong></td><td><strong>Kraft</strong></td><td class="mono"><strong>2,18:1</strong></td><td><strong>reprova</strong></td><td><strong>reprova</strong></td></tr>
+        <tr style="background:color-mix(in srgb,#C1442E 12%,transparent)"><td><strong>Sol</strong></td><td><strong>Creme</strong></td><td class="mono"><strong>1,67:1</strong></td><td><strong>reprova</strong></td><td><strong>reprova</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col">
+  <h4>A armadilha: amarelo sobre creme</h4>
+  <p><strong>Sol Ferrugem sobre Creme dá 1,67:1.</strong> O mínimo exigido para texto corrido é
+    4,5:1 e para título grande é 3:1. A combinação reprova em tudo, com folga — e é exatamente a
+    que parece mais "da marca" quando se olha a paleta.</p>
+  <h4>A solução: Sol Terra, um derivado só para texto</h4>
+  </div>
+  <div class="cores" style="max-width:400px">
+    <div class="cor"><div class="chip" style="background:#8A5600;color:#F4E7D5">Sol Terra</div>
+      <div class="info"><div class="nome">Sol Terra — só texto</div><dl>
+        <dt>HEX</dt><dd>#8A5600</dd><dt>RGB</dt><dd>138 · 86 · 0</dd>
+        <dt>vs. creme</dt><dd>5,05:1 — AA</dd><dt>Proibido</dt><dd>Como fundo ou área</dd></dl></div></div>
+  </div>
+  <div class="col">
+  <p>Sol Terra existe <strong>apenas</strong> para texto âmbar sobre fundo claro: um título de
+    seção, um link, um destaque no cardápio. Nunca preenche área, nunca aparece no logotipo, nunca
+    é chamado de "o amarelo da moka". O amarelo da moka continua sendo o Sol Ferrugem.</p>
+  <div class="nota">Regra que fecha o assunto: <strong>amarelo sobre escuro, sempre. Amarelo sobre
+    claro, nunca — a não ser em bloco chapado, com o texto por cima em tinta.</strong></div>
+
+  <h4>Além do contraste</h4>
+  <ul class="l">
+    <li><strong>Cor nunca é a única informação.</strong> No cardápio, o item sem açúcar tem ícone e
+      palavra, não só a cor do creme.</li>
+    <li><strong>Corpo mínimo em material impresso:</strong> 9 pt em cardápio de mesa, 11 pt em
+      menu board a 2 m, 24 pt em placa a 5 m.</li>
+    <li><strong>Menu board</strong> é lido de longe e em pé: contraste mínimo 7:1, sempre creme
+      sobre tinta.</li>
+  </ul>
+  </div>
+</section>
+</div>
+<div class="w">
+
+<section class="s" id="tipo">
+  <p class="olho">17 · Tipografia</p>
+  <h3>Quatro vozes tipográficas, e não mais que quatro</h3>
+  <div class="col">
+  <p class="lede">O logotipo é um desenho. A tipografia é tudo o que vem depois dele: preço, sabor,
+    aviso, recado, prazo. Uma marca de bairro perde a cara quando cada peça usa uma fonte
+    diferente — o cardápio numa, o Instagram noutra, a placa numa terceira.</p>
+  <p>As quatro famílias abaixo são <strong>livres para uso comercial</strong>, estão no Google Fonts,
+    entram no Canva e instalam em qualquer computador. Nenhuma delas custa licença, e é de
+    propósito: o padrão só se mantém se a pessoa do balcão conseguir baixar a fonte em dois minutos.</p>
+  </div>
+
+  <div class="esp">
+    <div class="lab">01 · Display — Bricolage Grotesque</div>
+    <div class="esc">
+      <div class="li"><span class="v">ExtraBold 800</span><span class="t" style="font-family:var(--d);font-weight:800;font-size:clamp(26px,4.6vw,50px)">açaí de verdade</span></div>
+      <div class="li"><span class="v">SemiBold 600</span><span class="t" style="font-family:var(--d);font-weight:600;font-size:clamp(21px,3.4vw,36px)">tigela P · 300 g</span></div>
+      <div class="li"><span class="v">Medium 500</span><span class="t" style="font-family:var(--d);font-weight:500;font-size:clamp(17px,2.4vw,26px)">Praia da Ferrugem, 2956</span></div>
+    </div>
+  </div>
+  <div class="col">
+  <p><strong>Onde usa:</strong> logotipo secundário, títulos, preços, menu board, chamadas de Reels,
+    nome de produto na embalagem. <strong>Pesos liberados:</strong> 500, 600 e 800 — só esses três.
+    <strong>Tracking:</strong> −3% em títulos grandes, 0 em corpo, +12% quando for caixa alta pequena.</p>
+  </div>
+
+  <div class="esp">
+    <div class="lab">02 · Texto — Source Serif 4</div>
+    <p style="font-family:var(--b); font-size:clamp(17px,2vw,20px); line-height:1.55; margin:0; max-width:52ch">
+      Açaí batido na hora, com polpa de Igarapé-Miri e nada de xarope. Escolhe a base, escolhe até
+      quatro companhias e leva na mão — ou senta no deck e deixa a gente levar até você.</p>
+  </div>
+  <div class="col">
+  <p><strong>Onde usa:</strong> descrição de item no cardápio, texto de embalagem, legenda longa,
+    site, este manual, carta ao parceiro. É o que faz a moka parecer uma casa que escreve, e não
+    uma franquia que anuncia. <strong>Pesos:</strong> 400 e 600. <strong>Corpo mínimo:</strong> 9 pt
+    impresso, 15 px em tela.</p>
+  </div>
+
+  <div class="esp">
+    <div class="lab">03 · Técnica — JetBrains Mono</div>
+    <div style="font-family:var(--m); font-size:14px; line-height:1.9; color:var(--texto2)">
+      LOTE 2026-01-14 &nbsp;·&nbsp; VAL 72 H &nbsp;·&nbsp; 320 g<br>
+      CONTÉM: LEITE, GLÚTEN, CASTANHA &nbsp;·&nbsp; SEM CONSERVANTES<br>
+      ENTREGA 07:30 — 09:30 &nbsp;·&nbsp; PEDIDO ATÉ 20 H DO DIA ANTERIOR
+    </div>
+  </div>
+  <div class="col">
+  <p><strong>Onde usa:</strong> etiqueta de lote e validade, alergênicos, gramatura, horário,
+    numeração, tabela, senha de pedido, QR. Tudo o que é dado e precisa ser lido sem dúvida.
+    <strong>Sempre em caixa alta</strong>, tracking +10%, nunca acima de 14 px.</p>
+  </div>
+
+  <div class="esp">
+    <div class="lab">04 · A mão da casa — Caveat</div>
+    <div class="script" style="margin:0">hoje tem manga com maracujá 🌊</div>
+  </div>
+  <div class="col">
+  <p><strong>Onde usa:</strong> a lousa, o recado no copo, o "obrigado" na sacola, uma palavra
+    riscada dentro de um post. É tempero. <strong>Teto rígido: 5% do texto de qualquer peça.</strong>
+    Nunca em preço, nunca em alergênico, nunca em placa de rua, nunca em parágrafo.</p>
+
+  <h4>A escala. Uma só, para tudo.</h4>
+  <p>Toda peça da moka é construída com estes oito degraus. Não existe "16,5". Se um tamanho não
+    está aqui, não existe.</p>
+  </div>
+
+  <div class="rolo">
+    <table>
+      <thead><tr><th>Degrau</th><th class="mono">Impresso</th><th class="mono">Tela</th><th>Uso</th><th>Família</th></tr></thead>
+      <tbody>
+        <tr><td>D1 · Máximo</td><td class="mono">— </td><td class="mono">72–150 px</td><td>Capa, fachada, abertura de Reels</td><td>Bricolage 800</td></tr>
+        <tr><td>D2 · Título</td><td class="mono">36–48 pt</td><td class="mono">44–56 px</td><td>Nome da seção, menu board</td><td>Bricolage 800</td></tr>
+        <tr><td>D3 · Subtítulo</td><td class="mono">22–28 pt</td><td class="mono">28–34 px</td><td>Categoria do cardápio</td><td>Bricolage 600</td></tr>
+        <tr><td>D4 · Produto</td><td class="mono">14–16 pt</td><td class="mono">19–22 px</td><td>Nome do item, preço</td><td>Bricolage 600</td></tr>
+        <tr><td>D5 · Corpo</td><td class="mono">10–11 pt</td><td class="mono">16–18 px</td><td>Descrição, legenda, texto</td><td>Source Serif 400</td></tr>
+        <tr><td>D6 · Apoio</td><td class="mono">9 pt</td><td class="mono">15 px</td><td>Observação, rodapé de peça</td><td>Source Serif 400</td></tr>
+        <tr><td>D7 · Etiqueta</td><td class="mono">7–8 pt</td><td class="mono">11–13 px</td><td>Lote, alergênico, gramatura</td><td>Mono, caixa alta</td></tr>
+        <tr><td>D8 · Legal</td><td class="mono">6 pt</td><td class="mono">10 px</td><td>CNPJ, dizeres obrigatórios</td><td>Mono</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col">
+  <div class="nota">Regra prática do menu board: <strong>a altura da letra do nome do item, em
+    centímetros, é a distância de leitura em metros dividida por 4.</strong> Placa lida a 4 m pede
+    letra de 1 cm. A do preço, o dobro.</div>
+
+  <h4>Quando a fonte não estiver disponível</h4>
+  <p>Acontece — no editor do Instagram, num app de delivery, num template que a gráfica manda. A
+    substituição é fixa e não se improvisa:</p>
+  </div>
+  <div class="rolo">
+    <table>
+      <thead><tr><th>Original</th><th>Substituta no Canva / Google Docs</th><th>Substituta de sistema</th></tr></thead>
+      <tbody>
+        <tr><td>Bricolage Grotesque</td><td>Archivo · Anton (só D1)</td><td>Arial Black / Helvetica Bold</td></tr>
+        <tr><td>Source Serif 4</td><td>Lora · Source Serif Pro</td><td>Georgia</td></tr>
+        <tr><td>JetBrains Mono</td><td>Roboto Mono · IBM Plex Mono</td><td>Courier New</td></tr>
+        <tr><td>Caveat</td><td>Caveat (existe no Canva)</td><td>— não substitui: some</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col">
+  <p>Caveat não tem substituta porque é a única das quatro que é <em>decorativa</em>. Sem ela, a
+    peça sai sem o recado à mão — e fica correta. Com uma cursiva qualquer no lugar, fica errada.</p>
+  </div>
+
+  <div class="dupla">
+    <div class="sim"><div class="t">Tipografia — sim</div><ul>
+      <li>Preço sempre em Bricolage, alinhado à direita, com tabular-nums</li>
+      <li>Um só peso por bloco de texto</li>
+      <li>Caixa alta apenas em D7 e D8, e em rótulos curtos</li>
+      <li>Entrelinha de 1,45 a 1,55 no corpo</li>
+      <li>Linha de texto entre 45 e 70 caracteres</li>
+    </ul></div>
+    <div class="nao"><div class="t">Tipografia — não</div><ul>
+      <li>Itálico em Bricolage (não existe; o sintético deforma)</li>
+      <li>Sombra, contorno, degradê ou 3D na letra</li>
+      <li>Texto justificado em coluna estreita</li>
+      <li>Palavra inteira em Caveat dentro de um preço</li>
+      <li>Uma quinta fonte "só nesta peça"</li>
+    </ul></div>
+  </div>
+</section>
+
+<section class="s" id="graficos">
+  <p class="olho">18 · Elementos gráficos</p>
+  <h3>A onda, o sol, a duna e o carimbo</h3>
+  <div class="col">
+  <p class="lede">São quatro formas. Elas fazem a moka ser reconhecida de longe, sem que o logotipo
+    apareça — que é o teste real de um sistema visual.</p>
+  </div>
+
+  <div class="g g2">
+    <div class="cx">
+      <span class="k">Elemento 01</span>
+      <svg viewBox="0 0 120 26" style="width:100%;max-width:180px;height:auto;color:var(--sol)" aria-hidden="true">
+        <path d="M2 18 C14 4, 26 4, 38 18 S62 32, 74 18 S98 4, 118 14" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+      <h6 style="margin-top:12px">A onda</h6>
+      <p>Três cristas de mesma altura, traço com ponta redonda de espessura igual a 1/6 da altura
+        da onda. Separa blocos, assina o rodapé, corre no rótulo. Nunca fecha um contorno, nunca
+        vira moldura.</p>
+    </div>
+    <div class="cx">
+      <span class="k">Elemento 02</span>
+      <svg viewBox="0 0 120 40" style="width:100%;max-width:180px;height:auto" aria-hidden="true">
+        <path d="M20 38 A28 28 0 0 1 76 38 Z" fill="var(--sol)"/>
+        <rect x="8" y="37" width="104" height="3" rx="1.5" fill="var(--areia)"/>
+      </svg>
+      <h6 style="margin-top:12px">O sol pela metade</h6>
+      <p>Meio círculo em Sol Ferrugem nascendo de uma linha em Areia. É o elemento de topo e de
+        fundo de peça — nunca no meio. Sempre cortado pela borda, nunca flutuando inteiro.</p>
+    </div>
+    <div class="cx">
+      <span class="k">Elemento 03</span>
+      <svg viewBox="0 0 120 40" style="width:100%;max-width:180px;height:auto" aria-hidden="true">
+        <g fill="none" stroke="var(--areia)" stroke-width="2.4" stroke-linecap="round">
+          <path d="M4 32 C24 20, 44 20, 64 32 S104 44, 116 30"/>
+          <path d="M4 22 C24 10, 44 10, 64 22 S104 34, 116 20"/>
+          <path d="M4 12 C24 0, 44 0, 64 12 S104 24, 116 10"/>
+        </g>
+      </svg>
+      <h6 style="margin-top:12px">A trama de dunas</h6>
+      <p>Linhas paralelas em Areia sobre Creme, opacidade 100% mas contraste baixo por natureza.
+        É textura de fundo: sacola, forro de bandeja, papel de parede do banheiro. Nunca leva texto
+        por cima.</p>
+    </div>
+    <div class="cx">
+      <span class="k">Elemento 04</span>
+      <svg viewBox="0 0 120 120" style="width:82px;height:82px" aria-hidden="true">
+        <circle cx="60" cy="60" r="56" fill="none" stroke="var(--acai)" stroke-width="3"/>
+        <circle cx="60" cy="60" r="48" fill="none" stroke="var(--acai)" stroke-width="1.4"/>
+        <text x="60" y="56" text-anchor="middle" style="font-family:var(--d);font-weight:800;font-size:26px;fill:var(--acai)">moka</text>
+        <text x="60" y="76" text-anchor="middle" style="font-family:var(--m);font-size:9px;letter-spacing:2px;fill:var(--acai)">FERRUGEM SC</text>
+      </svg>
+      <h6 style="margin-top:12px">O carimbo</h6>
+      <p>Dois anéis concêntricos, marca no centro, praia embaixo. Vai no lacre da caixa, no verso
+        do cartão, no fundo do copo, na etiqueta do uniforme. Monocromático, sempre. Diâmetro
+        mínimo 18 mm.</p>
+    </div>
+  </div>
+
+  <div class="col">
+  <h4>Densidade</h4>
+  <p><strong>Uma peça usa no máximo dois dos quatro elementos.</strong> Uma sacola com onda, sol,
+    duna e carimbo ao mesmo tempo vira feira. A combinação padrão é <em>duna de fundo + carimbo</em>
+    em peças físicas, e <em>onda + sol</em> em peças digitais.</p>
+  <div class="nota">Teste do metro: afaste a peça um metro. Se você não consegue dizer, em um
+    segundo, qual é o elemento principal, tem elemento demais.</div>
+  </div>
+</section>
+
+<section class="s" id="icones">
+  <p class="olho">19 · Ícones</p>
+  <h3>Um traço só, para o cardápio inteiro</h3>
+  <div class="col">
+  <p class="lede">Ícone na moka existe para responder rápido a três perguntas que o cliente faz em
+    silêncio: posso comer isso? quanto tempo demora? onde fica?</p>
+  <h4>Especificação técnica</h4>
+  <ul class="l">
+    <li><strong>Grade:</strong> 24 × 24 px, com 2 px de margem interna — o desenho vive em 20 × 20</li>
+    <li><strong>Traço:</strong> 2 px, constante, sem variação de espessura</li>
+    <li><strong>Pontas e junções:</strong> arredondadas (<code>round</code>), sempre</li>
+    <li><strong>Cantos:</strong> raio 2 px — mesma família de curva do logotipo</li>
+    <li><strong>Preenchimento:</strong> nenhum. Ícone da moka é contorno. A única exceção é o ícone
+      de alergênico bloqueado, que leva chapado para virar aviso.</li>
+    <li><strong>Tamanhos:</strong> 16, 20, 24, 32 e 48 px. Abaixo de 16 px o traço engrossa para 1,5 px.</li>
+  </ul>
+
+  <h4>O conjunto mínimo — 18 ícones</h4>
+  <p>Este é o kit que abre a loja. Nenhum outro é necessário no primeiro ano; qualquer acréscimo
+    passa pela regra de aprovação da §51.</p>
+  </div>
+  <div class="rolo">
+    <table>
+      <thead><tr><th>Grupo</th><th>Ícones</th><th>Onde aparece</th></tr></thead>
+      <tbody>
+        <tr><td>Produto</td><td>tigela de açaí · xícara · croissant · copo gelado · garrafa térmica</td><td>Menu board, cardápio, app de delivery</td></tr>
+        <tr><td>Restrição</td><td>sem lactose · sem glúten · vegano · sem açúcar · contém castanha</td><td>Cardápio, etiqueta, vitrine</td></tr>
+        <tr><td>Serviço</td><td>entrega · retirada · wi-fi · pet friendly · deck</td><td>Fachada, Google, redes</td></tr>
+        <tr><td>Operação</td><td>horário · WhatsApp · Instagram</td><td>Rodapé de peça, cartão, sacola</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col">
+  <div class="dupla">
+    <div class="sim"><div class="t">Ícone — sim</div><ul>
+      <li>Sempre acompanhado de palavra quando informa restrição</li>
+      <li>Mesma cor do texto ao lado, ou Sol sobre fundo escuro</li>
+      <li>Alinhado pela linha de base do texto, não pelo topo</li>
+    </ul></div>
+    <div class="nao"><div class="t">Ícone — não</div><ul>
+      <li>Emoji em peça impressa ou no menu board</li>
+      <li>Ícone baixado de banco misturado ao conjunto</li>
+      <li>Cor semântica isolada como único aviso (§16)</li>
+    </ul></div>
+  </div>
+  </div>
+</section>
+
+<section class="s" id="foto">
+  <p class="olho">20 · Fotografia</p>
+  <h3>Luz da praia, comida real, mesa limpa</h3>
+  <div class="col">
+  <p class="lede">Numa loja de rua, a foto é o cardápio. Noventa por cento das pessoas vão decidir
+    se entram olhando uma imagem no celular, na calçada ou no Google — nenhuma delas com legenda.</p>
+
+  <h4>Luz</h4>
+  <ul class="l">
+    <li><strong>Sempre natural.</strong> Janela ou deck, nunca o flash do celular e nunca a
+      lâmpada do teto sozinha.</li>
+    <li><strong>As duas janelas do dia:</strong> 7h30–10h para café da manhã e croissant; 16h–18h
+      para açaí, quando a luz esquenta e o roxo aparece.</li>
+    <li><strong>Sombra viva, não sombra dura.</strong> Meia-sombra do toldo ou de uma folha. Sol a
+      pino estoura o creme e some com o desenho da tigela.</li>
+    <li><strong>Contraluz é permitido</strong> uma vez a cada dez fotos — a que vai virar capa.</li>
+  </ul>
+
+  <h4>Ângulos</h4>
+  <ul class="l">
+    <li><strong>45°</strong> — o padrão. É como a pessoa vê ao sentar. Usa em 6 de cada 10 fotos.</li>
+    <li><strong>Cenital (90°, de cima)</strong> — para conjunto: a caixa de café da manhã aberta,
+      a mesa com quatro tigelas. 2 de cada 10.</li>
+    <li><strong>Macro rasante</strong> — a granola caindo, o creme escorrendo, a espuma do
+      cappuccino. 2 de cada 10. É a foto que segura o dedo no feed.</li>
+  </ul>
+
+  <h4>Superfícies e apoios</h4>
+  <p>Madeira clara, concreto queimado, azulejo branco, tábua, a mesa do deck com a areia ao fundo.
+    Guardanapo de papel kraft. Copo de vidro. Nada de bandeja de plástico colorido, toalha
+    estampada ou mármore falso.</p>
+  </div>
+
+  <div class="dupla">
+    <div class="sim"><div class="t">Foto — sim</div><ul>
+      <li>Porção real, do tamanho que sai do balcão</li>
+      <li>Mão entrando no quadro, com unha limpa e sem anel chamativo</li>
+      <li>Fundo desfocado com o mar, o deck ou a rua</li>
+      <li>Gotas, migalhas e um pouco de desordem honesta</li>
+      <li>Pessoas de verdade, com autorização de imagem assinada</li>
+    </ul></div>
+    <div class="nao"><div class="t">Foto — não</div><ul>
+      <li>Porção montada maior do que a que se vende</li>
+      <li>Filtro pesado, saturação estourada, HDR</li>
+      <li>Banco de imagens com açaí de outro lugar</li>
+      <li>Imagem gerada por IA passando por foto do produto</li>
+      <li>Louça suja, pano no fundo, tomada aparecendo</li>
+    </ul></div>
+  </div>
+
+  <div class="col">
+  <h4>Tratamento — o mesmo ajuste em todas</h4>
+  <p>Sem preset comprado. O ajuste da moka é curto de propósito, para caber no Lightroom do celular
+    e ser repetido por qualquer pessoa da equipe:</p>
+  </div>
+  <div class="rolo">
+    <table>
+      <thead><tr><th>Ajuste</th><th class="mono">Valor</th><th>Por quê</th></tr></thead>
+      <tbody>
+        <tr><td>Temperatura</td><td class="mono">+4 a +8</td><td>Puxa para o quente da areia, sem alaranjar</td></tr>
+        <tr><td>Exposição</td><td class="mono">+0,15</td><td>Comida escura pede um pouco de ar</td></tr>
+        <tr><td>Realces</td><td class="mono">−20</td><td>Recupera o creme estourado</td></tr>
+        <tr><td>Sombras</td><td class="mono">+15</td><td>Abre o roxo do açaí, que fecha em preto</td></tr>
+        <tr><td>Vibração</td><td class="mono">+10</td><td>Sobe a fruta sem mexer no tom de pele</td></tr>
+        <tr><td>Saturação</td><td class="mono">0</td><td>Nunca. É aqui que a foto vira anúncio</td></tr>
+        <tr><td>Nitidez</td><td class="mono">+15</td><td>Só o suficiente para a granola aparecer</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="col">
+  <h4>O banco mínimo — 24 fotos antes de abrir</h4>
+  <p>Sem estas 24, a loja abre sem material para o primeiro mês. São duas manhãs de trabalho.</p>
+  <ol class="l">
+    <li><strong>Produto (10):</strong> tigela P, tigela G, açaí no copo, cappuccino de cima, espresso
+      no balcão, croissant partido ao meio, misto quente, caixa de café da manhã aberta, o combo
+      Kids, a garrafa térmica na porta do Airbnb</li>
+    <li><strong>Processo (5):</strong> a polpa saindo da máquina, a mão montando a tigela, o leite
+      sendo vaporizado, a caixa sendo fechada com o lacre, o croissant entrando no forno</li>
+    <li><strong>Lugar (5):</strong> fachada de dia, fachada ao entardecer com a luz acesa, o deck com
+      gente, o canto Kids vazio e arrumado, o balcão visto de quem chega</li>
+    <li><strong>Gente (4):</strong> a equipe de uniforme, um cliente rindo com a tigela, criança no
+      canto Kids, a entrega chegando na mão do hóspede</li>
+  </ol>
+  <div class="nota">Toda foto com rosto identificável precisa de autorização de uso de imagem
+    assinada — inclusive de funcionário e de criança, esta pelo responsável. O modelo fica na
+    pasta da marca e é assinado <em>antes</em> da foto, não depois.</div>
+  </div>
+</section>
+
+<section class="s" id="moquinho">
+  <p class="olho">21 · Mascote</p>
+  <h3>Moquinho mora no Kids e não sai de lá</h3>
+  <div class="col">
+  <p class="lede">Um mascote resolve um problema específico: falar com criança sem infantilizar a
+    marca inteira. Ele funciona enquanto tiver um território claro. No dia em que aparecer no
+    cartão de visita, a moka vira uma marca infantil que também vende café.</p>
+
+  <h4>Onde ele pode aparecer</h4>
+  <ul class="l">
+    <li>Cardápio Kids, copo Kids, embalagem Kids, brinde Kids</li>
+    <li>A parede e a sinalização do canto Kids</li>
+    <li>Stories e Reels sobre o espaço infantil</li>
+    <li><strong>Duas exceções fora do Kids:</strong> o adesivo de aniversário de loja e o ovo de
+      Páscoa — ambos com aprovação (§51)</li>
+  </ul>
+
+  <h4>Onde ele nunca aparece</h4>
+  <ul class="l">
+    <li>Fachada, menu board principal, cartão, papelaria, uniforme de adulto</li>
+    <li>Caixa de café da manhã do Airbnb — o hóspede é adulto e está pagando por sofisticação</li>
+    <li>Qualquer peça com preço de produto adulto</li>
+    <li>Comunicação de crise, aviso de horário, informação legal</li>
+  </ul>
+
+  <h4>Regras de desenho</h4>
+  <ul class="l">
+    <li><strong>Proporção:</strong> cabeça igual a 1,6 vez o corpo. É o que o mantém fofo sem virar bebê.</li>
+    <li><strong>Cor:</strong> corpo em Sol Kids <code>#FEBB3C</code>, contorno em Grafite, detalhe em
+      Açaí. Nunca em Creme sobre Creme.</li>
+    <li><strong>Expressões:</strong> cinco, e só cinco — alegre, surpreso, com sono, com frio (açaí!)
+      e piscando. Nenhuma expressão triste, com raiva ou chorando.</li>
+    <li><strong>Tamanho mínimo:</strong> 15 mm de altura impresso, 44 px em tela.</li>
+    <li><strong>Postura:</strong> sempre apoiado em algo — na borda do copo, na linha da onda, no
+      canto da peça. Moquinho flutuando no meio do branco fica órfão.</li>
+  </ul>
+  </div>
+
+  <div class="dupla">
+    <div class="sim"><div class="t">Moquinho — sim</div><ul>
+      <li>Segurando a tigela Kids, do tamanho dele</li>
+      <li>Espiando por trás do texto, cortado pela borda</li>
+      <li>Em traço simples, para colorir no jogo de mesa</li>
+    </ul></div>
+    <div class="nao"><div class="t">Moquinho — não</div><ul>
+      <li>Falando em primeira pessoa em nome da moka</li>
+      <li>Com acessório de moda, óculos escuros ou boné de outra marca</li>
+      <li>Redesenhado à mão para "caber" numa peça nova</li>
+      <li>Em campanha com preço, promoção ou desconto</li>
+    </ul></div>
+  </div>
+</section>
+
+<section class="s" id="grid">
+  <p class="olho">22 · Grid</p>
+  <h3>A margem é a altura do m</h3>
+  <div class="col">
+  <p class="lede">Existe uma regra que dispensa régua: <strong>a margem de qualquer peça da moka é
+    igual à altura da letra "m" do logotipo aplicado nela.</strong> Sacola com marca de 3 cm tem
+    3 cm de margem. Story com marca de 60 px tem 60 px de margem.</p>
+
+  <h4>As três zonas de qualquer peça</h4>
+  <ol class="l">
+    <li><strong>Zona da marca</strong> — canto superior esquerdo em peças de leitura, centro em peças
+      de vitrine. Nunca os dois.</li>
+    <li><strong>Zona da mensagem</strong> — o miolo. Uma ideia por peça. Se tem duas, são duas peças.</li>
+    <li><strong>Zona do pé</strong> — endereço, @, WhatsApp, ícones de serviço. Sempre em D6 ou D7,
+      sempre alinhada à mesma margem.</li>
+  </ol>
+
+  <h4>Colunas</h4>
+  <ul class="l">
+    <li><strong>Digital:</strong> 12 colunas, calha de 4% da largura. Peça de Instagram usa 6 ou 12,
+      nunca 5 nem 7.</li>
+    <li><strong>Impresso pequeno</strong> (cartão, etiqueta, adesivo): 4 colunas.</li>
+    <li><strong>Impresso grande</strong> (cardápio, menu board, banner): 6 colunas.</li>
+  </ul>
+
+  <h4>Formatos padrão da moka</h4>
+  </div>
+  <div class="rolo">
+    <table>
+      <thead><tr><th>Peça</th><th class="mono">Formato</th><th class="mono">Margem</th><th>Marca</th></tr></thead>
+      <tbody>
+        <tr><td>Post de feed</td><td class="mono">1080 × 1350 px</td><td class="mono">72 px</td><td>Sup. esq., 72 px de altura</td></tr>
+        <tr><td>Story / Reels</td><td class="mono">1080 × 1920 px</td><td class="mono">80 px</td><td>Sup. esq. — 250 px livres em baixo</td></tr>
+        <tr><td>Cartão de visita</td><td class="mono">90 × 50 mm</td><td class="mono">5 mm</td><td>Centro, 12 mm de largura</td></tr>
+        <tr><td>Adesivo de copo</td><td class="mono">Ø 80 mm</td><td class="mono">6 mm</td><td>Carimbo, 34 mm</td></tr>
+        <tr><td>Sacola kraft</td><td class="mono">26 × 32 × 12 cm</td><td class="mono">3 cm</td><td>Centro, 9 cm de largura</td></tr>
+        <tr><td>Caixa de café da manhã</td><td class="mono">32 × 24 × 10 cm</td><td class="mono">2,5 cm</td><td>Tampa, centro, 11 cm</td></tr>
+        <tr><td>Cardápio de mesa</td><td class="mono">A5 — 148 × 210 mm</td><td class="mono">12 mm</td><td>Topo, 32 mm</td></tr>
+        <tr><td>Menu board</td><td class="mono">90 × 160 cm</td><td class="mono">8 cm</td><td>Topo, 26 cm</td></tr>
+        <tr><td>Fachada</td><td class="mono">conforme vão</td><td class="mono">1/10 da altura</td><td>§26 — pendente do local</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="col">
+  <div class="nota">O único formato que muda de regra é o Story: os <strong>250 px de baixo e
+    180 px de cima</strong> são território do Instagram (barra de perfil, caixa de resposta,
+    legenda de música). Nada da moka entra ali — nem preço, nem @, nem endereço.</div>
+
+  <h4>Hierarquia: três níveis, nunca quatro</h4>
+  <p>Toda peça tem <strong>uma</strong> coisa grande, <strong>uma</strong> média e o resto pequeno.
+    Quando aparece um quarto nível de destaque, a peça já perdeu — ninguém sabe mais para onde
+    olhar, e o preço, que quase sempre é o que importa, some no meio.</p>
+  </div>
+
+  <div class="prop" style="height:64px">
+    <span style="flex:6;background:var(--tinta);color:var(--creme)">1 · O QUE É — 60%</span>
+    <span style="flex:3;background:var(--acai);color:var(--creme)">2 · QUANTO — 30%</span>
+    <span style="flex:1;background:var(--areia);color:var(--tinta)">3 · ONDE</span>
+  </div>
+  <div class="col">
+  <p style="font-family:var(--m);font-size:12px;color:var(--texto3);margin-top:-2px">
+    Peso visual, não área ocupada. Um preço pequeno em Sol sobre Tinta pesa mais que um parágrafo.</p>
+  </div>
+</section>
+</div>
+<div class="parte">
+  <div class="w">
+    <div class="num">IV</div>
+    <div class="tx"><h2>As aplicações</h2>
+      <p>Onde a marca encosta no cliente: o copo na mão, a camiseta atrás do balcão, a placa na
+        rua, a caixa que chega às 8h da manhã na porta de um Airbnb.</p></div>
+  </div>
+</div>
+<div class="w">
+
+<section class="s" id="papelaria">
+  <p class="olho">23 · Papelaria</p>
+  <h3>Pouca papelaria, e toda ela com função</h3>
+  <div class="col">
+  <p class="lede">Uma loja de praia não precisa de pasta com timbre. Precisa de seis peças que
+    trabalham todo dia — e de uma etiqueta que a fiscalização vai ler.</p>
+  </div>
+
+  <div class="g g2">
+    <div class="cx"><span class="k">01</span><h6>Cartão de visita — 90 × 50 mm</h6>
+      <p>Frente: marca centralizada em Sol sobre Tinta, nada mais. Verso em Creme com @, WhatsApp,
+        endereço e o carimbo em 18 mm. Papel kraft 300 g ou reciclato. Sem verniz, sem laminação
+        brilhante.</p></div>
+    <div class="cx"><span class="k">02</span><h6>Cartão do parceiro</h6>
+      <p>Mesmo formato, verso diferente: campo em branco para o nome do imóvel e um QR do cardápio
+        com o código de indicação. É o cartão que fica na gaveta da casa alugada (§44).</p></div>
+    <div class="cx"><span class="k">03</span><h6>Comanda e senha</h6>
+      <p>Bloco 10 × 7 cm, monocromático em Tinta sobre papel comum. Numeração em Mono, corpo D7.
+        Barato de propósito: é peça de consumo, não de imagem.</p></div>
+    <div class="cx"><span class="k">04</span><h6>Assinatura de e-mail</h6>
+      <p>Três linhas: nome e função em Bricolage 600; <em>moka · açaí e café</em> em Source Serif;
+        endereço, WhatsApp e @ em Mono D7. Sem imagem anexada, sem frase motivacional, sem aviso
+        de confidencialidade.</p></div>
+    <div class="cx"><span class="k">05</span><h6>Carimbo físico</h6>
+      <p>O carimbo da §18 em borracha, 30 mm, tinta Açaí. Fecha sacola de papel, marca o cartão
+        fidelidade, assina o bilhete que vai na caixa de café da manhã. Custa pouco e faz a peça
+        genérica virar da casa.</p></div>
+    <div class="cx"><span class="k">06</span><h6>Cartão fidelidade</h6>
+      <p>85 × 55 mm, dez espaços para o carimbo. Regra impressa no verso, sem letra miúda: a décima
+        tigela P é da casa. Validade e condição em D7, legíveis — cartão fidelidade com pegadinha
+        queima mais reputação do que constrói.</p></div>
+  </div>
+
+  <div class="col">
+  <h4>A etiqueta obrigatória — a peça que não é decisão de design</h4>
+  <p>Todo alimento que sai embalado da moka leva etiqueta. O conteúdo é definido por norma, não pelo
+    gosto; o que a marca decide é <em>como</em> ele aparece: Mono, caixa alta, Tinta sobre Creme,
+    contraste mínimo de 7:1, corpo nunca abaixo de 6 pt.</p>
+  <ul class="l">
+    <li>Denominação do produto (o nome real, não o nome comercial)</li>
+    <li>Lista de ingredientes em ordem decrescente</li>
+    <li><strong>Alergênicos em destaque</strong> — leite, glúten, castanhas, soja, ovo</li>
+    <li>Data de fabricação, prazo de validade e condição de conservação</li>
+    <li>Peso ou volume líquido</li>
+    <li>Razão social, CNPJ e endereço completo do fabricante</li>
+    <li>Número do lote</li>
+  </ul>
+  <div class="nota">Item comprado pronto de terceiro (pão, croissant, geleia em mini-pote) chega com
+    a etiqueta do fabricante e ela <strong>permanece na embalagem original</strong>. A moka rotula
+    o que a moka monta — a caixa, a tigela, o copo.</div>
+  </div>
+</section>
+
+<section class="s" id="uniforme">
+  <p class="olho">24 · Uniformes</p>
+  <h3>Reconhecível em dois segundos, lavável cem vezes</h3>
+  <div class="col">
+  <p class="lede">O uniforme é o meio mais barato de parecer uma marca de verdade. Também é o item
+    que mais cedo denuncia improviso: camiseta desbotada, avental de tom diferente, boné de outra
+    marca.</p>
+  </div>
+
+  <div class="rolo">
+    <table>
+      <thead><tr><th>Peça</th><th>Cor</th><th>Marca</th><th class="mono">Qtd. / pessoa</th></tr></thead>
+      <tbody>
+        <tr><td>Camiseta</td><td>Creme <code>#F4E7D5</code> · malha 30.1 penteada</td><td>Peito esq., bordado 40 mm, fio Açaí</td><td class="mono">3</td></tr>
+        <tr><td>Camiseta alternativa</td><td>Açaí <code>#4D2337</code></td><td>Bordado em fio Sol</td><td class="mono">1</td></tr>
+        <tr><td>Avental</td><td>Areia <code>#D4AE8E</code> · sarja, com bolso duplo</td><td>Carimbo serigrafado, 90 mm, no peito</td><td class="mono">2</td></tr>
+        <tr><td>Boné / bandana</td><td>Grafite <code>#272423</code></td><td>Marca frontal bordada, 55 mm</td><td class="mono">1</td></tr>
+        <tr><td>Moletom (inverno)</td><td>Grafite</td><td>Marca nas costas, 220 mm, em Sol</td><td class="mono">1</td></tr>
+        <tr><td>Crachá</td><td>Creme</td><td>Nome em Bricolage 600, D4</td><td class="mono">1</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="col">
+  <h4>Bordado x serigrafia</h4>
+  <p><strong>Bordado</strong> em tudo que é de vestir e vai à máquina toda semana: dura, não descasca
+    e passa impressão de investimento. <strong>Serigrafia</strong> no avental, que é peça de trabalho
+    sujo e se substitui mais rápido. Bordado tem limite de detalhe — por isso o tamanho mínimo da
+    marca bordada é <strong>40 mm</strong> e o ponto usa a versão simplificada da §13.</p>
+
+  <h4>O que o uniforme carrega além da marca</h4>
+  <ul class="l">
+    <li><strong>Cabelo preso e touca ou boné</strong> em quem manipula alimento — não é estética, é
+      exigência sanitária.</li>
+    <li><strong>Sem adorno nas mãos e nos braços</strong>: relógio, anel, pulseira e unha postiça
+      ficam fora durante o turno.</li>
+    <li><strong>Sapato fechado, antiderrapante, escuro.</strong> A moka não fornece; especifica.</li>
+    <li><strong>Avental sai da área de manipulação</strong> antes de ir ao banheiro ou à rua.</li>
+  </ul>
+
+  <div class="dupla">
+    <div class="sim"><div class="t">Uniforme — sim</div><ul>
+      <li>Camiseta trocada todo dia, lavada e sem furo</li>
+      <li>Avental amarrado atrás, na cintura</li>
+      <li>Pin ou botton sazonal da própria moka</li>
+      <li>Camiseta cortada (crop) permitida no verão, na mesma malha e cor</li>
+    </ul></div>
+    <div class="nao"><div class="t">Uniforme — não</div><ul>
+      <li>Camiseta desbotada ou de tom "quase creme"</li>
+      <li>Marca de outra empresa visível — boné, mochila, jaqueta</li>
+      <li>Avental sobre roupa pessoal, sem a camiseta da casa</li>
+      <li>Fone de ouvido nos dois ouvidos no atendimento</li>
+    </ul></div>
+  </div>
+  <div class="nota">Verão exige 5 pessoas em pico. O enxoval mínimo para abrir a temporada é
+    <strong>15 camisetas creme, 5 açaí, 10 aventais e 5 bonés</strong>, com 20% de folga por
+    tamanho — o custo entra no item "a nossa marca" do investimento.</div>
+  </div>
+</section>
+
+<section class="s" id="embalagem">
+  <p class="olho">25 · Embalagens</p>
+  <h3>A embalagem é o outdoor que anda pela praia</h3>
+  <div class="col">
+  <p class="lede">Uma tigela de açaí atravessa a Ferrugem na mão de alguém e é vista por dezenas de
+    pessoas. É a mídia mais barata que a moka tem — e a única que o cliente carrega de graça.</p>
+
+  <h4>Princípio de sistema</h4>
+  <p>Toda embalagem da moka é <strong>neutra + adesivo</strong>. Compra-se o copo, a tigela, a caixa
+    e a marmita em versão lisa (kraft ou branca), e a marca entra por adesivo, carimbo ou cinta.
+    Isso derruba o custo de estoque, permite trocar arte por temporada e evita o pedido mínimo de
+    dez mil peças impressas.</p>
+  </div>
+
+  <div class="rolo">
+    <table>
+      <thead><tr><th>Item</th><th>Base neutra</th><th>Como a marca entra</th><th>Cor</th></tr></thead>
+      <tbody>
+        <tr><td>Tigela de açaí P / G</td><td>PP branco com tampa</td><td>Adesivo Ø 80 mm na tampa</td><td>Carimbo Açaí sobre Creme</td></tr>
+        <tr><td>Copo gelado 400/550 ml</td><td>PET liso</td><td>Cinta adesiva 40 mm de altura</td><td>Tinta com marca em Sol</td></tr>
+        <tr><td>Copo quente 180/300 ml</td><td>Papel kraft parede dupla</td><td>Carimbo direto na parede</td><td>Açaí sobre kraft</td></tr>
+        <tr><td>Sacola</td><td>Kraft com alça torcida</td><td>Serigrafia 1 cor + carimbo no fecho</td><td>Açaí sobre kraft</td></tr>
+        <tr><td>Caixa de café da manhã</td><td>Kraft 32 × 24 × 10 cm</td><td>Cinta de papel de 60 mm + lacre carimbado</td><td>Tinta, marca em Sol</td></tr>
+        <tr><td>Marmitinha e mini-pote</td><td>PP transparente</td><td>Etiqueta redonda 35 mm</td><td>Creme com traço Açaí</td></tr>
+        <tr><td>Garrafa térmica (comodato)</td><td>Inox 500 ml</td><td>Gravação a laser, 45 mm</td><td>Monocromática</td></tr>
+        <tr><td>Guardanapo</td><td>Kraft 20 × 20 cm</td><td>Carimbo no canto</td><td>Açaí</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="col">
+  <h4>A caixa do café da manhã é peça de marca, não de logística</h4>
+  <p>É a única embalagem da moka que alguém <strong>abre pela primeira vez sentado, com calma, ao
+    lado de outra pessoa</strong>. Merece três coisas que as outras não têm:</p>
+  <ol class="l">
+    <li><strong>Uma cinta que precisa ser rompida.</strong> O gesto de abrir é metade da experiência.</li>
+    <li><strong>Um bilhete impresso</strong> em Source Serif, com o nome do imóvel escrito à mão no
+      espaço reservado — dez segundos de caneta que valem por toda a embalagem.</li>
+    <li><strong>Ordem interna definida:</strong> bebida quente à esquerda, salgado no centro, doce e
+      fruta à direita, guardanapo e talher por cima. Aberta, tem que estar <em>arrumada</em> —
+      é a foto que o hóspede posta.</li>
+  </ol>
+
+  <div class="nota">Toda embalagem que encosta em alimento precisa ser de grau alimentício e o
+    fornecedor deve apresentar o certificado. Adesivo e tinta ficam <strong>na face externa</strong>,
+    sempre — nada de etiqueta colada por dentro da tampa.</div>
+
+  <h4>Sustentabilidade sem discurso</h4>
+  <p>A moka não faz campanha de sustentabilidade. Faz três escolhas e não fala sobre elas: kraft
+    onde dá, canudo só se pedido, e a garrafa térmica em comodato — que existe porque o café chega
+    quente, e de quebra elimina dois copos descartáveis por entrega. Se um cliente perguntar, a
+    resposta é essa, nesta ordem.</p>
+  </div>
+</section>
+
+<section class="s" id="fachada">
+  <p class="olho">26 · Fachada</p>
+  <h3>A placa que decide se alguém atravessa a rua</h3>
+  <div class="pend">
+    <b>Seção aberta — aguardando as fotos do ponto.</b> As medidas finais de letreiro, toldo,
+    vitrine e cavalete dependem do vão real, do recuo e da posição do sol. As regras abaixo são as
+    que <em>não</em> dependem disso e já podem ser fechadas com o plotador.
+  </div>
+  <div class="col">
+  <h4>Hierarquia da fachada, de longe para perto</h4>
+  <ol class="l">
+    <li><strong>A 40 metros — a cor.</strong> O bloco Tinta com o letreiro em Sol. Ninguém lê nada a
+      essa distância; a pessoa reconhece uma mancha escura com amarelo.</li>
+    <li><strong>A 15 metros — o nome.</strong> <span class="mk" style="font-size:20px">moka<i>.</i></span>
+      em Sol sobre Tinta, altura mínima de 25 cm. Só o nome. O descritor não é legível aqui.</li>
+    <li><strong>A 5 metros — o que se vende.</strong> <em>açaí · café · café da manhã</em> em Creme,
+      altura de 8 cm. É a linha que responde "o que é isso?".</li>
+    <li><strong>A 1 metro — o convite.</strong> Cavalete com o item do dia à mão, em Caveat, e os
+      ícones de serviço: wi-fi, pet, deck, entrega.</li>
+  </ol>
+
+  <h4>Iluminação</h4>
+  <ul class="l">
+    <li>Letreiro <strong>retroiluminado ou com luz frontal quente (2700 K)</strong>. Luz branca fria
+      mata o creme e deixa o Açaí preto.</li>
+    <li>A fachada fica acesa <strong>até 30 minutos depois do fechamento</strong>. A praia caminha à
+      noite; a placa apagada some.</li>
+    <li>Nada de LED colorido, letreiro piscante ou faixa de neon RGB.</li>
+  </ul>
+
+  <h4>O que nunca vai para a fachada</h4>
+  <ul class="l">
+    <li>Preço. Preço vai no cavalete e na vitrine, onde muda sem custo de plotagem.</li>
+    <li>Foto de produto ampliada em lona — envelhece rápido e derruba o padrão.</li>
+    <li>Marca de fornecedor. A fachada é da moka; patrocínio de refrigerante fica no interior.</li>
+    <li>Adesivo de aplicativo de delivery em cima da vitrine principal. Vai na porta, em 10 cm.</li>
+  </ul>
+  </div>
+</section>
+
+<section class="s" id="ambiente">
+  <p class="olho">27 · Ambientação</p>
+  <h3>Trinta e cinco metros quadrados e um deck</h3>
+  <div class="pend">
+    <b>Seção aberta — aguardando as fotos e a planta.</b> Layout de balcão, fluxo de fila, posição
+    da máquina de café e do canto Kids entram aqui quando o ponto for fotografado. O que segue vale
+    para qualquer planta.
+  </div>
+  <div class="col">
+  <h4>Materiais e superfícies</h4>
+  </div>
+  <div class="g g2">
+    <div class="cx"><h6>Balcão</h6><p>Frente em madeira clara ou compensado naval com verniz fosco.
+      Tampo claro, liso, sem emenda — é área de manipulação e precisa ser lavável.</p></div>
+    <div class="cx"><h6>Parede de fundo</h6><p>Um único bloco em Açaí, com a marca em Sol. É a parede
+      que aparece em toda foto de cliente. Todo o resto em Creme.</p></div>
+    <div class="cx"><h6>Piso</h6><p>Cimento queimado ou porcelanato claro, antiderrapante. Piso escuro
+      mostra areia; piso claro mostra tudo — vence o claro, com rodo à mão.</p></div>
+    <div class="cx"><h6>Luz</h6><p>2700 a 3000 K em todo o salão, com foco dirigido no balcão de
+      montagem e na vitrine. Nunca luz fria; nunca lâmpada aparente sobre a mesa do cliente.</p></div>
+  </div>
+  <div class="col">
+  <h4>Som</h4>
+  <p>Playlist própria, com nome, e o mesmo humor o dia inteiro: manhã mais lenta, tarde mais aberta.
+    <strong>Volume: dá para conversar sem levantar a voz.</strong> Sem rádio comercial, sem TV
+    ligada, sem playlist do celular de quem está no turno. A moka registra a execução na plataforma
+    licenciada — som ambiente em estabelecimento comercial tem arrecadação devida.</p>
+
+  <h4>Cheiro</h4>
+  <p>O cheiro do café é o aroma da casa. Nada de difusor, vela ou aromatizador — eles brigam com a
+    comida e denunciam que algo está sendo escondido. A moagem feita no salão, e não nos fundos, é
+    marketing de graça.</p>
+
+  <h4>O deck</h4>
+  <ul class="l">
+    <li>Mesas com <strong>1 metro de circulação</strong> entre elas; ninguém encosta na cadeira de
+      quem passa.</li>
+    <li>Sombra em pelo menos metade dos lugares, das 11h às 16h.</li>
+    <li>Uma tomada por mesa dupla no inverno — é o que segura o cliente de 40 minutos.</li>
+    <li>Pote de água para cachorro na entrada, com o carimbo. Custa quinze reais e rende foto.</li>
+  </ul>
+
+  <div class="nota">A moka tem duas lojas dentro da mesma loja: <strong>a de dezembro a fevereiro</strong>,
+    de fila e giro rápido, onde o layout precisa de fluxo; e <strong>a de maio a agosto</strong>, de
+    permanência, onde o layout precisa de conforto. As mesas e o cavalete mudam de lugar entre elas.</div>
+  </div>
+</section>
+
+<section class="s" id="cardapio">
+  <p class="olho">28 · Cardápio</p>
+  <h3>O cardápio é a peça de marketing mais lida da loja</h3>
+  <div class="col">
+  <p class="lede">Cem por cento dos clientes leem o cardápio. Nenhum outro material chega perto
+    disso. Ele não é uma lista de preços — é onde a margem é construída ou perdida.</p>
+
+  <h4>Ordem das seções</h4>
+  <ol class="l">
+    <li><strong>Açaí</strong> — é o que a pessoa veio buscar e o de maior margem</li>
+    <li><strong>Café e bebidas</strong> — o que a faz voltar fora do verão</li>
+    <li><strong>Para comer</strong> — croissant, misto, tostas</li>
+    <li><strong>Café da manhã</strong> — com chamada para o canal de entrega (§44)</li>
+    <li><strong>moka Kids</strong> — sempre por último, sempre em bloco próprio</li>
+  </ol>
+
+  <h4>As sete regras de construção</h4>
+  <ol class="l">
+    <li><strong>Sem cifrão e sem coluna de preços.</strong> O preço vem logo depois da descrição, no
+      mesmo corpo do texto. Coluna de números faz o olho comparar preço em vez de ler o produto.</li>
+    <li><strong>Sem linha pontilhada</strong> ligando item a preço. Mesmo motivo.</li>
+    <li><strong>Descrição de 6 a 12 palavras</strong>, com um ingrediente que ninguém mais cita.
+      "Polpa de Igarapé-Miri, granola artesanal e banana da terra" vende mais que "açaí com granola".</li>
+    <li><strong>Um item âncora por seção</strong> — o mais caro, que faz o do meio parecer justo.
+      Ele existe para ser lido, não necessariamente para ser o mais vendido.</li>
+    <li><strong>De 5 a 7 itens por seção.</strong> Acima disso a pessoa trava, pede o de sempre e a
+      fila cresce.</li>
+    <li><strong>Dois destaques por página, no máximo</strong> — o "mais pedido" e o "da casa". Três
+      destaques é nenhum destaque.</li>
+    <li><strong>Alergênico com ícone e palavra</strong>, em toda linha que precisar.</li>
+  </ol>
+
+  <h4>Menu board — o de trás do balcão</h4>
+  <ul class="l">
+    <li>Lido em pé, a 2–4 m, com fila atrás. <strong>Máximo de 12 linhas na tela toda.</strong></li>
+    <li>Creme sobre Tinta, contraste 7:1 ou mais. Sem foto de produto.</li>
+    <li>Preço em Bricolage 600, alinhado, com tabular-nums.</li>
+    <li>Um bloco em Sol para <em>uma</em> chamada: a combinação do dia ou o café da manhã.</li>
+    <li>A parte que muda de preço é módulo trocável — nunca plotagem inteira.</li>
+  </ul>
+
+  <div class="nota">Preço com vírgula zero-zero ocupa espaço e não vende mais. No menu board da moka
+    o padrão é <strong>número inteiro quando o preço é redondo</strong> — "32" e não "R$ 32,00".
+    No cardápio de mesa e no delivery, onde é documento, o valor vai completo.</div>
+  </div>
+</section>
+
+<section class="s" id="kids">
+  <p class="olho">29 · Kids</p>
+  <h3>moka Kids é sub-marca, não é campanha</h3>
+  <div class="col">
+  <p class="lede">O espaço infantil não existe para vender mais açaí para criança. Existe porque
+    <strong>a família com filho pequeno escolhe o café pelo lugar que aguenta a criança</strong> — e
+    porque essa família fica 40 minutos em vez de 12.</p>
+
+  <h4>Assinatura visual</h4>
+  <ul class="l">
+    <li>Bloco próprio no cardápio, com fundo em Sol Kids <code>#FEBB3C</code>.</li>
+    <li>Moquinho presente, dentro das regras da §21.</li>
+    <li>Tipografia idêntica à da marca mãe — <strong>nada de fonte "divertida"</strong>. É o que
+      mantém o Kids dentro da moka em vez de virar outra marca.</li>
+    <li>Assinatura sempre endossada: <span class="mk" style="font-size:17px">moka<i>.</i></span>
+      <span style="font-family:var(--d);font-size:15px">Kids</span> — nunca "Kids" sozinho.</li>
+  </ul>
+
+  <h4>O que compõe o território</h4>
+  </div>
+  <div class="g">
+    <div class="cx"><span class="k">Espaço</span><h6>O canto</h6><p>Tapete, mesa baixa, dois bancos,
+      parede de lousa e caixa de brinquedos de material lavável. Visível do balcão e de qualquer
+      mesa — pai que não enxerga o filho não relaxa.</p></div>
+    <div class="cx"><span class="k">Produto</span><h6>A tigela Kids</h6><p>Porção menor, copo com tampa
+      e colher curta. Preço com âncora própria, não é "metade do P".</p></div>
+    <div class="cx"><span class="k">Peça</span><h6>O jogo americano</h6><p>Papel, um lado com labirinto
+      e Moquinho para colorir, giz de cera de 4 cores. Custa centavos e compra vinte minutos.</p></div>
+    <div class="cx"><span class="k">Ritual</span><h6>O carimbo na mão</h6><p>Criança que come ganha o
+      carimbo do Moquinho no dorso da mão. Sai da loja como propaganda ambulante.</p></div>
+  </div>
+  <div class="col">
+  <div class="nota">Regra de segurança que também é regra de marca: brinquedo lavável e higienizado
+    todo dia, sem peça pequena para menores de 3 anos, e placa visível informando que a criança é
+    responsabilidade do adulto acompanhante. A placa é em Creme sobre Açaí, em D6 — informação, não
+    aviso hostil.</div>
+  </div>
+</section>
+
+<section class="s" id="brindes">
+  <p class="olho">30 · Brindes</p>
+  <h3>Só existe brinde que alguém usaria se tivesse comprado</h3>
+  <div class="col">
+  <p class="lede">O teste é único: <strong>essa pessoa pagaria por isso numa loja?</strong> Se não,
+    é lixo com a marca da moka — e lixo com marca faz mal à marca.</p>
+  </div>
+  <div class="rolo">
+    <table>
+      <thead><tr><th>Item</th><th>Para quem</th><th class="mono">Custo alvo</th><th>Quando</th></tr></thead>
+      <tbody>
+        <tr><td>Adesivo troquelado</td><td>Todo mundo, no balcão</td><td class="mono">R$ 0,40</td><td>Sempre — é o de maior retorno por real</td></tr>
+        <tr><td>Botton</td><td>Cliente de fidelidade</td><td class="mono">R$ 1,20</td><td>Décimo carimbo</td></tr>
+        <tr><td>Ecobag de algodão cru</td><td>Cliente recorrente e parceiro</td><td class="mono">R$ 14</td><td>Venda a preço de custo, não de graça</td></tr>
+        <tr><td>Garrafa térmica gravada</td><td>Hóspede e anfitrião</td><td class="mono">R$ 28</td><td>Comodato na entrega (§25)</td></tr>
+        <tr><td>Boné</td><td>Equipe e venda</td><td class="mono">R$ 22</td><td>Verão</td></tr>
+        <tr><td>Copo reutilizável</td><td>Cliente diário de café</td><td class="mono">R$ 19</td><td>Venda com R$ 2 de desconto por refil</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col">
+  <p><strong>O que a moka não faz:</strong> caneta, chaveiro de plástico, ímã de geladeira, leque,
+    squeeze de festa, camiseta de brinde em malha fina. São itens que existem porque são baratos, e
+    é exatamente isso que comunicam.</p>
+  <div class="nota">Vender o merch em vez de distribuir tem um efeito colateral bom: quem paga R$ 14
+    numa ecobag usa a ecobag. Brinde grátis costuma virar sacola de lixo.</div>
+  </div>
+</section>
+</div>
+<div class="parte">
+  <div class="w">
+    <div class="num">V</div>
+    <div class="tx"><h2>O digital</h2>
+      <p>A parte que o pessoal do balcão vai abrir todo dia. Instagram, Google e WhatsApp não são
+        "divulgação" — são a vitrine de uma loja que fica numa rua onde ninguém passa por acaso
+        fora do verão.</p></div>
+  </div>
+</div>
+<div class="w">
+
+<section class="s" id="perfil">
+  <p class="olho">31 · Perfil</p>
+  <h3>Os cinco segundos em que alguém decide seguir</h3>
+  <div class="col">
+  <p class="lede">Quem chega ao perfil da moka vem de uma foto de amigo, de uma busca por "açaí
+    Garopaba" ou do QR do cardápio. Em todos os casos a pergunta é a mesma: <em>é bom, é perto, e
+    está aberto?</em> A bio responde as três antes de qualquer post.</p>
+
+  <h4>@ e nome</h4>
+  <ul class="l">
+    <li><strong>@moka.ferrugem</strong> — o mesmo em todas as redes. Com ponto, minúsculo, sem
+      número, sem "oficial", sem underline duplo.</li>
+    <li><strong>Nome do perfil: "moka · açaí e café · Ferrugem"</strong>. O campo nome é o único
+      indexado na busca do Instagram — é onde entram as palavras que alguém digita. Não repita o @.</li>
+    <li><strong>Categoria:</strong> Cafeteria. Não "Empresa local", não "Marca".</li>
+  </ul>
+
+  <h4>A bio, linha por linha</h4>
+  </div>
+  <div class="esp">
+    <div class="lab">Bio — 150 caracteres, o limite é rígido</div>
+    <div style="font-family:var(--d);font-size:16px;line-height:1.65">
+      açaí batido na hora e café de verdade<br>
+      🌊 Praia da Ferrugem, 2956 · Garopaba<br>
+      ☀️ 7h–20h no verão · 8h–18h fora dele<br>
+      café da manhã entregue no seu Airbnb ↓
+    </div>
+  </div>
+  <div class="col">
+  <ul class="l">
+    <li><strong>Linha 1 — o que é.</strong> Sem adjetivo vazio ("o melhor", "sabor único").</li>
+    <li><strong>Linha 2 — onde.</strong> O nome da praia por extenso; é o que aparece na busca.</li>
+    <li><strong>Linha 3 — quando.</strong> Horário é a informação mais consultada de uma loja e a
+      que mais gera mensagem no direct. Resolvida na bio, some do direct.</li>
+    <li><strong>Linha 4 — a ação.</strong> Uma só, apontando para o link.</li>
+  </ul>
+  <div class="nota">Emoji na bio é permitido, com teto de <strong>um por linha</strong> e apenas do
+    repertório da marca: 🌊 ☀️ 🫐 ☕ 🥐. Emoji não substitui palavra: quem usa leitor de tela ouve
+    "onda de água" no meio da frase.</div>
+
+  <h4>Link e destaques</h4>
+  <ul class="l">
+    <li><strong>Um link só</strong>, para uma página com quatro botões: cardápio, WhatsApp, rota no
+      Google Maps e café da manhã. Agregador com quinze links é onde a conversão morre.</li>
+    <li><strong>Cinco destaques, nesta ordem:</strong> Cardápio · Café da manhã · A casa · Kids ·
+      Como chegar. Capas em Açaí com ícone em Sol, do conjunto da §19.</li>
+    <li>Botões de ação ativos: <strong>WhatsApp</strong> e <strong>Como chegar</strong>.</li>
+  </ul>
+  </div>
+</section>
+
+<section class="s" id="pilares">
+  <p class="olho">32 · Conteúdo</p>
+  <h3>Cinco pilares, e uma proporção que não muda</h3>
+  <div class="col">
+  <p class="lede">O erro clássico da loja de praia é postar só produto. Dez fotos de açaí seguidas
+    fazem o seguidor local parar de ver — o algoritmo entrega para quem interage, e ninguém
+    interage com catálogo.</p>
+  </div>
+
+  <div class="prop">
+    <span style="flex:30;background:var(--acai);color:var(--creme)">PRODUTO 30%</span>
+    <span style="flex:25;background:var(--tinta);color:var(--creme)">BASTIDOR 25%</span>
+    <span style="flex:20;background:var(--sol);color:var(--tinta)">LUGAR 20%</span>
+    <span style="flex:15;background:var(--kraft);color:var(--tinta)">GENTE 15%</span>
+    <span style="flex:10;background:var(--areia);color:var(--tinta)">OFERTA 10%</span>
+  </div>
+
+  <div class="g g2">
+    <div class="cx"><span class="k">Pilar 01 · 30%</span><h6>Produto com desejo</h6>
+      <p>A tigela sendo montada, o creme escorrendo, a granola caindo, o café sendo vaporizado.
+        Nunca a foto parada do produto pronto sobre a mesa — essa é foto de cardápio, não de feed.
+        <strong>Regra:</strong> movimento ou textura em close.</p></div>
+    <div class="cx"><span class="k">Pilar 02 · 25%</span><h6>Bastidor</h6>
+      <p>A polpa chegando, o croissant entrando no forno às 6h40, o quadro de pedidos do dia, a
+        equipe montando 20 caixas de café da manhã. É o pilar que constrói confiança — e o que
+        diferencia uma casa de uma franquia.</p></div>
+    <div class="cx"><span class="k">Pilar 03 · 20%</span><h6>Lugar</h6>
+      <p>A Ferrugem. O mar de manhã, a maré, a chuva batendo no deck, o pôr do sol da porta. É o
+        conteúdo que o turista salva e compartilha, e o que faz o morador se reconhecer. Vale
+        postar mar sem produto nenhum.</p></div>
+    <div class="cx"><span class="k">Pilar 04 · 15%</span><h6>Gente</h6>
+      <p>A equipe com nome, o cliente que vem todo dia, o cachorro que dorme no deck, a criança no
+        canto Kids (com autorização). Rosto humano é o que mais gera comentário — e comentário é o
+        que faz o post ser entregue de novo.</p></div>
+    <div class="cx"><span class="k">Pilar 05 · 10%</span><h6>Oferta</h6>
+      <p>Combinação do dia, horário estendido, o café da manhã, um novo sabor. <strong>Teto de 10%:</strong>
+        acima disso o perfil vira panfleto e o alcance orgânico cai. A venda acontece nos outros
+        quatro pilares; este só recolhe.</p></div>
+    <div class="cx" style="background:color-mix(in srgb,var(--sol) 10%,var(--papel2));border-color:color-mix(in srgb,var(--sol) 40%,transparent)">
+      <span class="k">A conta prática</span><h6>Em 20 posts por mês</h6>
+      <p>6 de produto · 5 de bastidor · 4 do lugar · 3 de gente · 2 de oferta. Se ao fim do mês
+        houve 6 posts de oferta, o mês foi de anúncio — e o próximo começa mais fraco.</p></div>
+  </div>
+</section>
+
+<section class="s" id="cadencia">
+  <p class="olho">33 · Cadência</p>
+  <h3>Quatro Reels, dois carrosséis e Stories todo dia</h3>
+  <div class="col">
+  <p class="lede">Não é volume que sustenta um perfil local — é constância previsível. Uma semana
+    com 12 posts e três semanas em silêncio rendem menos que quatro semanas iguais.</p>
+  </div>
+  <div class="rolo">
+    <table>
+      <thead><tr><th>Formato</th><th class="mono">Por semana</th><th>Para que serve</th><th>Onde erra</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Reels</strong></td><td class="mono">3 a 4</td><td>Alcançar quem ainda não segue — é o único formato que sai da bolha</td><td>Legenda longa demais; produto parado</td></tr>
+        <tr><td><strong>Carrossel</strong></td><td class="mono">2</td><td>Explicar, listar, ensinar. Segura o dedo e gera salvamento</td><td>Primeiro quadro sem promessa clara</td></tr>
+        <tr><td><strong>Foto única</strong></td><td class="mono">1</td><td>Estética do lugar, a foto bonita que vira capa do perfil</td><td>Usar como formato principal</td></tr>
+        <tr><td><strong>Stories</strong></td><td class="mono">3 a 7 por dia</td><td>Falar com quem já segue: horário, esgotou, chegou, bastidor</td><td>Sumir dois dias e voltar vendendo</td></tr>
+        <tr><td><strong>Colaboração</strong></td><td class="mono">1 a 2 por mês</td><td>Post publicado nos dois perfis — soma as audiências</td><td>Colaborar com quem não é do lugar</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col">
+  <h4>Horários</h4>
+  <ul class="l">
+    <li><strong>Verão:</strong> 8h (quem acordou e decide o café da manhã) e 16h30 (quem sai da
+      praia e decide o açaí). São as duas janelas de decisão de compra da Ferrugem.</li>
+    <li><strong>Fora de temporada:</strong> 9h e 17h, com menos volume e mais bastidor.</li>
+    <li><strong>Domingo à noite</strong> é o melhor momento para conteúdo de lugar — é quando o
+      turista que foi embora sente falta e o de semana que vem está planejando.</li>
+  </ul>
+
+  <h4>O grid</h4>
+  <p>A grade de nove posts é a segunda coisa que alguém vê depois da bio. Regras:</p>
+  <ul class="l">
+    <li>Nunca duas capas escuras lado a lado, nem três produtos seguidos.</li>
+    <li>Toda capa de Reels é <strong>editada</strong> — o frame automático do vídeo corta a comida
+      no lugar errado.</li>
+    <li>A capa não leva texto grande. Título gigante no grid envelhece em duas semanas.</li>
+    <li>Sequência que funciona: produto → lugar → gente → produto → bastidor → lugar…</li>
+  </ul>
+  <div class="nota">Uma pessoa da equipe é dona do perfil, com nome e horário: <strong>30 minutos de
+    manhã e 15 à tarde</strong>. Sem dono, o Instagram vira tarefa de quem sobrar — e a cadência cai
+    já na terceira semana. Isso está na §51.</div>
+  </div>
+</section>
+
+<section class="s" id="reels">
+  <p class="olho">34 · Reels</p>
+  <h3>Doze roteiros prontos para gravar com o celular</h3>
+  <div class="col">
+  <p class="lede">Um Reels tem três segundos para prender e trinta para entregar. Estes doze cobrem
+    os cinco pilares e podem ser repetidos a cada 60 dias com produto diferente — repetir formato
+    que funciona é a prática, não o defeito.</p>
+  <div class="nota">Estrutura fixa: <strong>gancho (0–3 s) · desenvolvimento (3–20 s) · fecho
+    (20–30 s)</strong>. Texto na tela nos 3 primeiros segundos, sempre — a maioria assiste sem som.
+    Áudio em alta ajuda no alcance, mas som original com o barulho da máquina e do mar rende mais
+    comentário local.</div>
+  </div>
+
+  <div class="g g2">
+    <div class="cx"><span class="k">R01 · Produto · 20 s</span><h6>A montagem em close</h6>
+      <p><strong>Gancho:</strong> a polpa caindo na tigela, som original, texto "7h30 na Ferrugem".
+      <strong>Meio:</strong> cada companhia entrando, uma por corte. <strong>Fecho:</strong> a mão
+      levando a tigela para o deck com o mar ao fundo. Sem falar nada.</p></div>
+
+    <div class="cx"><span class="k">R02 · Bastidor · 25 s</span><h6>6h40, antes de abrir</h6>
+      <p><strong>Gancho:</strong> a loja escura, a luz acendendo. <strong>Meio:</strong> croissant
+      no forno, máquina esquentando, quadro do dia sendo escrito. <strong>Fecho:</strong> a placa
+      virando para "aberto". Texto: "todo dia, antes de você acordar".</p></div>
+
+    <div class="cx"><span class="k">R03 · Lugar · 15 s</span><h6>A maré de hoje</h6>
+      <p>Plano único do mar, filmado da porta, sem corte. Texto grande com a data e a condição:
+      "quarta, 8h, mar limpo". <strong>Publicar cedo.</strong> É o Reels que o morador comenta e o
+      turista salva — e custa 15 segundos de gravação.</p></div>
+
+    <div class="cx"><span class="k">R04 · Oferta · 22 s</span><h6>A caixa que chega no Airbnb</h6>
+      <p><strong>Gancho:</strong> batida na porta, mão abrindo, caixa no chão. <strong>Meio:</strong>
+      a cinta sendo rompida, a caixa abrindo em cenital. <strong>Fecho:</strong> casal comendo na
+      varanda. Texto: "café da manhã entregue até 9h30. Pedido até 20h do dia anterior".</p></div>
+
+    <div class="cx"><span class="k">R05 · Gente · 30 s</span><h6>Quem faz o seu açaí</h6>
+      <p>Uma pessoa da equipe, nome na tela, respondendo a uma pergunta só: "qual a combinação que
+      você pede quando ninguém está vendo?". Feito com pessoa diferente a cada duas semanas.
+      Constrói rosto — e rosto é o que faz voltar.</p></div>
+
+    <div class="cx"><span class="k">R06 · Produto · 18 s</span><h6>Três em um: P, M e G</h6>
+      <p>As três tigelas entrando em quadro lado a lado, com o preço aparecendo em cima de cada uma.
+      Texto de gancho: "qual é a sua?". <strong>A pergunta na tela é o que gera comentário</strong>,
+      e comentário é o que sustenta o alcance.</p></div>
+
+    <div class="cx"><span class="k">R07 · Bastidor · 28 s</span><h6>De onde vem a polpa</h6>
+      <p>O balde chegando, a data do lote em close, a origem no rótulo. Texto: "Igarapé-Miri, Pará —
+      e a gente bate na hora". É o Reels que separa a moka de quem usa mistura pronta, sem citar
+      concorrente nenhum.</p></div>
+
+    <div class="cx"><span class="k">R08 · Lugar · 24 s</span><h6>Chuva na Ferrugem</h6>
+      <p>Dia ruim de praia é dia bom de conteúdo. A chuva no deck, o vapor da xícara, a loja cheia.
+      Texto: "hoje não dá praia. Dá café". <strong>Publicar no dia</strong> — conteúdo de chuva
+      guardado para depois não serve para nada.</p></div>
+
+    <div class="cx"><span class="k">R09 · Gente · 26 s</span><h6>O cliente das 7h</h6>
+      <p>A mesma pessoa que vem todo dia, com autorização, contando em uma frase por que vem. Fecha
+      com o pedido pronto antes dela pedir. Texto: "o café dela já está na máquina".</p></div>
+
+    <div class="cx"><span class="k">R10 · Produto · 20 s</span><h6>O erro que a gente não comete</h6>
+      <p>Formato de contraste, sem apontar para ninguém: açaí que derrete em 4 minutos x o da moka
+      em 12, lado a lado, com cronômetro na tela. Demonstração vale mais que adjetivo.</p></div>
+
+    <div class="cx"><span class="k">R11 · Bastidor · 30 s</span><h6>20 caixas antes das 8h</h6>
+      <p>Time-lapse da linha de montagem do café da manhã: caixas abertas, montagem em série, cintas,
+      carro saindo. Texto: "cinco Airbnbs, uma manhã". É o Reels que <strong>vende para o anfitrião</strong>,
+      não para o hóspede.</p></div>
+
+    <div class="cx"><span class="k">R12 · Kids · 22 s</span><h6>O canto que salva a manhã</h6>
+      <p>Criança desenhando no jogo americano, pais tomando café em paz atrás, o carimbo do Moquinho
+      na mão. Texto: "quarenta minutos de café quente. É o que a gente promete para quem tem filho
+      pequeno".</p></div>
+  </div>
+
+  <div class="col">
+  <h4>Produção: o padrão do celular</h4>
+  <ul class="l">
+    <li><strong>Vertical 9:16, 1080 × 1920, 30 fps.</strong> Nunca gravar na horizontal para cortar
+      depois.</li>
+    <li><strong>Limpar a lente.</strong> Metade dos vídeos ruins de loja é gordura na câmera.</li>
+    <li><strong>Bloquear foco e exposição</strong> tocando e segurando na tela antes de gravar.</li>
+    <li><strong>Cortes a cada 2 ou 3 segundos.</strong> Plano de 8 segundos só se for o mar.</li>
+    <li><strong>Legenda automática ativada</strong>, sempre — acessibilidade e retenção na mesma ação.</li>
+    <li><strong>Texto fora das zonas mortas:</strong> 180 px no topo, 250 px na base.</li>
+  </ul>
+  </div>
+</section>
+</div>
+<div class="w">
+
+<section class="s" id="stories">
+  <p class="olho">35 · Stories</p>
+  <h3>O que se conta durante o dia</h3>
+  <div class="col">
+  <p class="lede">Stories não alcança gente nova — fala com quem já segue. É onde a moka avisa,
+    mostra e pergunta. É também o formato onde ninguém precisa de produção: celular na mão, luz
+    natural, verdade.</p>
+
+  <h4>A sequência do dia — cinco momentos</h4>
+  <ol class="l">
+    <li><strong>07h30 · Abriu.</strong> Um plano curto da loja acordando, com o horário na tela. É o
+      story mais visto do dia, porque responde à pergunta que todo mundo tem.</li>
+    <li><strong>10h · O que tem hoje.</strong> Croissant saindo, a fruta da estação, a combinação do
+      dia escrita na lousa em Caveat.</li>
+    <li><strong>13h · Bastidor ou gente.</strong> A cozinha, o mar, o cachorro no deck, o cliente
+      que autorizou.</li>
+    <li><strong>16h30 · A janela do açaí.</strong> A tigela sendo montada, com a enquete
+      "com ou sem leite condensado?".</li>
+    <li><strong>19h · Fecho.</strong> O pôr do sol da porta ou a loja se arrumando. Sem venda.</li>
+  </ol>
+
+  <h4>Figurinhas — o que cada uma faz</h4>
+  <ul class="l">
+    <li><strong>Enquete</strong> — a de maior resposta. Sempre duas opções, nunca quatro. Use para
+      decisão real: sabor novo, horário estendido.</li>
+    <li><strong>Caixa de perguntas</strong> — uma vez por semana. As respostas viram carrossel.</li>
+    <li><strong>Link</strong> — só quando há ação: cardápio, café da manhã, WhatsApp.</li>
+    <li><strong>Localização e menção</strong> — em <em>todo</em> story de loja. É o que faz a moka
+      aparecer no story de quem marcou a Ferrugem.</li>
+    <li><strong>Contagem regressiva</strong> — para abertura, evento e feriado.</li>
+    <li><strong>Música</strong> — sim, mas nunca por cima de alguém falando.</li>
+  </ul>
+
+  <h4>Republicar o cliente é a tarefa de maior retorno do dia</h4>
+  <p>Cada story de cliente que a moka republica faz três coisas de uma vez: dá prova social, agrada
+    quem postou e ensina os outros a marcar. <strong>Meta: republicar tudo, todo dia, em até duas
+    horas.</strong> Sempre com o crédito visível e sem cobrir o rosto de quem postou com adesivo.</p>
+
+  <div class="dupla">
+    <div class="sim"><div class="t">Stories — sim</div><ul>
+      <li>Vertical, cheio, sem borda branca de post recortado</li>
+      <li>Texto grande e curto, dentro da área segura</li>
+      <li>Vídeo com som real da loja</li>
+      <li>Avisar quando esgotar — escassez honesta é conteúdo</li>
+    </ul></div>
+    <div class="nao"><div class="t">Stories — não</div><ul>
+      <li>Print de conversa com o cliente, mesmo elogiosa, sem permissão</li>
+      <li>Corrente, "arrasta pra cima" sem link, texto motivacional</li>
+      <li>Sumir por dois dias e voltar com promoção</li>
+      <li>Responder reclamação pública em story</li>
+    </ul></div>
+  </div>
+
+  <h4>Os cinco destaques</h4>
+  </div>
+  <div class="g g4">
+    <div class="cx"><span class="k">01</span><h6>Cardápio</h6><p>Fotos dos itens com preço. Atualizado sempre que o preço mudar.</p></div>
+    <div class="cx"><span class="k">02</span><h6>Café da manhã</h6><p>Como funciona, prazo, os quatro planos, a caixa aberta.</p></div>
+    <div class="cx"><span class="k">03</span><h6>A casa</h6><p>Quem somos, a origem da polpa, a equipe, o deck.</p></div>
+    <div class="cx"><span class="k">04</span><h6>Kids</h6><p>O canto, a tigela, o jogo. É o destaque que a mãe abre.</p></div>
+    <div class="cx"><span class="k">05</span><h6>Como chegar</h6><p>Rua, referência, estacionamento, print do mapa.</p></div>
+  </div>
+</section>
+
+<section class="s" id="legenda">
+  <p class="olho">36 · Legenda</p>
+  <h3>Primeira linha, respiro, ação — e a hashtag no fim</h3>
+  <div class="col">
+  <p class="lede">Legenda de negócio local não é literatura nem lista de palavras-chave. Tem uma
+    tarefa: transformar quem parou o dedo em quem sabe onde fica e o que fazer agora.</p>
+
+  <h4>A estrutura de quatro partes</h4>
+  <ol class="l">
+    <li><strong>Primeira linha (até 8 palavras).</strong> É a única que aparece sem clicar em "mais".
+      Ou é uma frase forte, ou uma pergunta.</li>
+    <li><strong>Corpo (1 a 3 frases).</strong> O detalhe que a imagem não conta: a origem, o horário,
+      o preço, o motivo.</li>
+    <li><strong>A ação (1 linha).</strong> Uma só: "pede no WhatsApp do perfil", "vem até as 20h",
+      "salva para a próxima vez que vier".</li>
+    <li><strong>Assinatura de lugar.</strong> Sempre: <em>Praia da Ferrugem, 2956 · Garopaba/SC</em>.</li>
+  </ol>
+  </div>
+  <div class="esp">
+    <div class="lab">Exemplo — post de produto</div>
+    <div style="font-family:var(--b);font-size:16.5px;line-height:1.6">
+      A gente bate na hora. Sempre.<br><br>
+      Polpa de Igarapé-Miri, sem xarope e sem mistura pronta — por isso demora quarenta segundos a
+      mais e derrete dez minutos depois.<br><br>
+      Tigela P sai por 32. Estamos abertos até as 20h.<br><br>
+      <span style="color:var(--texto3)">Praia da Ferrugem, 2956 · Garopaba/SC</span><br>
+      <span style="font-family:var(--m);font-size:12px;color:var(--texto3)">.<br>.<br>#praiadaferrugem #garopaba #acai #garopabasc #ferrugemgaropaba</span>
+    </div>
+  </div>
+  <div class="col">
+  <h4>Hashtags — 5 a 8, e locais</h4>
+  <p>Para um negócio de rua, hashtag gigante é desperdício: <strong>#acai</strong> tem milhões de
+    posts e a moka nunca vai aparecer ali. A hashtag útil é a que alguém a 3 km de distância segue.</p>
+  </div>
+  <div class="rolo">
+    <table>
+      <thead><tr><th>Bloco</th><th>Hashtags</th><th>Quantas por post</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Lugar</strong> — sempre</td><td>#praiadaferrugem · #ferrugem · #garopaba · #garopabasc · #costaverdemar</td><td class="mono">3 a 4</td></tr>
+        <tr><td><strong>Categoria</strong></td><td>#acai · #cafeteria · #cafedamanha · #brunch</td><td class="mono">1 a 2</td></tr>
+        <tr><td><strong>Público</strong></td><td>#turismosc · #vempragaropaba · #santacatarina</td><td class="mono">1</td></tr>
+        <tr><td><strong>Da marca</strong></td><td>#mokaferrugem · #naferrugemtemmoka</td><td class="mono">1</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col">
+  <ul class="l">
+    <li><strong>Marcação de local é mais forte que hashtag.</strong> Todo post e todo story levam a
+      localização "Praia da Ferrugem" ou o perfil do próprio estabelecimento no mapa.</li>
+    <li>As hashtags vão <strong>no fim da legenda</strong>, depois de duas linhas com um ponto — não
+      no primeiro comentário, que já não muda nada e atrapalha a leitura.</li>
+    <li><strong>#mokaferrugem</strong> é a hashtag do cliente. Ela aparece no adesivo, na cinta da
+      caixa e no cartão. É de onde saem os repostes.</li>
+  </ul>
+  <div class="nota">Acessibilidade: hashtag composta vai em <strong>CamelCase</strong> quando tiver
+    mais de duas palavras (#VemPraGaropaba), porque o leitor de tela consegue separar. E toda foto
+    de produto leva texto alternativo escrito à mão, não o automático.</div>
+  </div>
+</section>
+
+<section class="s" id="calendario">
+  <p class="olho">37 · Calendário</p>
+  <h3>Trinta dias de alta temporada, já preenchidos</h3>
+  <div class="col">
+  <p class="lede">Este é um mês de janeiro completo. Não é sugestão de tema: é o que se grava e o que
+    se publica, com os roteiros da §34 pelo número. Fora de temporada, corta-se um Reels por semana
+    e sobe o pilar de bastidor.</p>
+  </div>
+  <div class="calw">
+  <div class="cal">
+    <div class="h">seg</div><div class="h">ter</div><div class="h">qua</div><div class="h">qui</div>
+    <div class="h">sex</div><div class="h">sáb</div><div class="h">dom</div>
+
+    <div class="d r"><b>01</b>Reels R03 · a maré de hoje</div>
+    <div class="d c"><b>02</b>Carrossel · 5 combinações que a casa recomenda</div>
+    <div class="d r"><b>03</b>Reels R01 · a montagem em close</div>
+    <div class="d"><b>04</b>Foto · o deck às 17h</div>
+    <div class="d r"><b>05</b>Reels R04 · a caixa no Airbnb</div>
+    <div class="d c"><b>06</b>Carrossel · como chegar e onde estacionar</div>
+    <div class="d r"><b>07</b>Reels R02 · 6h40, antes de abrir</div>
+
+    <div class="d"><b>08</b>Foto · a fruta da estação</div>
+    <div class="d r"><b>09</b>Reels R06 · P, M ou G?</div>
+    <div class="d c"><b>10</b>Carrossel · de onde vem a nossa polpa</div>
+    <div class="d r"><b>11</b>Reels R05 · quem faz o seu açaí</div>
+    <div class="d"><b>12</b>Colaboração com pousada ou gestora</div>
+    <div class="d r"><b>13</b>Reels R08 · chuva? café.</div>
+    <div class="d c"><b>14</b>Carrossel · o cardápio Kids</div>
+
+    <div class="d r"><b>15</b>Reels R11 · 20 caixas antes das 8h</div>
+    <div class="d"><b>16</b>Foto · o mar da porta</div>
+    <div class="d r"><b>17</b>Reels R07 · Igarapé-Miri</div>
+    <div class="d c"><b>18</b>Carrossel · responde a caixinha de perguntas</div>
+    <div class="d r"><b>19</b>Reels R10 · o teste de doze minutos</div>
+    <div class="d"><b>20</b>Repost de cliente + agradecimento</div>
+    <div class="d r"><b>21</b>Reels R12 · o canto Kids</div>
+
+    <div class="d c"><b>22</b>Carrossel · o que servir no café da manhã do hóspede</div>
+    <div class="d r"><b>23</b>Reels R03 · a maré (nova gravação)</div>
+    <div class="d"><b>24</b>Foto · a equipe de uniforme</div>
+    <div class="d r"><b>25</b>Reels R09 · o cliente das 7h</div>
+    <div class="d c"><b>26</b>Carrossel · bastidor da semana em 6 quadros</div>
+    <div class="d r"><b>27</b>Reels R01 · montagem, outro sabor</div>
+    <div class="d"><b>28</b>Foto · pôr do sol da porta</div>
+
+    <div class="d r"><b>29</b>Reels R04 · café da manhã (versão família)</div>
+    <div class="d c"><b>30</b>Carrossel · o mês em números, para os parceiros</div>
+    <div class="d"><b>31</b>Foto · obrigado, janeiro</div>
+    <div class="d" style="background:transparent;border:none"></div>
+    <div class="d" style="background:transparent;border:none"></div>
+    <div class="d" style="background:transparent;border:none"></div>
+    <div class="d" style="background:transparent;border:none"></div>
+  </div>
+  </div>
+  <div class="col">
+  <p style="font-family:var(--m);font-size:12px;color:var(--texto3);margin-top:-8px">
+    Amarelo = Reels · roxo claro = carrossel · branco = foto, repost ou colaboração.
+    Stories todos os dias, em cima da sequência da §35.</p>
+  <div class="nota"><strong>Grava-se em bloco, publica-se pingado.</strong> Duas manhãs por mês —
+    uma no dia 1º e outra no dia 15 — resolvem quase todo o material. O que fica de fora é o que
+    depende do dia: a maré, a chuva, o repost e o que esgotou.</div>
+  </div>
+</section>
+
+<section class="s" id="google">
+  <p class="olho">38 · Google e WhatsApp</p>
+  <h3>O canal que vende mais que o Instagram</h3>
+  <div class="col">
+  <p class="lede">Quem procura "açaí perto de mim" às 16h de um sábado não abre o Instagram: abre o
+    mapa. Para um ponto de rua, <strong>o perfil do Google é o ativo digital mais valioso</strong> —
+    e é gratuito, subaproveitado e fácil de manter à frente do concorrente.</p>
+
+  <h4>O perfil do Google, item por item</h4>
+  <ul class="l">
+    <li><strong>Categoria principal:</strong> Cafeteria. Secundárias: Loja de açaí, Restaurante de
+      café da manhã. A categoria é o principal fator de quem aparece na busca do mapa.</li>
+    <li><strong>Horário sempre correto</strong>, com horário especial cadastrado em feriado. Loja
+      marcada como aberta e encontrada fechada é a via mais rápida para uma avaliação de 1 estrela.</li>
+    <li><strong>Fotos:</strong> mínimo de 20 na abertura, e <strong>3 novas por semana</strong>.
+      Perfil com foto recente aparece mais. A ordem que o Google privilegia: fachada, interior,
+      produto, cardápio, equipe.</li>
+    <li><strong>Produtos e cardápio</strong> preenchidos com preço — aparecem direto no resultado.</li>
+    <li><strong>Atributos</strong> ligados: pet friendly, mesas ao ar livre, wi-fi, acessível,
+      aceita cartão, retirada, entrega.</li>
+    <li><strong>Perguntas e respostas:</strong> a moka publica as próprias perguntas frequentes e
+      responde. Se não fizer, um estranho responde por ela.</li>
+    <li><strong>Publicações semanais</strong> — o Google mostra as duas mais recentes no card.</li>
+  </ul>
+
+  <h4>Avaliações</h4>
+  <ul class="l">
+    <li><strong>Pedir é permitido e necessário.</strong> O QR do cartão fidelidade e a cinta da caixa
+      de café da manhã levam ao link direto de avaliação.</li>
+    <li><strong>Nunca comprar, nunca oferecer desconto por nota.</strong> Além de proibido, é
+      detectável e derruba o perfil.</li>
+    <li><strong>Responder todas em até 24 horas</strong> — as boas com uma linha específica, não com
+      "obrigado pelo feedback" copiado; as ruins conforme a §48.</li>
+    <li><strong>Meta do primeiro verão: 150 avaliações com média acima de 4,6.</strong> Volume pesa
+      tanto quanto a nota.</li>
+  </ul>
+
+  <h4>WhatsApp Business</h4>
+  <ul class="l">
+    <li>Perfil completo: foto da fachada, endereço com pino, horário, catálogo com os itens de maior
+      giro e os quatro planos de café da manhã.</li>
+    <li><strong>Mensagem de saudação</strong> com as três informações que resolvem 80% das conversas:
+      horário, endereço e link do cardápio.</li>
+    <li><strong>Respostas rápidas</strong> gravadas para: prazo do café da manhã, formas de pagamento,
+      se tem estacionamento, se pode levar cachorro, se tem opção sem lactose.</li>
+    <li><strong>Etiquetas:</strong> hóspede, anfitrião, parceiro, recorrente. É o embrião do CRM da
+      moka e o que permite avisar o anfitrião certo na véspera do feriado.</li>
+    <li>Lista de transmissão só para quem pediu. Grupo de clientes, nunca.</li>
+  </ul>
+  <div class="nota">Uma correção de rota que vale dinheiro: <strong>o cliente que veio pelo Google
+    custa zero e converte mais</strong> que o do Instagram, porque já está decidido e a 800 metros.
+    Se em algum mês houver escolha entre postar ou atualizar as fotos do Google, atualiza o Google.</div>
+  </div>
+</section>
+
+<section class="s" id="movimento">
+  <p class="olho">39 · Movimento</p>
+  <h3>Como a marca se move</h3>
+  <div class="col">
+  <p class="lede">Marca também tem gesto. Numa vinheta de Reels, num letreiro digital, na abertura de
+    um vídeo — o jeito de entrar e sair é tão reconhecível quanto a cor.</p>
+
+  <h4>Os três movimentos da moka</h4>
+  <ul class="l">
+    <li><strong>A maré</strong> — elementos entram deslizando da esquerda, com desaceleração longa.
+      Curva <code>cubic-bezier(.22,1,.36,1)</code>, de 420 a 600 ms. É o movimento padrão.</li>
+    <li><strong>O sol</strong> — a marca ou o meio-círculo sobe de baixo para cima, 320 ms, com
+      leve escala de 0,96 para 1. Usado só na assinatura final.</li>
+    <li><strong>O corte seco</strong> — sem transição nenhuma, para trocar de produto ou de plano
+      dentro de um Reels. É movimento também, e é o mais usado.</li>
+  </ul>
+
+  <h4>Regras</h4>
+  <ul class="l">
+    <li><strong>Nada gira.</strong> A marca não roda, não pisca, não pula, não faz efeito elástico.</li>
+    <li><strong>Duração máxima de qualquer transição: 600 ms.</strong> Acima disso a pessoa já rolou.</li>
+    <li><strong>A vinheta de fim tem 1,2 segundo:</strong> a onda risca o quadro, a marca sobe em Sol
+      sobre Tinta, o endereço aparece embaixo em Mono.</li>
+    <li><strong>Respeitar quem pediu menos movimento.</strong> Em qualquer peça digital da moka —
+      site, cardápio online, este manual — a animação é desligada quando o sistema sinaliza
+      <code>prefers-reduced-motion</code>. Não é detalhe técnico: é a mesma regra da §16.</li>
+  </ul>
+  </div>
+</section>
+</div>
+<div class="parte">
+  <div class="w">
+    <div class="num">VI</div>
+    <div class="tx"><h2>As parcerias</h2>
+      <p>A Ferrugem tem mais camas do que moradores. Quem controla essas camas — anfitrião, gestora,
+        pousada — decide onde o hóspede toma o primeiro café. Esta parte é sobre chegar até essa
+        pessoa.</p></div>
+  </div>
+</div>
+<div class="w">
+
+<section class="s" id="criterio">
+  <p class="olho">40 · Critério</p>
+  <h3>Parceiro é quem tem o mesmo cliente e não o mesmo produto</h3>
+  <div class="col">
+  <p class="lede">Parceria não é troca de post. É acordo entre dois negócios que dividem um público e
+    não disputam a mesma venda — e que, por isso, podem se recomendar sem perder nada.</p>
+
+  <h4>Os cinco filtros, na ordem</h4>
+  <ol class="l">
+    <li><strong>Mesmo cliente.</strong> Quem entra lá entraria aqui? Escola de surfe, pousada,
+      imobiliária de temporada, estúdio de pilates, loja de roupa de praia: sim. Outra cafeteria: não.</li>
+    <li><strong>Sem concorrência direta.</strong> Nenhuma parceria com quem vende açaí, café ou café
+      da manhã na mesma praia.</li>
+    <li><strong>Padrão compatível.</strong> A moka é recomendada pelo parceiro e o parceiro é
+      recomendado pela moka. Um lugar sujo ou que trata mal derruba as duas marcas.</li>
+    <li><strong>Contrapartida clara.</strong> Toda parceria tem o que cada lado dá e o que cada lado
+      recebe, escrito. "Vamos nos ajudar" não é parceria.</li>
+    <li><strong>Prazo e revisão.</strong> Toda parceria tem data de revisão — 90 dias no primeiro
+      ciclo. Sem prazo, ela vira gratuidade permanente.</li>
+  </ol>
+
+  <div class="dupla">
+    <div class="sim"><div class="t">Aceita</div><ul>
+      <li>Pousada, hostel, gestora de temporada, anfitrião</li>
+      <li>Escola de surfe e aluguel de prancha</li>
+      <li>Imobiliária e concierge local</li>
+      <li>Produtor local: granola, geleia, mel, pão</li>
+      <li>Estúdio, academia, aula de yoga na praia</li>
+      <li>Evento cultural e feira da região</li>
+    </ul></div>
+    <div class="nao"><div class="t">Recusa</div><ul>
+      <li>Qualquer marca de bebida alcoólica em peça com criança</li>
+      <li>Casa de apostas, financeira, agiotagem disfarçada</li>
+      <li>Suplemento com promessa de emagrecimento</li>
+      <li>Marca que exige exclusividade sem pagar por ela</li>
+      <li>Parceria política ou religiosa</li>
+      <li>Quem pede "só um açaí de graça para postar"</li>
+    </ul></div>
+  </div>
+  </div>
+</section>
+
+<section class="s" id="niveis">
+  <p class="olho">41 · Níveis</p>
+  <h3>Quatro níveis, com contrapartida definida</h3>
+  <div class="col">
+  <p class="lede">Sem escada, toda conversa começa do zero e termina em improviso. Com ela, a
+    resposta a um pedido de parceria cabe em uma frase — e a pessoa sabe como subir.</p>
+  </div>
+
+  <div class="rolo">
+    <table>
+      <thead><tr><th>Nível</th><th>Quem</th><th>A moka dá</th><th>O parceiro dá</th></tr></thead>
+      <tbody>
+        <tr><td><strong>1 · Amigo da casa</strong></td><td>Vizinho de rua, produtor local, cliente que traz gente</td><td>10% permanente no balcão · cartão do parceiro</td><td>Indica quando perguntarem</td></tr>
+        <tr><td><strong>2 · Indicador</strong></td><td>Anfitrião de Airbnb, pousada pequena, escola de surfe</td><td><strong>15% sobre o que for indicado</strong> · material na casa · QR próprio</td><td>Deixa o material visível e cita na mensagem de boas-vindas</td></tr>
+        <tr><td><strong>3 · Parceiro de canal</strong></td><td>Gestora com 10+ imóveis, pousada média, imobiliária</td><td>15% + preço fechado para o café da manhã · prioridade de horário na entrega · post conjunto</td><td>Inclui a moka no fluxo padrão do hóspede e no material da casa</td></tr>
+        <tr><td><strong>4 · Casa parceira</strong></td><td>Marca da região com público próprio</td><td>Ação conjunta, produto assinado, presença nos dois espaços</td><td>Contrapartida equivalente, acordada caso a caso</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="col">
+  <h4>Como a comissão é operada</h4>
+  <ul class="l">
+    <li>Cada parceiro tem um <strong>código e um QR próprios</strong>, impressos no cartão que fica
+      na casa. O pedido entra pelo QR ou o cliente diz o código no balcão.</li>
+    <li><strong>Fechamento no dia 5</strong> do mês seguinte, com extrato de pedidos por código.
+      Pagamento por Pix em até 5 dias úteis.</li>
+    <li>A comissão incide sobre o <strong>valor do pedido sem a taxa de entrega</strong>.</li>
+    <li>Comissão não se acumula com desconto do balcão — é uma coisa ou outra.</li>
+  </ul>
+  <div class="nota">Transparência é regra, não gentileza: o parceiro recebe o extrato mesmo quando o
+    mês foi ruim. É o que faz a segunda temporada existir.</div>
+  </div>
+</section>
+
+<section class="s" id="criadores">
+  <p class="olho">42 · Criadores</p>
+  <h3>Blogueiro: o que a moka aceita, o que paga e o que exige</h3>
+  <div class="col">
+  <p class="lede">Na alta temporada a moka vai receber pedidos de permuta quase toda semana. Sem
+    critério escrito, isso vira uma sangria de produto sem retorno nenhum — e com critério, vira um
+    dos canais mais baratos de alcance local.</p>
+
+  <h4>O que a moka olha, nesta ordem</h4>
+  <ol class="l">
+    <li><strong>Onde está a audiência.</strong> Um perfil de 8 mil seguidores de Garopaba e Imbituba
+      vale mais que um de 200 mil espalhados pelo Brasil. Pede-se o print da aba de cidades.</li>
+    <li><strong>Engajamento real.</strong> Comentários de gente diferente, não emoji repetido.
+      Referência: 2% ou mais de interação sobre seguidores.</li>
+    <li><strong>Visualizações médias dos últimos 9 Reels</strong> — número que não se compra tão
+      fácil quanto seguidor.</li>
+    <li><strong>Se já frequenta.</strong> Quem gosta de verdade faz conteúdo melhor.</li>
+  </ol>
+
+  <h4>Os três formatos de acordo</h4>
+  </div>
+  <div class="g g2">
+    <div class="cx"><span class="k">Formato A</span><h6>Convite aberto</h6>
+      <p>A moka convida, oferece o consumo de duas pessoas e <strong>não pede nada</strong>. Sem
+        combinado, sem cobrança. Se gostar, posta. É o formato padrão e o de melhor conteúdo.</p></div>
+    <div class="cx"><span class="k">Formato B</span><h6>Permuta com entrega</h6>
+      <p>Consumo para duas pessoas em troca de <strong>1 Reels + 3 stories com marcação e
+        localização</strong>, publicados em até 5 dias. Combinado por escrito no direct, com data.</p></div>
+    <div class="cx"><span class="k">Formato C</span><h6>Contratação</h6>
+      <p>Pagamento em dinheiro, com briefing, aprovação prévia da peça e direito de uso do material
+        pela moka por 6 meses. Só para criador com resultado comprovado no formato B.</p></div>
+    <div class="cx" style="background:color-mix(in srgb,var(--sol) 10%,var(--papel2));border-color:color-mix(in srgb,var(--sol) 40%,transparent)">
+      <span class="k">Teto de temporada</span><h6>Quatro por mês</h6>
+      <p>No verão, no máximo <strong>quatro permutas por mês</strong>, sendo pelo menos duas de
+        perfis com público local. O quinto pedido do mês recebe um "não, e a data do próximo ciclo".</p></div>
+  </div>
+
+  <div class="col">
+  <h4>O que é obrigatório em toda permuta e contratação</h4>
+  <ul class="l">
+    <li><strong>Identificação de publicidade.</strong> Conteúdo obtido por permuta ou pagamento é
+      publicidade e precisa ser identificado como tal — <strong>#publi</strong> ou a etiqueta de
+      parceria paga do próprio Instagram, visível sem precisar clicar em "mais". Isso não é
+      preferência da moka: é a regra do código de autorregulamentação publicitária, e a
+      responsabilidade recai também sobre o anunciante.</li>
+    <li><strong>Marcação do perfil e da localização</strong> em todas as peças.</li>
+    <li><strong>Nada de roteiro ditado.</strong> A moka informa o que é verdade sobre o produto e
+      não escreve o texto do criador. Elogio encomendado se reconhece de longe.</li>
+    <li><strong>Nenhuma afirmação de saúde.</strong> Ninguém diz que o açaí da moka emagrece, cura,
+      desintoxica ou substitui refeição.</li>
+    <li><strong>Direito de uso combinado antes:</strong> se a moka for republicar no próprio perfil
+      ou usar em anúncio, isso é acordado por escrito, com prazo.</li>
+  </ul>
+  </div>
+
+  <div class="esp">
+    <div class="lab">Resposta padrão a um pedido de permuta</div>
+    <div style="font-family:var(--b);font-size:16px;line-height:1.62">
+      Oi, [nome]! Obrigado pelo contato — a gente acompanha o seu perfil.<br><br>
+      A moka faz permuta em ciclos, com quatro vagas por mês. Para entrar na lista, manda pra gente
+      o print das cidades da sua audiência e a média de views dos últimos 9 Reels.<br><br>
+      Se der certo, funciona assim: consumo para duas pessoas, 1 Reels e 3 stories com marcação e
+      localização, publicados em até 5 dias, identificados como publicidade.<br><br>
+      Se preferir, você também é bem-vindo só para conhecer, sem combinado nenhum. 🌊
+    </div>
+  </div>
+  <div class="col">
+  <div class="nota">O "não" também é padrão e é curto: <em>"Este mês as quatro vagas já estão
+    fechadas. Posso te avisar quando abrir o próximo ciclo?"</em> — sem justificativa longa e sem
+    julgar o perfil de ninguém.</div>
+  </div>
+</section>
+
+<section class="s" id="presskit">
+  <p class="olho">43 · Press kit</p>
+  <h3>Uma pasta, um link, sempre pronta</h3>
+  <div class="col">
+  <p class="lede">Quando um jornal regional, um guia de turismo ou uma gestora pedir material, a
+    resposta é um link — não uma busca no celular de alguém às onze da noite.</p>
+
+  <h4>O que tem dentro</h4>
+  <ul class="l">
+    <li><strong>Logotipo</strong> em <code>.svg</code>, <code>.png</code> com fundo transparente e
+      <code>.pdf</code> vetorial, nas cinco versões da §13.</li>
+    <li><strong>Paleta</strong> em HEX, RGB e CMYK, num cartão de uma página.</li>
+    <li><strong>Doze fotos em alta</strong> — quatro de produto, quatro do lugar, duas da equipe,
+      duas da caixa de café da manhã. Todas horizontais e verticais.</li>
+    <li><strong>Três textos prontos:</strong> de 40, 100 e 300 palavras. Quem escreve matéria usa o
+      que estiver pronto.</li>
+    <li><strong>Ficha técnica:</strong> endereço, horário, formas de pagamento, capacidade, se tem
+      opção sem lactose, se aceita cachorro, se tem espaço infantil.</li>
+    <li><strong>Contato de imprensa</strong> com nome e WhatsApp de quem responde.</li>
+    <li><strong>Uma página de regras de uso da marca</strong> — o resumo das §13 e §14.</li>
+  </ul>
+  </div>
+  <div class="esp">
+    <div class="lab">O texto de 40 palavras — decorar este</div>
+    <div style="font-family:var(--b);font-size:17px;line-height:1.6">
+      A moka é uma casa de açaí e café na Praia da Ferrugem, em Garopaba. Bate a polpa na hora,
+      torra o café do dia e entrega café da manhã na porta de quem está hospedado na praia. Abre às
+      7h no verão.
+    </div>
+  </div>
+  <div class="col">
+  <div class="nota">O press kit é atualizado <strong>duas vezes por ano</strong> — antes do verão e
+    depois dele. Foto de press kit desatualizada, com produto que não existe mais ou preço antigo,
+    circula por anos.</div>
+  </div>
+</section>
+
+<section class="s" id="airbnb">
+  <p class="olho">44 · Anfitriões</p>
+  <h3>O canal que transforma cama alugada em café da manhã vendido</h3>
+  <div class="col">
+  <p class="lede">É a segunda perna do negócio, e a que menos depende do movimento da rua. O produto
+    já está definido; esta seção trata de como a marca chega até quem controla o hóspede.</p>
+
+  <h4>Quem é o cliente aqui</h4>
+  <p>Não é o hóspede — é <strong>o anfitrião</strong>. Ele tem um problema que a moka resolve: quer
+    avaliação de cinco estrelas, quer parecer atencioso e não quer trabalho nem risco sanitário. A
+    moka vende para ele um serviço que ele oferece como se fosse dele, e paga 15% por isso.</p>
+
+  <h4>O kit do parceiro — o que fica dentro da casa</h4>
+  <ul class="l">
+    <li><strong>Um cartão de mesa</strong> (10 × 15 cm, papel kraft, dois lados), no balcão da
+      cozinha ou ao lado da cafeteira. QR do parceiro na frente, prazo e planos no verso.</li>
+    <li><strong>Um ímã de geladeira</strong> com o QR — o único ímã que a moka faz, porque este tem
+      função.</li>
+    <li><strong>Uma página no manual da casa</strong>, pronta em texto e imagem, para o anfitrião
+      colar no Airbnb, no Guesty ou no PDF de boas-vindas.</li>
+    <li><strong>Duas mensagens prontas</strong> para o anfitrião mandar: uma na confirmação da
+      reserva, outra na véspera do check-in.</li>
+  </ul>
+  </div>
+  <div class="esp">
+    <div class="lab">Mensagem que o anfitrião envia na véspera — pronta para copiar</div>
+    <div style="font-family:var(--b);font-size:16px;line-height:1.62">
+      Boa noite! Tudo pronto para receber vocês amanhã. 🌊<br><br>
+      Uma dica: aqui na Ferrugem tem uma casa que entrega café da manhã na porta, quentinho, até as
+      9h30 — pão, ovo, fruta, queijo colonial e café de verdade. É a moka, fica a poucos minutos
+      daqui. Se quiserem, é só pedir por este link até as 20h do dia anterior: [link do parceiro]
+    </div>
+  </div>
+  <div class="col">
+  <p><strong>Por que a mensagem do anfitrião é o canal, e não um botão dentro do Airbnb:</strong> a
+    plataforma não permite que um terceiro acrescente um item ao checkout da reserva. O que existe
+    é a comunicação do anfitrião com o hóspede — e é ali, nas mensagens automáticas que ele já
+    envia, que a moka entra.</p>
+
+  <h4>Como abordar um anfitrião — o roteiro de 90 segundos</h4>
+  <ol class="l">
+    <li><strong>Quem sou:</strong> "Sou da moka, aqui da Ferrugem."</li>
+    <li><strong>O problema dele:</strong> "Hóspede que chega no sábado à noite não tem onde comprar
+      café da manhã no domingo cedo."</li>
+    <li><strong>A solução:</strong> "A gente entrega na porta até 9h30, quentinho, a partir de R$ 69
+      o plano para duas pessoas."</li>
+    <li><strong>O que ele ganha:</strong> "Você não faz nada além de mandar uma mensagem que a gente
+      já escreveu, e recebe 15% de cada pedido."</li>
+    <li><strong>O risco zero:</strong> "É tudo produzido em cozinha licenciada e entregue por nós.
+      Você não manipula alimento nenhum."</li>
+    <li><strong>O próximo passo:</strong> "Deixo o kit com você e te mando o QR ainda hoje."</li>
+  </ol>
+  <div class="nota"><strong>Uma advertência que protege o parceiro</strong> e deve ser dita na
+    abordagem: quem aluga por temporada e passa a <em>oferecer</em> café da manhã como serviço
+    próprio pode ver a atividade reclassificada de locação para hospedagem, com efeito tributário.
+    Por isso o café da manhã é sempre <strong>uma indicação da moka</strong>, comprada pelo hóspede
+    diretamente da moka — nunca um item do pacote do anfitrião. A comissão é de indicação.</div>
+
+  <h4>A meta de cobertura</h4>
+  <p>O canal só existe em escala. A operação de captação é simples e cansativa: <strong>10 imóveis
+    por semana</strong>, presencialmente ou por direct, com kit entregue. Cem parceiros ativos antes
+    de dezembro é a linha de partida; o modelo do estudo trabalha com duzentos.</p>
+
+  <h4>Dados do hóspede</h4>
+  <p>Nome, endereço da entrega e telefone existem <strong>para entregar o pedido</strong>. Não se
+    monta lista de marketing com eles sem consentimento explícito, não se repassa a terceiros e se
+    apaga o que não for mais necessário. Vale para a moka e vale para o que o parceiro manda.</p>
+  </div>
+</section>
+
+<section class="s" id="eventos">
+  <p class="olho">45 · Ativações</p>
+  <h3>Sair da loja, três vezes por ano</h3>
+  <div class="col">
+  <p class="lede">Ativação não é estande com banner. É a moka aparecer onde o seu cliente já está,
+    fazendo o que ela faz de melhor — e voltar com conteúdo e com contato de parceiro.</p>
+  </div>
+  <div class="g g2">
+    <div class="cx"><span class="k">Dezembro</span><h6>Abertura de temporada</h6>
+      <p>Manhã de abertura com café liberado das 7h às 9h e o carimbo na sacola. Convite direto para
+        os anfitriões cadastrados — é a hora de transformar cartão entregue em parceiro ativo.</p></div>
+    <div class="cx"><span class="k">Fevereiro</span><h6>Campeonato ou evento de surfe</h6>
+      <p>Ponto de café da manhã na beira, com a garrafa térmica e a caixa. Não vende volume; vende
+        imagem e rende o melhor material de foto do ano.</p></div>
+    <div class="cx"><span class="k">Junho</span><h6>Baixa temporada — a casa cheia</h6>
+      <p>Ação com público local: café com o produtor da granola, aula de latte art, feira de
+        produtor no deck. Custo baixo, e é o que segura a marca viva nos meses de R$ 15 mil.</p></div>
+    <div class="cx"><span class="k">Sempre</span><h6>O que toda ativação leva</h6>
+      <p>Cartaz A2, cavalete, avental, garrafa térmica, cartões do parceiro, QR de avaliação do
+        Google e uma pessoa gravando. <strong>Sem material de captação, é passeio.</strong></p></div>
+  </div>
+  <div class="col">
+  <div class="nota">Toda ativação tem um número declarado <em>antes</em>: contatos de anfitrião
+    coletados, avaliações no Google, seguidores locais ou pedidos. Sem meta escrita, toda ativação
+    "foi ótima" e nenhuma se repete melhor no ano seguinte.</div>
+  </div>
+</section>
+</div>
+<div class="parte">
+  <div class="w">
+    <div class="num">VII</div>
+    <div class="tx"><h2>A marca no dia a dia</h2>
+      <p>Tudo o que veio antes é papel. Marca mesmo é o que acontece às 16h de um sábado de janeiro,
+        com fila na porta e uma pessoa nova no balcão.</p></div>
+  </div>
+</div>
+<div class="w">
+
+<section class="s" id="atendimento">
+  <p class="olho">46 · Atendimento</p>
+  <h3>A marca fala pela boca de quem está no balcão</h3>
+  <div class="col">
+  <p class="lede">Nenhum plotter, nenhum Reels e nenhuma embalagem corrige um "pois não" seco. O
+    atendimento é a aplicação mais cara e mais frágil da identidade — e a única que não tem arquivo
+    mestre.</p>
+
+  <h4>Os seis momentos</h4>
+  <ol class="l">
+    <li><strong>Os 5 segundos.</strong> Quem entra é olhado e cumprimentado em até cinco segundos,
+      mesmo com fila. "Oi! Já te atendo" resolve — o que mata é ser ignorado.</li>
+    <li><strong>A dúvida.</strong> Quem hesita recebe <em>uma</em> sugestão, não três. "Se for a
+      primeira vez, pega a P com banana e granola."</li>
+    <li><strong>O sim ampliado.</strong> Uma pergunta só, sem empurrar: "quer com leite condensado
+      ou sem?". Nunca "não vai querer um combo?".</li>
+    <li><strong>A espera.</strong> Se passar de 4 minutos, alguém avisa antes de o cliente perguntar.
+      Espera avisada é metade da espera sentida.</li>
+    <li><strong>A entrega.</strong> Pelo nome, com a colher já na mão, e uma frase da casa.</li>
+    <li><strong>A saída.</strong> "Volta amanhã que a gente abre às sete." A despedida é o que mais
+      se lembra e o que menos se treina.</li>
+  </ol>
+
+  <h4>O jeito de falar no balcão</h4>
+  </div>
+  <div class="dupla">
+    <div class="sim"><div class="t">Diz</div><ul>
+      <li>"Oi, tudo bem?" — nunca "pois não"</li>
+      <li>"Acabou o croissant hoje, mas amanhã tem a partir das 8h"</li>
+      <li>"Posso te dar uma sugestão?"</li>
+      <li>"Foi mal, isso é nosso" — quando erra</li>
+      <li>"Bom dia" até as 11h, e o nome da pessoa quando souber</li>
+    </ul></div>
+    <div class="nao"><div class="t">Não diz</div><ul>
+      <li>"Não é comigo", "não sou eu quem faz"</li>
+      <li>"Tá difícil hoje", reclamação de movimento ou de calor</li>
+      <li>"Querida", "amor", "chefe", "parceiro"</li>
+      <li>"É o sistema"</li>
+      <li>Comentário sobre outro cliente, mesmo baixinho</li>
+    </ul></div>
+  </div>
+  <div class="col">
+  <div class="nota">Regra do erro: <strong>quem recebe a reclamação resolve</strong>, sem chamar
+    ninguém e sem pedir autorização, até o valor de um pedido. Refaz, devolve ou oferece outra coisa
+    — na hora. O custo de um açaí é menor que o de uma avaliação de uma estrela.</div>
+  </div>
+</section>
+
+<section class="s" id="jornada">
+  <p class="olho">47 · Jornada</p>
+  <h3>Onde a marca encosta, do primeiro clique ao terceiro verão</h3>
+  <div class="col">
+  <p class="lede">Cada linha abaixo é um ponto onde alguém decide continuar ou desistir. O manual
+    inteiro existe para que esses pontos sejam iguais em janeiro e em julho.</p>
+  </div>
+  <div class="rolo">
+    <table>
+      <thead><tr><th>Etapa</th><th>Onde acontece</th><th>O que a marca faz</th><th>Seção</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Descobre</strong></td><td>Google Maps, Instagram, a fachada, o hóspede vendo o ímã na geladeira</td><td>Aparecer na busca, ter foto recente, placa legível a 40 m</td><td class="mono">26 · 38</td></tr>
+        <tr><td><strong>Considera</strong></td><td>Perfil, avaliações, cardápio no link</td><td>Bio que responde onde/quando, 150 avaliações acima de 4,6</td><td class="mono">31 · 38</td></tr>
+        <tr><td><strong>Chega</strong></td><td>Calçada, deck, porta</td><td>Cavalete com o item do dia, luz acesa, pote de água para cachorro</td><td class="mono">26 · 27</td></tr>
+        <tr><td><strong>Escolhe</strong></td><td>Menu board e cardápio de mesa</td><td>Máx. 12 linhas, âncora por seção, alergênico com ícone e palavra</td><td class="mono">28</td></tr>
+        <tr><td><strong>Pede</strong></td><td>Balcão</td><td>Os seis momentos; uma sugestão, não três</td><td class="mono">46</td></tr>
+        <tr><td><strong>Recebe</strong></td><td>Tigela, copo, caixa</td><td>Embalagem neutra + adesivo; a caixa arrumada por dentro</td><td class="mono">25</td></tr>
+        <tr><td><strong>Consome</strong></td><td>Deck, praia, varanda do Airbnb</td><td>Não derreter em 4 minutos; chegar quente às 9h30</td><td class="mono">25 · 44</td></tr>
+        <tr><td><strong>Conta</strong></td><td>Story do cliente, avaliação, boca a boca</td><td>Republicar em até 2 h; QR de avaliação na cinta</td><td class="mono">35 · 38</td></tr>
+        <tr><td><strong>Volta</strong></td><td>No dia seguinte, ou no verão seguinte</td><td>Cartão fidelidade, nome lembrado, o mesmo café de sempre</td><td class="mono">23 · 46</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col">
+  <div class="nota">A moka tem <strong>duas jornadas paralelas</strong>: a do balcão e a do café da
+    manhã. Na segunda, o cliente nunca entra na loja — descobre pelo anfitrião, decide pelo
+    WhatsApp, recebe na porta e conta pela varanda. Todos os pontos de marca dessa jornada estão na
+    caixa, e é por isso que a caixa recebe o cuidado da §25.</div>
+  </div>
+</section>
+
+<section class="s" id="reputacao">
+  <p class="olho">48 · Reputação</p>
+  <h3>Como se responde quando dá errado</h3>
+  <div class="col">
+  <p class="lede">Vai dar. Um pedido errado, um cabelo, uma entrega atrasada, uma foto no grupo do
+    condomínio. O dano quase nunca vem do erro — vem da resposta.</p>
+
+  <h4>Os três níveis</h4>
+  <ol class="l">
+    <li><strong>Nível 1 — insatisfação individual.</strong> Avaliação de 1 a 3 estrelas, reclamação
+      no direct, cliente contrariado no balcão. Responde quem está no turno, em até 24 h.</li>
+    <li><strong>Nível 2 — reclamação pública com repercussão.</strong> Post de alguém com audiência,
+      comentário que viraliza no grupo local. Responde o dono do perfil, com o proprietário ciente,
+      em até 4 h e uma vez só.</li>
+    <li><strong>Nível 3 — segurança alimentar ou acidente.</strong> Suspeita de intoxicação, corpo
+      estranho, queimadura, acidente com criança. <strong>Para tudo:</strong> retira o lote de
+      circulação, registra por escrito com data e hora, guarda a amostra, avisa o proprietário
+      imediatamente e não publica nada até saber o que aconteceu.</li>
+  </ol>
+
+  <h4>A estrutura de qualquer resposta pública</h4>
+  <ol class="l">
+    <li><strong>Reconhece</strong> o que a pessoa sentiu, com a palavra dela.</li>
+    <li><strong>Assume o que for verdade</strong> — e só isso. Não inventa culpa nem inventa defesa.</li>
+    <li><strong>Diz o que já mudou</strong> (não "vamos ver com a equipe").</li>
+    <li><strong>Tira da vitrine:</strong> oferece o WhatsApp para resolver o caso concreto.</li>
+    <li><strong>Assina com nome de gente.</strong></li>
+  </ol>
+  </div>
+  <div class="esp">
+    <div class="lab">Exemplo — resposta a uma avaliação de 2 estrelas por demora</div>
+    <div style="font-family:var(--b);font-size:16px;line-height:1.62">
+      Oi, Marina. Quarenta minutos é tempo demais mesmo — desculpa. No sábado a fila passou do que a
+      gente consegue atender com duas pessoas no balcão, e a partir deste fim de semana escalamos
+      mais uma para o pico da tarde.<br><br>
+      Se você me chamar no WhatsApp do perfil, quero resolver o seu caso direto. — Ana, da moka
+    </div>
+  </div>
+  <div class="col">
+  <div class="dupla">
+    <div class="sim"><div class="t">Sempre</div><ul>
+      <li>Responder todas, inclusive as boas</li>
+      <li>Uma resposta pública por caso — o resto é no privado</li>
+      <li>Guardar registro do que aconteceu, com data</li>
+      <li>Avisar a equipe do que mudou, para não repetir</li>
+    </ul></div>
+    <div class="nao"><div class="t">Nunca</div><ul>
+      <li>Discutir, ironizar ou duvidar publicamente do cliente</li>
+      <li>Apagar comentário negativo que não seja ofensa ou spam</li>
+      <li>Pedir para o cliente remover a avaliação em troca de algo</li>
+      <li>Responder de madrugada, com raiva, do celular pessoal</li>
+      <li>Expor nome de funcionário na resposta</li>
+    </ul></div>
+  </div>
+  <div class="nota">Comentário com ofensa, racismo, ameaça ou spam <strong>é ocultado e denunciado</strong>,
+    sem resposta. Isso não é censura de crítica — crítica fica, e é respondida.</div>
+  </div>
+</section>
+
+<section class="s" id="kpi">
+  <p class="olho">49 · Medição</p>
+  <h3>Oito números, uma vez por mês</h3>
+  <div class="col">
+  <p class="lede">Marca sem número vira gosto pessoal. Estes oito cabem numa folha e são medidos no
+    dia 5, junto com o fechamento das comissões.</p>
+  </div>
+  <div class="rolo">
+    <table>
+      <thead><tr><th>Indicador</th><th>Como medir</th><th class="mono">Meta ano 1</th><th>Diz o quê</th></tr></thead>
+      <tbody>
+        <tr><td>Ticket médio</td><td>Faturamento ÷ pedidos</td><td class="mono">R$ 32</td><td>Se o cardápio está funcionando</td></tr>
+        <tr><td>Avaliações no Google</td><td>Total e média</td><td class="mono">150 · 4,6+</td><td>O ativo digital que mais vende</td></tr>
+        <tr><td>Fotos novas no Google</td><td>Contagem no mês</td><td class="mono">12</td><td>Se o perfil segue vivo</td></tr>
+        <tr><td>Parceiros ativos</td><td>Códigos com ao menos 1 pedido</td><td class="mono">100 → 200</td><td>O tamanho real do canal</td></tr>
+        <tr><td>Pedidos de café da manhã</td><td>Total no mês</td><td class="mono">verão: 100–200</td><td>A segunda perna do negócio</td></tr>
+        <tr><td>Alcance de não seguidores</td><td>Instagram, por mês</td><td class="mono">60% do alcance</td><td>Se o conteúdo sai da bolha</td></tr>
+        <tr><td>Republicações de cliente</td><td>Stories em que a moka foi marcada</td><td class="mono">40 / mês no verão</td><td>Prova social espontânea</td></tr>
+        <tr><td>Retorno em 30 dias</td><td>Carimbos no cartão fidelidade</td><td class="mono">25% dos locais</td><td>Se a marca virou hábito</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col">
+  <div class="nota">Número que não vale a pena perseguir: <strong>seguidores</strong>. Um perfil com
+    4 mil seguidores da Ferrugem e de Garopaba vende mais que um com 40 mil espalhados. A métrica
+    que importa é alcance local e retorno, não tamanho de audiência.</div>
+  </div>
+</section>
+
+<section class="s" id="abertura">
+  <p class="olho">50 · Abertura</p>
+  <h3>O que precisa estar pronto antes de destravar a porta</h3>
+  <div class="col">
+  <p class="lede">Checklist de marca, não de obra. Nenhum item aqui custa muito; todos custam caro
+    se ficarem para depois da abertura.</p>
+
+  <h5>60 dias antes</h5>
+  <ul class="l">
+    <li>Arquivo mestre do logotipo fechado, nas cinco versões, em <code>.ai</code> e <code>.svg</code></li>
+    <li>Paleta convertida para CMYK e para vinil, com amostra física aprovada</li>
+    <li>@ registrado nas quatro redes, mesmo nas que não vão ser usadas</li>
+    <li>Perfil do Google criado e verificado — a verificação demora e ninguém lembra disso</li>
+    <li>Fornecedor de embalagem definido, com prova impressa do adesivo</li>
+  </ul>
+
+  <h5>30 dias antes</h5>
+  <ul class="l">
+    <li>As 24 fotos do banco mínimo, feitas em duas manhãs (§20)</li>
+    <li>Cardápio e menu board revisados por alguém de fora — preço, alergênico e erro de português</li>
+    <li>Uniformes prontos e provados, com o enxoval da temporada</li>
+    <li>Press kit no ar, num link fixo</li>
+    <li>Kit de parceiro impresso: 150 cartões, 150 ímãs, 100 cartões de mesa</li>
+    <li>WhatsApp Business configurado, com saudação, catálogo e respostas rápidas</li>
+  </ul>
+
+  <h5>15 dias antes</h5>
+  <ul class="l">
+    <li>Perfil com 9 posts publicados — grid vazio no dia da abertura desperdiça o único pico de
+      curiosidade que a marca vai ter</li>
+    <li>Captação de anfitriões começada: 40 imóveis visitados, kit entregue</li>
+    <li>Equipe treinada nos seis momentos da §46 e no que se diz e não se diz</li>
+    <li>Playlist montada e execução licenciada</li>
+    <li>QR de avaliação testado no celular de três pessoas diferentes</li>
+  </ul>
+
+  <h5>No dia</h5>
+  <ul class="l">
+    <li>Fachada acesa, cavalete na calçada, pote de água na porta</li>
+    <li>Alguém escalado só para gravar — a abertura não se repete</li>
+    <li>Horário publicado no Google, no perfil e na porta, os três iguais</li>
+    <li>Etiquetas de lote e validade impressas e em uso desde o primeiro pedido</li>
+  </ul>
+  </div>
+</section>
+
+<section class="s" id="governanca">
+  <p class="olho">51 · Governança</p>
+  <h3>Quem aprova o quê, e o que se faz quando o manual não responde</h3>
+  <div class="col">
+  <p class="lede">Manual sem dono envelhece em três meses. Estas quatro linhas são o que o mantém
+    vivo.</p>
+  </div>
+  <div class="rolo">
+    <table>
+      <thead><tr><th>Decisão</th><th>Quem decide</th><th>Prazo</th></tr></thead>
+      <tbody>
+        <tr><td>Post, story, Reels, resposta de comentário</td><td>Quem cuida do perfil</td><td class="mono">na hora</td></tr>
+        <tr><td>Resolver reclamação até o valor de um pedido</td><td>Quem está no turno</td><td class="mono">na hora</td></tr>
+        <tr><td>Permuta com criador, dentro do teto de 4/mês</td><td>Quem cuida do perfil</td><td class="mono">48 h</td></tr>
+        <tr><td>Novo parceiro nível 1 e 2</td><td>Quem cuida do canal de parceiros</td><td class="mono">48 h</td></tr>
+        <tr><td>Preço, cardápio, nova peça impressa, uniforme</td><td>Proprietário</td><td class="mono">semanal</td></tr>
+        <tr><td>Parceiro nível 3 e 4, contratação de criador</td><td>Proprietário</td><td class="mono">semanal</td></tr>
+        <tr><td>Qualquer mudança no logotipo, na paleta ou na tipografia</td><td>Proprietário — e vira nova versão deste manual</td><td class="mono">—</td></tr>
+        <tr><td>Crise nível 3 (§48)</td><td>Proprietário, imediatamente</td><td class="mono">na hora</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col">
+  <h4>Quando o manual não responde</h4>
+  <p>Vai acontecer — uma peça nova, um pedido esquisito, um canal que não existia. A regra é uma só:</p>
+  <div class="script">faz o que a moka faria, escreve o que você fez, e traz para a próxima revisão.</div>
+  <p>Decisão tomada por falta de regra não é erro. Erro é tomar duas vezes a mesma decisão sem
+    transformá-la em regra.</p>
+
+  <h4>Revisão</h4>
+  <ul class="l">
+    <li><strong>Duas por ano:</strong> em outubro, antes da temporada, e em abril, depois dela.</li>
+    <li>Cada revisão sobe o número da versão e registra <strong>o que mudou e por quê</strong> — um
+      manual sem histórico não se sabe se está sendo seguido.</li>
+    <li>As seções §26 e §27 são as primeiras a fechar, assim que o ponto for fotografado.</li>
+    <li>Toda pessoa nova recebe o link no primeiro dia, e o §46 é lido em voz alta no treinamento.</li>
+  </ul>
+
+  <div class="faixa">
+    <h4>O teste final de qualquer peça da moka</h4>
+    <p>Antes de mandar para a gráfica, de publicar ou de pendurar na parede, três perguntas:</p>
+    <ul class="l">
+      <li><strong>Dá para reconhecer que é da moka</strong> sem ler o nome?</li>
+      <li><strong>Uma pessoa de longe, de óculos errados, sob sol,</strong> consegue ler o que importa?</li>
+      <li><strong>Isso é verdade?</strong> Sobre o produto, sobre o preço, sobre o prazo.</li>
+    </ul>
+    <p class="script" style="margin-bottom:0">três sins, ou volta para a prancheta.</p>
+  </div>
+  </div>
+</section>
+</div>
+
+<footer>
+  <div class="w">
+    <div style="display:flex;flex-wrap:wrap;gap:26px 60px;justify-content:space-between">
+      <div style="max-width:34ch">
+        <div class="mkf">moka<i>.</i></div>
+        <p style="margin:10px 0 0;line-height:1.55">Manual de marca · 51 seções · versão 1.0<br>
+          Praia da Ferrugem, 2956 — Garopaba/SC</p>
+      </div>
+      <div style="max-width:40ch">
+        <p style="margin:0;line-height:1.55"><strong style="color:var(--creme)">Duas seções em
+          aberto:</strong> §26 Fachada e §27 Ambientação fecham quando as fotos e a planta do ponto
+          chegarem. Todo o resto está fechado e pode ir para produção.</p>
+      </div>
+    </div>
+    <div class="lin">
+      <span>Revisão: outubro (antes da temporada) e abril (depois dela)</span>
+      <span style="font-family:var(--m);font-size:12px">v1.0 · 2026</span>
+    </div>
+  </div>
+</footer>
+</main>
+</div>
+<script>
+(function(){
+  var links = {}, rail = document.querySelector('.rail nav');
+  if(!rail) return;
+  Array.prototype.forEach.call(rail.querySelectorAll('a[href^="#"]'), function(a){
+    links[a.getAttribute('href').slice(1)] = a;
+  });
+  var atual = null;
+  function marca(id){
+    if(id === atual) return;
+    if(atual && links[atual]) links[atual].removeAttribute('data-ativo');
+    atual = id;
+    if(links[id]){
+      links[id].setAttribute('data-ativo','');
+      if(window.innerWidth >= 1080){
+        var r = links[id].getBoundingClientRect();
+        if(r.top < 60 || r.bottom > window.innerHeight - 60){
+          links[id].scrollIntoView({block:'center', behavior:'smooth'});
+        }
+      }
+    }
+  }
+  if(!('IntersectionObserver' in window)) return;
+  var obs = new IntersectionObserver(function(entradas){
+    var visiveis = entradas.filter(function(e){ return e.isIntersecting; });
+    if(!visiveis.length) return;
+    visiveis.sort(function(a,b){ return a.boundingClientRect.top - b.boundingClientRect.top; });
+    marca(visiveis[0].target.id);
+  }, {rootMargin:'-15% 0px -70% 0px', threshold:0});
+  Array.prototype.forEach.call(document.querySelectorAll('section.s[id]'), function(s){ obs.observe(s); });
+})();
+</script>
