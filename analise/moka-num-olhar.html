@@ -1,0 +1,469 @@
+<title>moka num olhar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,800&family=JetBrains+Mono:wght@400&family=Caveat:wght@600&display=swap">
+<style>
+:root{
+  --tinta:#1A090F; --tinta2:#2A1119; --acai:#4D2337; --sol:#FCA203; --solk:#FEBB3C;
+  --areia:#D4AE8E; --kraft:#C89469; --creme:#F4E7D5; --grafite:#272423;
+  --luz:rgba(244,231,213,.72); --luz2:rgba(244,231,213,.46);
+  --borda:rgba(244,231,213,.14); --borda2:rgba(244,231,213,.09);
+  --verde:#4ED596; --vermelho:#FF8168;
+  --d:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
+  --m:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --s:"Caveat","Segoe Script","Bradley Hand","Brush Script MT",cursive;
+  --pad:clamp(18px,5vw,64px);
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--tinta); color:var(--creme); font-family:var(--d);
+  font-size:17px; line-height:1.4; -webkit-font-smoothing:antialiased}
+.w{max-width:1180px; margin:0 auto; padding:0 var(--pad)}
+section{padding:clamp(44px,8vw,96px) 0; border-top:1px solid var(--borda2)}
+section:first-of-type{border-top:none}
+
+/* rótulo de tela */
+.tag{font-family:var(--m); font-size:12px; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--sol); display:flex; align-items:center; gap:12px; margin:0 0 20px}
+.tag::after{content:""; height:1px; flex:1; background:var(--borda); max-width:90px}
+h2{font-family:var(--d); font-weight:800; font-size:clamp(30px,6.4vw,64px); letter-spacing:-.04em;
+  line-height:1.02; margin:0 0 8px; text-wrap:balance; max-width:16ch}
+.sub{color:var(--luz2); font-size:clamp(15px,2vw,18px); margin:0 0 26px; max-width:44ch}
+.sc{font-family:var(--s); font-size:clamp(28px,5vw,46px); color:var(--sol); line-height:1; margin:0}
+
+/* capa */
+.capa{padding:clamp(56px,11vw,130px) 0 clamp(40px,7vw,80px); position:relative; overflow:hidden}
+.capa::after{content:""; position:absolute; inset:auto 0 0 0; height:120px; opacity:.42;
+  background:radial-gradient(120% 100% at 14% 100%,var(--acai) 0 44%,transparent 45%),
+             radial-gradient(90% 100% at 54% 100%,var(--sol) 0 38%,transparent 39%),
+             radial-gradient(110% 100% at 90% 100%,var(--kraft) 0 40%,transparent 41%)}
+.capa .w{position:relative;z-index:1}
+.mk{font-family:var(--d); font-weight:800; font-size:clamp(74px,17vw,190px); letter-spacing:-.065em;
+  line-height:.82; margin:0}
+.mk i{font-style:normal; color:var(--sol)}
+.capa .lin{font-family:var(--m); font-size:clamp(10px,1.7vw,13px); letter-spacing:.32em;
+  text-transform:uppercase; color:var(--areia); margin-top:18px}
+.capa h1{font-weight:600; font-size:clamp(21px,3.6vw,34px); letter-spacing:-.02em; line-height:1.15;
+  margin:clamp(30px,5vw,54px) 0 0; max-width:20ch; text-wrap:balance}
+.capa .ps{margin-top:22px; color:var(--luz2); font-size:16px; max-width:40ch}
+
+/* grades */
+.g{display:grid; gap:clamp(10px,1.4vw,16px)}
+.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr))}
+.g6{grid-template-columns:repeat(auto-fit,minmax(min(100%,110px),1fr))}
+
+/* cor */
+.chip{border-radius:14px; padding:16px; min-height:clamp(120px,17vw,168px); display:flex;
+  flex-direction:column; justify-content:flex-end; gap:3px}
+.chip b{font-family:var(--d); font-weight:600; font-size:15px}
+.chip span{font-family:var(--m); font-size:11.5px; opacity:.72}
+
+/* card genérico */
+.c{background:var(--tinta2); border:1px solid var(--borda2); border-radius:14px;
+  padding:clamp(15px,2vw,22px)}
+.c .n{font-family:var(--m); font-size:11px; letter-spacing:.14em; color:var(--sol); display:block;
+  margin-bottom:9px}
+.c h3{font-family:var(--d); font-weight:600; font-size:clamp(16px,2vw,19px); margin:0 0 6px;
+  letter-spacing:-.015em; line-height:1.16}
+.c p{margin:0; color:var(--luz2); font-size:15px; line-height:1.4}
+
+/* aviso */
+.av{border-radius:14px; padding:clamp(16px,2.2vw,24px); display:flex; gap:16px; align-items:flex-start;
+  background:rgba(255,129,104,.11); border:1px solid rgba(255,129,104,.36)}
+.av .ic{font-family:var(--d); font-weight:800; font-size:26px; color:var(--vermelho); line-height:1}
+.av b{display:block; font-size:17px; margin-bottom:4px}
+.av p{margin:0; color:var(--luz); font-size:15px; line-height:1.45}
+
+/* sim / não */
+.sn{display:grid; gap:12px; grid-template-columns:1fr}
+@media(min-width:680px){.sn{grid-template-columns:1fr 1fr}}
+.bx{border-radius:14px; padding:18px 20px; border:1px solid}
+.bx.s{background:rgba(78,213,150,.09); border-color:rgba(78,213,150,.3)}
+.bx.n{background:rgba(255,129,104,.09); border-color:rgba(255,129,104,.3)}
+.bx .t{font-family:var(--m); font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+  margin-bottom:12px}
+.bx.s .t{color:var(--verde)} .bx.n .t{color:var(--vermelho)}
+.bx ul{margin:0; padding:0; list-style:none}
+.bx li{position:relative; padding-left:22px; margin-bottom:9px; font-size:16px; line-height:1.32}
+.bx li:last-child{margin-bottom:0}
+.bx.s li::before{content:"✓"; position:absolute; left:0; color:var(--verde)}
+.bx.n li::before{content:"✕"; position:absolute; left:0; color:var(--vermelho)}
+
+/* barra de proporção */
+.pr{display:flex; height:clamp(52px,7vw,74px); border-radius:12px; overflow:hidden; margin:0 0 12px}
+.pr span{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+  font-family:var(--m); font-size:clamp(9px,1.2vw,11px); letter-spacing:.06em; text-align:center;
+  padding:4px 2px}
+.pr span b{font-family:var(--d); font-weight:800; font-size:clamp(13px,1.8vw,17px); letter-spacing:0}
+
+/* tira numerada */
+.tira{display:grid; gap:10px; grid-template-columns:repeat(auto-fit,minmax(min(100%,155px),1fr))}
+.pa{background:var(--tinta2); border:1px solid var(--borda2); border-radius:12px; padding:14px 15px}
+.pa .h{font-family:var(--d); font-weight:800; font-size:26px; color:var(--sol); line-height:1;
+  margin-bottom:7px}
+.pa b{display:block; font-weight:600; font-size:15.5px; margin-bottom:3px}
+.pa span{color:var(--luz2); font-size:14px; line-height:1.34}
+
+/* grid do instagram */
+.ig{display:grid; grid-template-columns:repeat(3,1fr); gap:5px; max-width:420px;
+  border-radius:12px; overflow:hidden}
+.ig div{aspect-ratio:1; display:flex; align-items:flex-end; padding:9px; font-family:var(--m);
+  font-size:10px; letter-spacing:.05em; line-height:1.25}
+
+/* espécime */
+.esp{background:var(--tinta2); border:1px solid var(--borda2); border-radius:14px;
+  padding:clamp(16px,2.4vw,26px); display:flex; align-items:baseline; gap:16px; flex-wrap:wrap}
+.esp .lb{font-family:var(--m); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--luz2); flex:none; width:104px}
+.esp .am{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+
+/* escada */
+.esc{display:grid; gap:10px}
+.deg{display:flex; gap:14px; align-items:center; border-radius:12px; padding:15px 18px;
+  border:1px solid var(--borda2); background:var(--tinta2)}
+.deg .lv{font-family:var(--d); font-weight:800; font-size:24px; color:var(--sol); flex:none; width:34px;
+  line-height:1}
+.deg .tx b{display:block; font-weight:600; font-size:16.5px; margin-bottom:2px}
+.deg .tx span{color:var(--luz2); font-size:14.5px; line-height:1.35}
+.deg .vl{margin-left:auto; font-family:var(--m); font-size:13px; color:var(--sol); flex:none;
+  padding-left:10px}
+@media(max-width:600px){.deg{flex-wrap:wrap} .deg .vl{margin-left:48px; width:100%}}
+
+/* logo box */
+.lb2{border-radius:12px; overflow:hidden; border:1px solid var(--borda2); background:var(--tinta2)}
+.lb2 .pv{aspect-ratio:16/9; display:flex; align-items:center; justify-content:center; padding:14px}
+.lb2 .cp{padding:10px 13px 12px; font-family:var(--m); font-size:11px; line-height:1.35;
+  border-top:1px solid var(--borda2)}
+.lb2 .cp.ok{color:var(--verde)} .lb2 .cp.no{color:var(--vermelho)}
+.lgt{font-family:var(--d); font-weight:800; letter-spacing:-.055em; line-height:1; font-size:34px}
+.lgt i{font-style:normal}
+
+/* checklist */
+.ck{display:grid; gap:8px}
+.ck div{display:flex; gap:13px; align-items:flex-start; padding:13px 16px; border-radius:11px;
+  background:var(--tinta2); border:1px solid var(--borda2); font-size:16px; line-height:1.35}
+.ck div i{font-style:normal; font-family:var(--m); font-size:11px; color:var(--sol); flex:none;
+  padding-top:4px; width:38px}
+
+/* fecho */
+.fim{background:var(--acai); border-radius:18px; padding:clamp(24px,4vw,44px); margin-top:26px}
+.fim p{color:rgba(244,231,213,.8); margin:0 0 18px; font-size:17px; max-width:46ch}
+.bt{display:inline-flex; align-items:center; gap:10px; background:var(--sol); color:var(--tinta);
+  text-decoration:none; font-weight:600; font-size:16.5px; padding:14px 22px; border-radius:11px}
+.bt:hover{background:var(--solk)}
+a:focus-visible,.bt:focus-visible{outline:2px solid var(--sol); outline-offset:3px; border-radius:8px}
+footer{border-top:1px solid var(--borda2); padding:32px 0 46px; color:var(--luz2);
+  font-family:var(--m); font-size:12px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<header class="capa">
+  <div class="w">
+    <div class="mk">moka<i>.</i></div>
+    <div class="lin">Açaí · Bowls · Café</div>
+    <h1>A marca inteira em treze telas.</h1>
+    <p class="ps">Sem parágrafo. Cada tela é uma decisão que já está tomada.</p>
+  </div>
+</header>
+
+<section>
+  <div class="w">
+    <p class="tag">01 · A marca</p>
+    <h2>Açaí batido na hora e café de verdade, na beira da Ferrugem.</h2>
+    <p class="sc">é isso. o resto é execução.</p>
+  </div>
+</section>
+
+<section>
+  <div class="w">
+    <p class="tag">02 · As cores</p>
+    <h2>Seis cores</h2>
+    <p class="sub">Se não está aqui, não é da moka.</p>
+    <div class="g g6" style="margin-bottom:14px">
+      <div class="chip" style="background:#1A090F;border:1px solid var(--borda);color:#F4E7D5"><b>Tinta</b><span>#220C17</span></div>
+      <div class="chip" style="background:#4D2337;color:#F4E7D5"><b>Açaí</b><span>#4D2337</span></div>
+      <div class="chip" style="background:#FCA203;color:#220C17"><b>Sol</b><span>#FCA203</span></div>
+      <div class="chip" style="background:#D4AE8E;color:#220C17"><b>Areia</b><span>#D4AE8E</span></div>
+      <div class="chip" style="background:#F4E7D5;color:#220C17"><b>Creme</b><span>#F4E7D5</span></div>
+      <div class="chip" style="background:#272423;color:#F4E7D5"><b>Grafite</b><span>#272423</span></div>
+    </div>
+    <div class="pr">
+      <span style="flex:60;background:#F4E7D5;color:#220C17"><b>60%</b>CREME · FUNDO</span>
+      <span style="flex:30;background:#4D2337;color:#F4E7D5"><b>30%</b>AÇAÍ · BLOCO</span>
+      <span style="flex:10;background:#FCA203;color:#220C17"><b>10%</b>SOL</span>
+    </div>
+    <div class="av">
+      <div class="ic">✕</div>
+      <div><b>Amarelo sobre creme não existe.</b>
+      <p>Dá 1,67 de contraste — o mínimo é 4,5. É a combinação que mais parece "da marca" e é a que
+        ninguém enxerga. Amarelo só sobre escuro. Se precisar de texto âmbar no claro, use
+        <span style="font-family:var(--m);color:#FCA203">#8A5600</span>.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="w">
+    <p class="tag">03 · As letras</p>
+    <h2>Quatro fontes</h2>
+    <p class="sub">Todas de graça, todas no Canva. Uma quinta fonte é erro.</p>
+    <div class="g" style="gap:10px">
+      <div class="esp"><span class="lb">Títulos<br>e preços</span>
+        <span class="am" style="font-family:var(--d);font-weight:800;font-size:clamp(26px,5vw,44px);letter-spacing:-.04em">açaí de verdade</span></div>
+      <div class="esp"><span class="lb">Texto<br>e descrição</span>
+        <span class="am" style="font-family:Georgia,serif;font-size:clamp(17px,2.6vw,24px);color:var(--luz)">polpa de Igarapé-Miri, sem xarope</span></div>
+      <div class="esp"><span class="lb">Dados<br>e etiqueta</span>
+        <span class="am" style="font-family:var(--m);font-size:clamp(12px,1.8vw,16px);letter-spacing:.08em;color:var(--areia)">LOTE 2026-01-14 · VAL 72 H · 320 G</span></div>
+      <div class="esp"><span class="lb">A mão<br>da casa</span>
+        <span class="am" style="font-family:var(--s);font-size:clamp(26px,4.4vw,40px);color:var(--sol)">hoje tem manga com maracujá</span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="w">
+    <p class="tag">04 · O logo</p>
+    <h2>Minúsculo, com ponto, sempre</h2>
+    <div class="g g3">
+      <div class="lb2"><div class="pv" style="background:#F4E7D5"><span class="lgt" style="color:#4D2337">moka<i style="color:#FCA203">.</i></span></div><div class="cp ok">✓ Sobre creme</div></div>
+      <div class="lb2"><div class="pv" style="background:#1A090F"><span class="lgt" style="color:#F4E7D5">moka<i style="color:#FCA203">.</i></span></div><div class="cp ok">✓ Sobre tinta</div></div>
+      <div class="lb2"><div class="pv" style="background:#FCA203"><span class="lgt" style="color:#220C17">moka<i>.</i></span></div><div class="cp ok">✓ Chapado em sol</div></div>
+      <div class="lb2"><div class="pv" style="background:#F4E7D5"><span class="lgt" style="color:#FCA203">moka<i>.</i></span></div><div class="cp no">✕ Amarelo no claro</div></div>
+      <div class="lb2"><div class="pv" style="background:#1A090F"><span class="lgt" style="color:#F4E7D5;transform:skewX(-12deg)">moka<i style="color:#FCA203">.</i></span></div><div class="cp no">✕ Inclinado ou esticado</div></div>
+      <div class="lb2"><div class="pv" style="background:#1A090F"><span class="lgt" style="font-family:Georgia,serif;color:#F4E7D5;letter-spacing:0">Moka<i style="color:#FCA203">.</i></span></div><div class="cp no">✕ Outra fonte, maiúscula</div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="w">
+    <p class="tag">05 · O Instagram</p>
+    <h2>Trinta por cento produto. Nunca mais que isso.</h2>
+    <p class="sub">Perfil só de açaí para de ser visto. Estes são os cinco pilares e o peso de cada um.</p>
+    <div class="pr" style="height:clamp(58px,8vw,82px)">
+      <span style="flex:30;background:#4D2337;color:#F4E7D5"><b>30%</b>PRODUTO</span>
+      <span style="flex:25;background:#2A1119;color:#F4E7D5;border:1px solid var(--borda)"><b>25%</b>BASTIDOR</span>
+      <span style="flex:20;background:#FCA203;color:#220C17"><b>20%</b>O LUGAR</span>
+      <span style="flex:15;background:#C89469;color:#220C17"><b>15%</b>GENTE</span>
+      <span style="flex:10;background:#D4AE8E;color:#220C17"><b>10%</b>OFERTA</span>
+    </div>
+    <div class="g g4" style="margin-top:22px">
+      <div class="pa"><div class="h">4</div><b>Reels</b><span>por semana</span></div>
+      <div class="pa"><div class="h">2</div><b>Carrosséis</b><span>por semana</span></div>
+      <div class="pa"><div class="h">1</div><b>Foto</b><span>por semana</span></div>
+      <div class="pa"><div class="h">5</div><b>Stories</b><span>por dia</span></div>
+      <div class="pa"><div class="h">2</div><b>Horários</b><span>8h e 16h30</span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="w">
+    <p class="tag">06 · O feed</p>
+    <h2>Nunca dois escuros lado a lado</h2>
+    <p class="sub">A sequência que funciona: produto, lugar, gente — e repete.</p>
+    <div class="ig">
+      <div style="background:#4D2337;color:#F4E7D5">produto</div>
+      <div style="background:#D4AE8E;color:#220C17">o lugar</div>
+      <div style="background:#2A1119;color:#F4E7D5;border:1px solid var(--borda)">gente</div>
+      <div style="background:#C89469;color:#220C17">produto</div>
+      <div style="background:#1A090F;color:#F4E7D5;border:1px solid var(--borda)">bastidor</div>
+      <div style="background:#F4E7D5;color:#220C17">o lugar</div>
+      <div style="background:#4D2337;color:#F4E7D5">produto</div>
+      <div style="background:#FCA203;color:#220C17">oferta</div>
+      <div style="background:#D4AE8E;color:#220C17">gente</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="w">
+    <p class="tag">07 · Os Reels</p>
+    <h2>Doze roteiros. Grava dois por manhã.</h2>
+    <p class="sub">Texto na tela nos 3 primeiros segundos, sempre. A maioria assiste sem som.</p>
+    <div class="g g3">
+      <div class="c"><span class="n">R01 · 20 s</span><h3>A montagem em close</h3><p>Polpa caindo, cada companhia por corte, a mão levando pro deck.</p></div>
+      <div class="c"><span class="n">R02 · 25 s</span><h3>6h40, antes de abrir</h3><p>Luz acendendo, croissant no forno, a placa virando pra aberto.</p></div>
+      <div class="c"><span class="n">R03 · 15 s</span><h3>A maré de hoje</h3><p>Plano único do mar, da porta. Texto com a data e a condição.</p></div>
+      <div class="c"><span class="n">R04 · 22 s</span><h3>A caixa no Airbnb</h3><p>Batida na porta, a cinta rompendo, casal comendo na varanda.</p></div>
+      <div class="c"><span class="n">R05 · 30 s</span><h3>Quem faz o seu açaí</h3><p>Uma pessoa da equipe, nome na tela, uma pergunta só.</p></div>
+      <div class="c"><span class="n">R06 · 18 s</span><h3>P, M ou G?</h3><p>As três lado a lado com o preço. A pergunta gera comentário.</p></div>
+      <div class="c"><span class="n">R07 · 28 s</span><h3>De onde vem a polpa</h3><p>O balde chegando, o lote em close, Igarapé-Miri no rótulo.</p></div>
+      <div class="c"><span class="n">R08 · 24 s</span><h3>Chuva? Café.</h3><p>Dia ruim de praia é dia bom de post. Publicar no dia.</p></div>
+      <div class="c"><span class="n">R09 · 26 s</span><h3>O cliente das 7h</h3><p>O pedido pronto antes de ela pedir.</p></div>
+      <div class="c"><span class="n">R10 · 20 s</span><h3>O teste dos 12 minutos</h3><p>Açaí que derrete em 4 x o nosso, com cronômetro na tela.</p></div>
+      <div class="c"><span class="n">R11 · 30 s</span><h3>20 caixas antes das 8h</h3><p>Time-lapse da linha. Este vende pro anfitrião, não pro hóspede.</p></div>
+      <div class="c"><span class="n">R12 · 22 s</span><h3>O canto que salva a manhã</h3><p>Criança desenhando, pais com café quente atrás.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="w">
+    <p class="tag">08 · O dia nos stories</p>
+    <h2>Cinco momentos</h2>
+    <div class="tira">
+      <div class="pa"><div class="h">7:30</div><b>Abriu</b><span>A loja acordando, com o horário na tela</span></div>
+      <div class="pa"><div class="h">10:00</div><b>O que tem hoje</b><span>Croissant saindo, a lousa do dia</span></div>
+      <div class="pa"><div class="h">13:00</div><b>Bastidor</b><span>A cozinha, o mar, o cachorro no deck</span></div>
+      <div class="pa"><div class="h">16:30</div><b>A tigela</b><span>Montagem + enquete: com ou sem leite condensado</span></div>
+      <div class="pa"><div class="h">19:00</div><b>Fecho</b><span>Pôr do sol da porta. Sem vender nada</span></div>
+    </div>
+    <div class="av" style="margin-top:16px;background:rgba(252,162,3,.1);border-color:rgba(252,162,3,.35)">
+      <div class="ic" style="color:var(--sol)">↻</div>
+      <div><b>A tarefa de maior retorno do dia leva dois minutos.</b>
+      <p>Republicar todo story em que a moka for marcada, em até duas horas. Dá prova social,
+        agrada quem postou e ensina os outros a marcar.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="w">
+    <p class="tag">09 · Google</p>
+    <h2>Vende mais que o Instagram</h2>
+    <p class="sub">Quem procura "açaí perto de mim" às 16h de sábado abre o mapa, não a rede.</p>
+    <div class="g g4">
+      <div class="pa"><div class="h">3</div><b>Fotos novas</b><span>por semana, sem falta</span></div>
+      <div class="pa"><div class="h">150</div><b>Avaliações</b><span>meta do 1º verão</span></div>
+      <div class="pa"><div class="h">4,6</div><b>Nota mínima</b><span>volume pesa tanto quanto</span></div>
+      <div class="pa"><div class="h">24 h</div><b>Pra responder</b><span>todas, inclusive as boas</span></div>
+    </div>
+    <div class="sn" style="margin-top:14px">
+      <div class="bx s"><div class="t">Sempre</div><ul>
+        <li>Horário certo, inclusive em feriado</li>
+        <li>QR de avaliação na cinta da caixa</li>
+        <li>Cardápio com preço preenchido</li>
+      </ul></div>
+      <div class="bx n"><div class="t">Nunca</div><ul>
+        <li>Comprar avaliação</li>
+        <li>Dar desconto em troca de nota</li>
+        <li>Deixar "aberto" e estar fechado</li>
+      </ul></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="w">
+    <p class="tag">10 · Parceiros</p>
+    <h2>Quatro níveis</h2>
+    <p class="sub">Assim a resposta a qualquer pedido de parceria cabe numa frase.</p>
+    <div class="esc">
+      <div class="deg"><div class="lv">1</div><div class="tx"><b>Amigo da casa</b>
+        <span>Vizinho, produtor local, quem traz gente</span></div><div class="vl">10% no balcão</div></div>
+      <div class="deg"><div class="lv">2</div><div class="tx"><b>Indicador</b>
+        <span>Anfitrião de Airbnb, pousada pequena, escola de surfe</span></div><div class="vl">15% do indicado</div></div>
+      <div class="deg"><div class="lv">3</div><div class="tx"><b>Parceiro de canal</b>
+        <span>Gestora com 10+ imóveis, imobiliária</span></div><div class="vl">15% + preço fechado</div></div>
+      <div class="deg"><div class="lv">4</div><div class="tx"><b>Casa parceira</b>
+        <span>Marca da região com público próprio</span></div><div class="vl">caso a caso</div></div>
+    </div>
+    <div class="av" style="margin-top:16px;background:rgba(252,162,3,.1);border-color:rgba(252,162,3,.35)">
+      <div class="ic" style="color:var(--sol)">!</div>
+      <div><b>O café da manhã é indicação, nunca serviço do anfitrião.</b>
+      <p>Quem aluga por temporada e passa a <em>oferecer</em> café da manhã pode ter a locação
+        reclassificada como hospedagem. O hóspede compra da moka; o anfitrião só indica e recebe.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="w">
+    <p class="tag">11 · Blogueiros</p>
+    <h2>Quatro por mês. O quinto ouve não.</h2>
+    <div class="g g3" style="margin-bottom:14px">
+      <div class="c"><span class="n">Formato A</span><h3>Convite aberto</h3><p>Consumo pra dois, sem pedir nada em troca. É o que rende melhor conteúdo.</p></div>
+      <div class="c"><span class="n">Formato B</span><h3>Permuta</h3><p>Consumo pra dois em troca de 1 Reels + 3 stories, em até 5 dias.</p></div>
+      <div class="c"><span class="n">Formato C</span><h3>Contratação</h3><p>Dinheiro, briefing e direito de uso. Só depois de um B que funcionou.</p></div>
+    </div>
+    <div class="sn">
+      <div class="bx s"><div class="t">O que olhar antes</div><ul>
+        <li>Print das cidades da audiência — Garopaba e Imbituba</li>
+        <li>Média de views dos últimos 9 Reels</li>
+        <li>Comentário de gente, não emoji repetido</li>
+        <li>Se já é cliente</li>
+      </ul></div>
+      <div class="bx n"><div class="t">Inegociável</div><ul>
+        <li>#publi ou etiqueta de parceria paga, visível</li>
+        <li>Marcação do perfil e da localização</li>
+        <li>Nada de roteiro ditado por nós</li>
+        <li>Nenhuma promessa de saúde ou emagrecimento</li>
+      </ul></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="w">
+    <p class="tag">12 · O balcão</p>
+    <h2>Seis momentos</h2>
+    <div class="tira" style="margin-bottom:14px">
+      <div class="pa"><div class="h">1</div><b>5 segundos</b><span>Olhar e cumprimentar, mesmo com fila</span></div>
+      <div class="pa"><div class="h">2</div><b>A dúvida</b><span>Uma sugestão. Não três</span></div>
+      <div class="pa"><div class="h">3</div><b>O sim</b><span>"Com ou sem leite condensado?"</span></div>
+      <div class="pa"><div class="h">4</div><b>A espera</b><span>Passou de 4 min, avisa antes de perguntarem</span></div>
+      <div class="pa"><div class="h">5</div><b>A entrega</b><span>Pelo nome, com a colher na mão</span></div>
+      <div class="pa"><div class="h">6</div><b>A saída</b><span>"Volta amanhã, abre às sete"</span></div>
+    </div>
+    <div class="sn">
+      <div class="bx s"><div class="t">Diz</div><ul>
+        <li>"Oi, tudo bem?"</li>
+        <li>"Acabou hoje, mas amanhã tem às 8h"</li>
+        <li>"Foi mal, isso é nosso" — quando erra</li>
+      </ul></div>
+      <div class="bx n"><div class="t">Não diz</div><ul>
+        <li>"Pois não" · "não é comigo"</li>
+        <li>"Tá difícil hoje"</li>
+        <li>"Querida", "amor", "chefe"</li>
+      </ul></div>
+    </div>
+    <div class="av" style="margin-top:14px;background:rgba(78,213,150,.09);border-color:rgba(78,213,150,.3)">
+      <div class="ic" style="color:var(--verde)">✓</div>
+      <div><b>Quem recebe a reclamação resolve.</b>
+      <p>Sem chamar ninguém, até o valor de um pedido. Refaz, devolve ou troca — na hora.
+        Um açaí custa menos que uma avaliação de uma estrela.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="w">
+    <p class="tag">13 · Antes de abrir</p>
+    <h2>O que não pode ficar pra depois</h2>
+    <div class="ck">
+      <div><i>60 dias</i>Logo fechado em .ai e .svg, nas cinco versões</div>
+      <div><i>60 dias</i>Perfil do Google criado e <strong>verificado</strong> — a verificação demora</div>
+      <div><i>60 dias</i>Cor convertida pra CMYK e vinil, com amostra física aprovada</div>
+      <div><i>30 dias</i>As 24 fotos do banco mínimo — duas manhãs de trabalho</div>
+      <div><i>30 dias</i>Uniformes provados, kit de parceiro impresso</div>
+      <div><i>30 dias</i>WhatsApp Business com saudação, catálogo e respostas rápidas</div>
+      <div><i>15 dias</i>Nove posts já publicados — grid vazio na abertura é desperdício</div>
+      <div><i>15 dias</i>40 imóveis visitados, kit entregue</div>
+      <div><i>no dia</i>Alguém escalado só pra gravar. A abertura não se repete</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="w">
+    <p class="tag">O teste</p>
+    <h2>Três perguntas antes de mandar pra gráfica</h2>
+    <div class="g g3">
+      <div class="c"><span class="n">01</span><h3>Dá pra reconhecer que é da moka sem ler o nome?</h3></div>
+      <div class="c"><span class="n">02</span><h3>Alguém de longe, sob sol, lê o que importa?</h3></div>
+      <div class="c"><span class="n">03</span><h3>Isso é verdade — o produto, o preço, o prazo?</h3></div>
+    </div>
+    <p class="sc" style="margin-top:22px">três sins, ou volta pra prancheta.</p>
+
+    <div class="fim">
+      <h2 style="font-size:clamp(24px,4.4vw,38px);margin-bottom:12px">Precisa da medida exata?</h2>
+      <p>Tamanho mínimo do logo bordado, gramatura do papel, contraste de cada par de cor,
+        calendário de 30 dias, ficha de cada peça — está tudo no manual completo, em 51 seções.</p>
+      <a class="bt" href="https://claude.ai/code/artifact/dc8fa59e-0822-4f2b-a2b8-7501d1b1f05c">Abrir o manual completo →</a>
+    </div>
+  </div>
+</section>
+
+<footer><div class="w">moka · Praia da Ferrugem, 2956 — Garopaba/SC &nbsp;·&nbsp; resumo visual do manual v1.0</div></footer>
